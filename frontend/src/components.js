@@ -671,7 +671,26 @@ const ChatInterface = ({ user, onLogout }) => {
                     ? 'bg-[#2a2a2a] text-gray-100' 
                     : 'bg-gray-100 text-[#181818]'
               }`}>
-                <p className="whitespace-pre-wrap">{msg.text}</p>
+                <div className="whitespace-pre-wrap">
+                  {msg.text.split('\n').map((line, index) => {
+                    // Handle bold text formatting
+                    if (line.includes('**')) {
+                      const parts = line.split('**');
+                      return (
+                        <p key={index} className={index > 0 ? 'mt-2' : ''}>
+                          {parts.map((part, partIndex) => 
+                            partIndex % 2 === 1 ? (
+                              <strong key={partIndex} className="font-semibold">{part}</strong>
+                            ) : (
+                              part
+                            )
+                          )}
+                        </p>
+                      );
+                    }
+                    return line ? <p key={index} className={index > 0 ? 'mt-2' : ''}>{line}</p> : <br key={index} />;
+                  })}
+                </div>
                 <p className={`text-xs mt-2 opacity-70`}>
                   {new Date(msg.timestamp).toLocaleTimeString()}
                 </p>
