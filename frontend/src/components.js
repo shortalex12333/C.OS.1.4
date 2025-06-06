@@ -474,23 +474,35 @@ const ChatInterface = ({ user, onLogout }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
+        mode: 'cors',
+        credentials: 'omit',
         body: JSON.stringify({
           userId: user.id,
           chatId: conversationId
         })
       });
 
-      const data = await response.json();
-      
-      if (data.success && data.messages) {
-        const conversation = conversations.find(conv => conv.id === conversationId);
-        if (conversation) {
-          setActiveConversation({
-            ...conversation,
-            messages: data.messages
-          });
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.success && data.messages) {
+          const conversation = conversations.find(conv => conv.id === conversationId);
+          if (conversation) {
+            setActiveConversation({
+              ...conversation,
+              messages: data.messages
+            });
+            return;
+          }
         }
+      }
+      
+      // If webhook fails or no data, use existing mock data
+      const conversation = conversations.find(conv => conv.id === conversationId);
+      if (conversation) {
+        setActiveConversation(conversation);
       }
     } catch (error) {
       console.error('Fetch conversation error:', error);
