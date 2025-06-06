@@ -360,7 +360,10 @@ const ChatInterface = ({ user, onLogout }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
+        mode: 'cors',
+        credentials: 'omit',
         body: JSON.stringify({
           userId: user.id,
           chatId: activeConversation.id,
@@ -369,29 +372,51 @@ const ChatInterface = ({ user, onLogout }) => {
         })
       });
 
-      const data = await response.json();
-      
-      if (data.success) {
-        const aiMessage = {
-          id: Date.now() + 1,
-          text: data.response,
-          isUser: false,
-          timestamp: data.timestamp
-        };
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.success) {
+          const aiMessage = {
+            id: Date.now() + 1,
+            text: data.response,
+            isUser: false,
+            timestamp: data.timestamp
+          };
 
-        setActiveConversation(prev => ({
-          ...prev,
-          messages: [...prev.messages, aiMessage],
-          lastMessage: data.response
-        }));
+          setActiveConversation(prev => ({
+            ...prev,
+            messages: [...prev.messages, aiMessage],
+            lastMessage: data.response
+          }));
+
+          // Update conversation in list
+          setConversations(prev => prev.map(conv => 
+            conv.id === activeConversation.id 
+              ? { ...conv, lastMessage: data.response, timestamp: data.timestamp }
+              : conv
+          ));
+        } else {
+          throw new Error(data.message || 'Chat request failed');
+        }
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
       console.error('Message send error:', error);
-      // Mock AI response for demo
+      
+      // Mock AI response for demo when webhook fails
       setTimeout(() => {
+        const responses = [
+          "I understand your question. As an AI assistant, I'm here to help with a wide variety of tasks including answering questions, providing explanations, helping with creative projects, and more. How can I assist you further?",
+          "That's a great question! Let me help you with that. I can provide detailed explanations, code examples, creative writing assistance, and much more.",
+          "I'm happy to help! Based on your message, I can offer insights and assistance. What specific aspect would you like me to focus on?",
+          "Thanks for your message! I'm designed to be helpful, harmless, and honest. I can assist with analysis, creative tasks, problem-solving, and general questions.",
+          "I appreciate you reaching out. As your AI assistant, I can help break down complex topics, provide step-by-step guidance, or explore creative solutions together."
+        ];
+        
         const aiResponse = {
           id: Date.now() + 1,
-          text: "I understand your question. As an AI assistant, I'm here to help with a wide variety of tasks including answering questions, providing explanations, helping with creative projects, and more. How can I assist you further?",
+          text: responses[Math.floor(Math.random() * responses.length)],
           isUser: false,
           timestamp: Date.now()
         };
@@ -401,6 +426,13 @@ const ChatInterface = ({ user, onLogout }) => {
           messages: [...prev.messages, aiResponse],
           lastMessage: aiResponse.text
         }));
+
+        // Update conversation in list
+        setConversations(prev => prev.map(conv => 
+          conv.id === activeConversation.id 
+            ? { ...conv, lastMessage: aiResponse.text, timestamp: aiResponse.timestamp }
+            : conv
+        ));
       }, 1500);
     }
 
