@@ -95,7 +95,10 @@ const AuthScreen = ({ onLogin }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
+        mode: 'cors',
+        credentials: 'omit',
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
@@ -103,22 +106,35 @@ const AuthScreen = ({ onLogin }) => {
         })
       });
 
-      const data = await response.json();
-
-      if (data.success) {
-        onLogin(data.user, data.token);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          onLogin(data.user, data.token);
+        } else {
+          setError(data.message || 'Authentication failed');
+        }
       } else {
-        setError(data.message || 'Authentication failed');
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
       console.error('Auth error:', error);
+      
+      // Check if it's a CORS error
+      if (error.message.includes('CORS') || error.message.includes('NetworkError')) {
+        setError('Network connection issue. Using demo mode.');
+      } else {
+        setError('Authentication service unavailable. Using demo mode.');
+      }
+      
       // For demo purposes, simulate successful login
-      const mockUser = {
-        id: 'demo_user_123',
-        email: formData.email,
-        name: formData.name || 'Demo User'
-      };
-      onLogin(mockUser, 'demo_token_123');
+      setTimeout(() => {
+        const mockUser = {
+          id: 'demo_user_123',
+          email: formData.email,
+          name: formData.name || 'Demo User'
+        };
+        onLogin(mockUser, 'demo_token_123');
+      }, 1000);
     }
 
     setIsLoading(false);
