@@ -514,13 +514,43 @@ const ChatInterface = ({ user, onLogout }) => {
 
       if (response.ok) {
         const data = await response.json();
+        console.log('Fetch conversation response:', data); // Debug log
         
         if (data.success && data.messages) {
+          // Process messages to format rich content
+          const processedMessages = data.messages.map(msg => {
+            if (!msg.isUser && msg.content) {
+              // Format AI messages with rich content
+              let formattedText = msg.content;
+              
+              if (msg.pattern_insight) {
+                formattedText += '\n\n💡 **Insight:** ' + msg.pattern_insight;
+              }
+              
+              if (msg.action_items && Array.isArray(msg.action_items) && msg.action_items.length > 0) {
+                formattedText += '\n\n📋 **Action Items:**';
+                msg.action_items.forEach((item, index) => {
+                  formattedText += `\n${index + 1}. ${item}`;
+                });
+              }
+              
+              if (msg.strategic_question) {
+                formattedText += '\n\n🤔 **Strategic Question:** ' + msg.strategic_question;
+              }
+              
+              return {
+                ...msg,
+                text: formattedText
+              };
+            }
+            return msg;
+          });
+          
           const conversation = conversations.find(conv => conv.id === conversationId);
           if (conversation) {
             setActiveConversation({
               ...conversation,
-              messages: data.messages
+              messages: processedMessages
             });
             return;
           }
