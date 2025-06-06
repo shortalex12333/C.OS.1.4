@@ -515,7 +515,27 @@ const ChatInterface = ({ user, onLogout }) => {
   };
 
   const fetchConversation = async (conversationId) => {
+    // Show loading state
+    const conversation = conversations.find(conv => conv.id === conversationId);
+    if (conversation) {
+      // Set conversation as active with loading state
+      setActiveConversation({
+        ...conversation,
+        messages: [
+          {
+            id: 'loading',
+            text: 'Loading conversation...',
+            isUser: false,
+            timestamp: Date.now(),
+            isLoading: true
+          }
+        ]
+      });
+    }
+
     try {
+      console.log('Fetching conversation:', conversationId, 'for user:', user.id);
+      
       const response = await fetch('https://ventruk.app.n8n.cloud/webhook/c7/fetch-chat', {
         method: 'POST',
         headers: {
@@ -532,60 +552,87 @@ const ChatInterface = ({ user, onLogout }) => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Fetch conversation response:', data); // Debug log
+        console.log('Fetch conversation response:', data);
         
-        if (data.success && data.messages) {
-          // Process messages to format rich content
-          const processedMessages = data.messages.map(msg => {
-            if (!msg.isUser && msg.content) {
-              // Format AI messages with rich content
-              let formattedText = msg.content;
-              
-              if (msg.pattern_insight) {
-                formattedText += '\n\n💡 **Insight:** ' + msg.pattern_insight;
+        if (data.success) {
+          // Process messages to format rich content if they exist
+          let processedMessages = [];
+          
+          if (data.messages && Array.isArray(data.messages)) {
+            processedMessages = data.messages.map(msg => {
+              if (!msg.isUser && (msg.content || msg.pattern_insight || msg.action_items)) {
+                // Format AI messages with rich content
+                let formattedText = msg.content || msg.text || '';
+                
+                if (msg.pattern_insight) {
+                  formattedText += '\n\n💡 **Insight:** ' + msg.pattern_insight;
+                }
+                
+                if (msg.action_items && Array.isArray(msg.action_items) && msg.action_items.length > 0) {
+                  formattedText += '\n\n📋 **Action Items:**';
+                  msg.action_items.forEach((item, index) => {
+                    formattedText += `\n${index + 1}. ${item}`;
+                  });
+                }
+                
+                if (msg.strategic_question) {
+                  formattedText += '\n\n🤔 **Strategic Question:** ' + msg.strategic_question;
+                }
+                
+                return {
+                  ...msg,
+                  text: formattedText
+                };
               }
-              
-              if (msg.action_items && Array.isArray(msg.action_items) && msg.action_items.length > 0) {
-                formattedText += '\n\n📋 **Action Items:**';
-                msg.action_items.forEach((item, index) => {
-                  formattedText += `\n${index + 1}. ${item}`;
-                });
-              }
-              
-              if (msg.strategic_question) {
-                formattedText += '\n\n🤔 **Strategic Question:** ' + msg.strategic_question;
-              }
-              
               return {
                 ...msg,
-                text: formattedText
+                text: msg.text || msg.content || msg.message || ''
               };
-            }
-            return msg;
-          });
-          
-          const conversation = conversations.find(conv => conv.id === conversationId);
-          if (conversation) {
-            setActiveConversation({
-              ...conversation,
-              messages: processedMessages
             });
-            return;
+          } else {
+            // No messages in this conversation yet
+            processedMessages = [];
           }
+          
+          if (conversation) {
+            const updatedConversation = {
+              ...conversation,
+              messages: processedMessages,
+              lastMessage: data.lastMessage || (processedMessages.length > 0 ? processedMessages[processedMessages.length - 1].text.substring(0, 100) + '...' : 'No messages yet')
+            };
+            
+            setActiveConversation(updatedConversation);
+            
+            // Update the conversation in the list with latest info
+            setConversations(prev => prev.map(conv => 
+              conv.id === conversationId 
+                ? updatedConversation
+                : conv
+            ));
+          }
+          return;
         }
       }
       
-      // If webhook fails or no data, use existing mock data
-      const conversation = conversations.find(conv => conv.id === conversationId);
-      if (conversation) {
-        setActiveConversation(conversation);
-      }
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      
     } catch (error) {
       console.error('Fetch conversation error:', error);
-      // Use existing mock data
-      const conversation = conversations.find(conv => conv.id === conversationId);
+      
+      // Show error message if webhook fails
       if (conversation) {
-        setActiveConversation(conversation);
+        setActiveConversation({
+          ...conversation,
+          messages: [
+            {
+              id: 'error',
+              text: 'Failed to load conversation. This might be a new conversation or the server is unavailable. You can start chatting and your messages will be saved.',
+              isUser: false,
+              timestamp: Date.now(),
+              isError: true
+            }
+          ]
+        });
       }
     }
   };
