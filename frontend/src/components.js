@@ -285,49 +285,67 @@ const ChatInterface = ({ user, onLogout }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Mock conversations data
+  // Initialize conversations - fetch list from webhook or use mock data
   useEffect(() => {
-    const mockConversations = [
-      {
-        id: 1,
-        title: "Getting Started with AI",
-        lastMessage: "Hello! How can I help you today?",
-        timestamp: Date.now() - 86400000,
-        messages: [
-          { id: 1, text: "Hello! How can I help you today?", isUser: false, timestamp: Date.now() - 86400000 },
-          { id: 2, text: "I'd like to know about AI capabilities", isUser: true, timestamp: Date.now() - 86300000 },
-          { id: 3, text: "I'd be happy to help! AI can assist with various tasks like answering questions, creative writing, code generation, analysis, and much more. What specific area interests you?", isUser: false, timestamp: Date.now() - 86200000 }
-        ]
-      },
-      {
-        id: 2,
-        title: "Python Programming Help",
-        lastMessage: "Great! That's a solid foundation.",
-        timestamp: Date.now() - 172800000,
-        messages: [
-          { id: 1, text: "Can you help me with Python programming?", isUser: true, timestamp: Date.now() - 172800000 },
-          { id: 2, text: "Absolutely! I'd be happy to help with Python. What specific topic or problem are you working on?", isUser: false, timestamp: Date.now() - 172700000 },
-          { id: 3, text: "I'm learning about data structures", isUser: true, timestamp: Date.now() - 172600000 },
-          { id: 4, text: "Great! That's a solid foundation. Python has excellent built-in data structures like lists, dictionaries, sets, and tuples. Which one would you like to explore first?", isUser: false, timestamp: Date.now() - 172500000 }
-        ]
-      },
-      {
-        id: 3,
-        title: "Creative Writing Ideas",
-        lastMessage: "Here are some creative prompts...",
-        timestamp: Date.now() - 259200000,
-        messages: [
-          { id: 1, text: "I need help with creative writing", isUser: true, timestamp: Date.now() - 259200000 },
-          { id: 2, text: "I'd love to help with your creative writing! What type of writing are you interested in - short stories, poetry, novels, or something else?", isUser: false, timestamp: Date.now() - 259100000 },
-          { id: 3, text: "Short stories, I'm looking for interesting prompts", isUser: true, timestamp: Date.now() - 259000000 },
-          { id: 4, text: "Here are some creative prompts to spark your imagination:\n\n1. A character discovers they can see 24 hours into the future, but only on Tuesdays\n2. The last bookstore on Earth receives a mysterious midnight delivery\n3. A time traveler keeps arriving at the same coffee shop, but in different decades\n\nWhich one interests you most?", isUser: false, timestamp: Date.now() - 258900000 }
-        ]
+    const initializeConversations = async () => {
+      try {
+        // Try to fetch conversation list from webhook
+        const response = await fetch('https://ventruk.app.n8n.cloud/webhook/c7/fetch-conversations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          mode: 'cors',
+          credentials: 'omit',
+          body: JSON.stringify({
+            userId: user.id
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.conversations) {
+            setConversations(data.conversations);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch conversations list:', error);
       }
-    ];
-    
-    setConversations(mockConversations);
-    setActiveConversation(mockConversations[0]);
-  }, []);
+
+      // Fallback to mock conversations (empty - will be populated when clicked)
+      const mockConversations = [
+        {
+          id: 1,
+          title: "Getting Started with AI",
+          lastMessage: "Click to load conversation...",
+          timestamp: Date.now() - 86400000,
+          messages: [] // Empty - will be populated via webhook
+        },
+        {
+          id: 2,
+          title: "Python Programming Help",
+          lastMessage: "Click to load conversation...",
+          timestamp: Date.now() - 172800000,
+          messages: [] // Empty - will be populated via webhook
+        },
+        {
+          id: 3,
+          title: "Creative Writing Ideas",
+          lastMessage: "Click to load conversation...",
+          timestamp: Date.now() - 259200000,
+          messages: [] // Empty - will be populated via webhook
+        }
+      ];
+      
+      setConversations(mockConversations);
+    };
+
+    if (user?.id) {
+      initializeConversations();
+    }
+  }, [user]);
 
   // Auto scroll to bottom
   useEffect(() => {
