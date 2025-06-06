@@ -752,46 +752,79 @@ const ChatInterface = ({ user, onLogout }) => {
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {activeConversation?.messages.map((msg) => (
-            <motion.div
-              key={msg.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}
-            >
-              <div className={`max-w-xs lg:max-w-md xl:max-w-lg px-4 py-3 rounded-2xl ${
-                msg.isUser 
-                  ? 'bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white' 
-                  : isDarkMode 
-                    ? 'bg-[#2a2a2a] text-gray-100' 
-                    : 'bg-gray-100 text-[#181818]'
-              }`}>
-                <div className="whitespace-pre-wrap">
-                  {msg.text.split('\n').map((line, index) => {
-                    // Handle bold text formatting
-                    if (line.includes('**')) {
-                      const parts = line.split('**');
-                      return (
-                        <p key={index} className={index > 0 ? 'mt-2' : ''}>
-                          {parts.map((part, partIndex) => 
-                            partIndex % 2 === 1 ? (
-                              <strong key={partIndex} className="font-semibold">{part}</strong>
-                            ) : (
-                              part
-                            )
-                          )}
-                        </p>
-                      );
-                    }
-                    return line ? <p key={index} className={index > 0 ? 'mt-2' : ''}>{line}</p> : <br key={index} />;
-                  })}
+          {activeConversation?.messages?.length === 0 ? (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-full flex items-center justify-center">
+                  <MessageSquare className="text-white" size={24} />
                 </div>
-                <p className={`text-xs mt-2 opacity-70`}>
-                  {new Date(msg.timestamp).toLocaleTimeString()}
+                <h3 className={`text-lg font-medium ${isDarkMode ? 'text-white' : 'text-[#181818]'} mb-2`}>
+                  Start a Conversation
+                </h3>
+                <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Send a message to begin this conversation.
                 </p>
               </div>
-            </motion.div>
-          ))}
+            </div>
+          ) : (
+            activeConversation?.messages.map((msg) => (
+              <motion.div
+                key={msg.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}
+              >
+                <div className={`max-w-xs lg:max-w-md xl:max-w-lg px-4 py-3 rounded-2xl ${
+                  msg.isUser 
+                    ? 'bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white' 
+                    : msg.isLoading
+                      ? isDarkMode ? 'bg-[#2a2a2a] text-gray-400' : 'bg-gray-100 text-gray-500'
+                      : msg.isError
+                        ? isDarkMode ? 'bg-red-900/50 text-red-200' : 'bg-red-100 text-red-700'
+                        : isDarkMode 
+                          ? 'bg-[#2a2a2a] text-gray-100' 
+                          : 'bg-gray-100 text-[#181818]'
+                }`}>
+                  <div className="whitespace-pre-wrap">
+                    {msg.isLoading ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-[#73c2e2] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                          <div className="w-2 h-2 bg-[#73c2e2] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                          <div className="w-2 h-2 bg-[#73c2e2] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                        </div>
+                        <span>Loading conversation...</span>
+                      </div>
+                    ) : (
+                      msg.text.split('\n').map((line, index) => {
+                        // Handle bold text formatting
+                        if (line.includes('**')) {
+                          const parts = line.split('**');
+                          return (
+                            <p key={index} className={index > 0 ? 'mt-2' : ''}>
+                              {parts.map((part, partIndex) => 
+                                partIndex % 2 === 1 ? (
+                                  <strong key={partIndex} className="font-semibold">{part}</strong>
+                                ) : (
+                                  part
+                                )
+                              )}
+                            </p>
+                          );
+                        }
+                        return line ? <p key={index} className={index > 0 ? 'mt-2' : ''}>{line}</p> : <br key={index} />;
+                      })
+                    )}
+                  </div>
+                  {!msg.isLoading && (
+                    <p className={`text-xs mt-2 opacity-70`}>
+                      {new Date(msg.timestamp).toLocaleTimeString()}
+                    </p>
+                  )}
+                </div>
+              </motion.div>
+            ))
+          )}
           
           {isTyping && (
             <motion.div
