@@ -374,25 +374,53 @@ const ChatInterface = ({ user, onLogout }) => {
 
       if (response.ok) {
         const data = await response.json();
+        console.log('Webhook response:', data); // Debug log
         
         if (data.success) {
+          // Format the AI response with content, pattern_insight, and action_items
+          let aiResponseText = '';
+          
+          // Add main content
+          if (data.content) {
+            aiResponseText += data.content;
+          }
+          
+          // Add pattern insight
+          if (data.pattern_insight) {
+            aiResponseText += '\n\n💡 **Insight:** ' + data.pattern_insight;
+          }
+          
+          // Add action items
+          if (data.action_items && Array.isArray(data.action_items) && data.action_items.length > 0) {
+            aiResponseText += '\n\n📋 **Action Items:**';
+            data.action_items.forEach((item, index) => {
+              aiResponseText += `\n${index + 1}. ${item}`;
+            });
+          }
+          
+          // Add strategic question if present
+          if (data.strategic_question) {
+            aiResponseText += '\n\n🤔 **Strategic Question:** ' + data.strategic_question;
+          }
+          
           const aiMessage = {
             id: Date.now() + 1,
-            text: data.response,
+            text: aiResponseText,
             isUser: false,
-            timestamp: data.timestamp
+            timestamp: data.timestamp || Date.now(),
+            rawData: data // Store full webhook response for potential future use
           };
 
           setActiveConversation(prev => ({
             ...prev,
             messages: [...prev.messages, aiMessage],
-            lastMessage: data.response
+            lastMessage: data.content || aiResponseText.substring(0, 100) + '...'
           }));
 
           // Update conversation in list
           setConversations(prev => prev.map(conv => 
             conv.id === activeConversation.id 
-              ? { ...conv, lastMessage: data.response, timestamp: data.timestamp }
+              ? { ...conv, lastMessage: data.content || aiResponseText.substring(0, 100) + '...', timestamp: data.timestamp || Date.now() }
               : conv
           ));
         } else {
