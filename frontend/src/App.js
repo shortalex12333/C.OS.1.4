@@ -73,13 +73,18 @@ function App() {
   const handleLogout = async () => {
     try {
       const token = localStorage.getItem('celeste7_token');
-      await fetch('https://ventruk.app.n8n.cloud/webhook/c7/auth/logout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token })
-      });
+      if (token) {
+        await fetch('https://ventruk.app.n8n.cloud/webhook/c7/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          mode: 'cors',
+          credentials: 'omit',
+          body: JSON.stringify({ token })
+        });
+      }
     } catch (error) {
       console.error('Logout error:', error);
     }
