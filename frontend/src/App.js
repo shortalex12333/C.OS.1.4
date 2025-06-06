@@ -26,27 +26,33 @@ function App() {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              'Accept': 'application/json',
             },
+            mode: 'cors',
+            credentials: 'omit',
             body: JSON.stringify({ token })
           });
           
           if (response.ok) {
-            setUser(JSON.parse(userData));
-            setIsAuthenticated(true);
+            const data = await response.json();
+            if (data.success) {
+              setUser(JSON.parse(userData));
+              setIsAuthenticated(true);
+            } else {
+              // Invalid token, clear storage
+              localStorage.removeItem('celeste7_token');
+              localStorage.removeItem('celeste7_user');
+            }
           } else {
-            // Invalid token, clear storage
-            localStorage.removeItem('celeste7_token');
-            localStorage.removeItem('celeste7_user');
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
         } catch (error) {
           console.error('Session verification failed:', error);
-          // For demo purposes, auto-login with mock data
-          setUser({ 
-            id: 'demo_user_123', 
-            email: 'demo@celeste7.com', 
-            name: 'Demo User' 
-          });
-          setIsAuthenticated(true);
+          // For demo purposes, auto-login with mock data if there's stored user data
+          if (userData) {
+            setUser(JSON.parse(userData));
+            setIsAuthenticated(true);
+          }
         }
       }
       
