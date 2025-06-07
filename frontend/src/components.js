@@ -194,39 +194,40 @@ const OnboardingScreen = ({ user, onComplete }) => {
   const handleSubmit = async () => {
     setIsSubmitting(true);
 
-    const profileData = {
-      userId: user.id,
-      email: user.email,
-      name: user.name,
-      ageRange: answers.ageRange,
-      mainFocus: answers.mainFocus,
-      workType: answers.workType,
-      biggestChallenge: answers.biggestChallenge,
-      timestamp: Date.now()
+    // Send final stage (4) with complete profile data
+    const completeProfileData = {
+      age_range: answers.age_range,
+      primary_goal: answers.primary_goal,
+      work_style: answers.work_style,
+      biggest_challenge: answers.biggest_challenge
     };
 
     try {
-      const response = await fetch('https://ventruk.app.n8n.cloud/webhook/c7/profile-building', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        mode: 'cors',
-        credentials: 'omit',
-        body: JSON.stringify(profileData)
-      });
+      const finalResponse = await sendStageData(4, completeProfileData);
+      
+      // Store the complete profile data locally
+      const profileData = {
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+        ...completeProfileData,
+        timestamp: Date.now(),
+        finalResponse: finalResponse
+      };
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Profile building response:', data);
-      }
+      onComplete(profileData);
     } catch (error) {
-      console.error('Profile building error:', error);
+      console.error('Final submission error:', error);
+      // Complete onboarding even if final submission fails
+      onComplete({
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+        ...completeProfileData,
+        timestamp: Date.now()
+      });
     }
 
-    // Complete onboarding regardless of webhook success
-    onComplete(profileData);
     setIsSubmitting(false);
   };
 
