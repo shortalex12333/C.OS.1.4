@@ -67,6 +67,255 @@ const LoadingScreen = () => {
   );
 };
 
+// Onboarding Screen Component
+const OnboardingScreen = ({ user, onComplete }) => {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [answers, setAnswers] = useState({
+    ageRange: '',
+    mainFocus: '',
+    workType: '',
+    biggestChallenge: ''
+  });
+
+  const steps = [
+    {
+      id: 1,
+      question: "What's your age range?",
+      field: 'ageRange',
+      options: [
+        "18-22",
+        "23-26", 
+        "27-30",
+        "31+"
+      ]
+    },
+    {
+      id: 2,
+      question: "What's your main focus right now?",
+      field: 'mainFocus',
+      options: [
+        "Growing my business",
+        "Career advancement",
+        "Fitness & health",
+        "Being more productive",
+        "Work-life balance"
+      ]
+    },
+    {
+      id: 3,
+      question: "How do you typically work?",
+      field: 'workType',
+      options: [
+        "Entrepreneur/Self-employed",
+        "Remote employee",
+        "Office-based",
+        "Student",
+        "Freelancer/Contractor"
+      ]
+    },
+    {
+      id: 4,
+      question: "What's your biggest challenge?",
+      field: 'biggestChallenge',
+      options: [
+        "Procrastination",
+        "Staying focused",
+        "Following through on plans",
+        "Time management",
+        "Being consistent"
+      ]
+    }
+  ];
+
+  const currentStepData = steps.find(step => step.id === currentStep);
+  const progressPercentage = (currentStep / steps.length) * 100;
+
+  const handleOptionSelect = (option) => {
+    setAnswers(prev => ({
+      ...prev,
+      [currentStepData.field]: option
+    }));
+  };
+
+  const handleNext = () => {
+    if (currentStep < steps.length) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      handleSubmit();
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+
+    const profileData = {
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+      ageRange: answers.ageRange,
+      mainFocus: answers.mainFocus,
+      workType: answers.workType,
+      biggestChallenge: answers.biggestChallenge,
+      timestamp: Date.now()
+    };
+
+    try {
+      const response = await fetch('https://ventruk.app.n8n.cloud/webhook/c7/profile-building', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        mode: 'cors',
+        credentials: 'omit',
+        body: JSON.stringify(profileData)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Profile building response:', data);
+      }
+    } catch (error) {
+      console.error('Profile building error:', error);
+    }
+
+    // Complete onboarding regardless of webhook success
+    onComplete(profileData);
+    setIsSubmitting(false);
+  };
+
+  const isStepComplete = answers[currentStepData.field] !== '';
+  const canProceed = isStepComplete;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#73c2e2] via-[#badde9] to-[#73c2e2] flex items-center justify-center p-4">
+      <motion.div 
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-bold text-[#181818]" style={{ fontFamily: 'Eloquia-Text, sans-serif' }}>
+              Quick Setup
+            </h1>
+            <span className="text-gray-500 text-sm font-medium">
+              {currentStep} of {steps.length}
+            </span>
+          </div>
+          
+          {/* Progress Bar */}
+          <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
+            <motion.div 
+              className="bg-gradient-to-r from-[#73c2e2] to-[#badde9] h-2 rounded-full"
+              initial={{ width: '25%' }}
+              animate={{ width: `${progressPercentage}%` }}
+              transition={{ duration: 0.3 }}
+            />
+          </div>
+
+          {/* Question */}
+          <motion.h2 
+            className="text-xl font-semibold text-[#181818] mb-6"
+            key={currentStep}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            {currentStepData.question}
+          </motion.h2>
+        </div>
+
+        {/* Options */}
+        <motion.div 
+          className="space-y-3 mb-8"
+          key={currentStep}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
+          {currentStepData.options.map((option, index) => (
+            <motion.button
+              key={option}
+              onClick={() => handleOptionSelect(option)}
+              className={`w-full p-4 rounded-xl border-2 text-left font-medium transition-all ${
+                answers[currentStepData.field] === option
+                  ? 'border-[#73c2e2] bg-gradient-to-r from-[#73c2e2]/10 to-[#badde9]/10 text-[#181818]'
+                  : 'border-gray-200 hover:border-[#73c2e2]/50 hover:bg-gray-50 text-gray-700'
+              }`}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {option}
+            </motion.button>
+          ))}
+        </motion.div>
+
+        {/* Navigation */}
+        <div className="flex items-center justify-between">
+          <button
+            onClick={handleBack}
+            disabled={currentStep === 1}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
+              currentStep === 1 
+                ? 'text-gray-400 cursor-not-allowed' 
+                : 'text-gray-600 hover:text-[#73c2e2] hover:bg-gray-100'
+            }`}
+          >
+            <ChevronLeft size={18} />
+            <span>Back</span>
+          </button>
+
+          <motion.button
+            onClick={handleNext}
+            disabled={!canProceed || isSubmitting}
+            className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all ${
+              canProceed && !isSubmitting
+                ? 'bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white hover:shadow-lg transform hover:scale-[1.02]'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+            whileHover={canProceed ? { scale: 1.02 } : {}}
+            whileTap={canProceed ? { scale: 0.98 } : {}}
+          >
+            {isSubmitting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Setting up...</span>
+              </>
+            ) : currentStep === steps.length ? (
+              <span>Complete Setup</span>
+            ) : (
+              <>
+                <span>Next</span>
+                <ChevronRight size={18} />
+              </>
+            )}
+          </motion.button>
+        </div>
+
+        {/* Footer message */}
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-500">
+            This helps us personalize your AI experience
+          </p>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
 // Authentication Screen Component
 const AuthScreen = ({ onLogin }) => {
   const [isSignUp, setIsSignUp] = useState(false);
