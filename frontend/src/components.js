@@ -168,7 +168,16 @@ const OnboardingScreen = ({ user, onComplete }) => {
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    const currentValue = answers[currentStepData.field];
+    
+    // Send current stage data
+    const stageData = {
+      [currentStepData.field]: currentValue
+    };
+    
+    await sendStageData(currentStep, stageData);
+    
     if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1);
     } else {
