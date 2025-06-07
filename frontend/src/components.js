@@ -12,7 +12,9 @@ import {
   MessageSquare,
   Trash2,
   Eye,
-  EyeOff
+  EyeOff,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 // Loading Screen Component
