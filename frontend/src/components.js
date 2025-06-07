@@ -139,6 +139,35 @@ const OnboardingScreen = ({ user, onComplete }) => {
     }));
   };
 
+  const sendStageData = async (stage, stageData) => {
+    try {
+      console.log(`Sending stage ${stage} data:`, stageData);
+      
+      const response = await fetch('https://ventruk.app.n8n.cloud/webhook/c7/profile-building', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        mode: 'cors',
+        credentials: 'omit',
+        body: JSON.stringify({
+          userId: user.id,
+          stage: stage,
+          data: stageData
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`Stage ${stage} response:`, data);
+        return data;
+      }
+    } catch (error) {
+      console.error(`Stage ${stage} error:`, error);
+    }
+  };
+
   const handleNext = () => {
     if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1);
