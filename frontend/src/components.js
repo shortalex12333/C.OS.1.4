@@ -72,10 +72,10 @@ const OnboardingScreen = ({ user, onComplete }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [answers, setAnswers] = useState({
-    ageRange: '',
-    mainFocus: '',
-    workType: '',
-    biggestChallenge: ''
+    age_range: '',
+    primary_goal: '',
+    work_style: '',
+    biggest_challenge: ''
   });
 
   const steps = [
