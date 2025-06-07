@@ -5,7 +5,8 @@ import Components from './components';
 const { 
   AuthScreen, 
   ChatInterface, 
-  LoadingScreen 
+  LoadingScreen,
+  OnboardingScreen
 } = Components;
 
 function App() {
