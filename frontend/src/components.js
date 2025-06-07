@@ -283,24 +283,31 @@ const OnboardingScreen = ({ user, onComplete }) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
         >
-          {currentStepData.options.map((option, index) => (
-            <motion.button
-              key={option}
-              onClick={() => handleOptionSelect(option)}
-              className={`w-full p-4 rounded-xl border-2 text-left font-medium transition-all ${
-                answers[currentStepData.field] === option
-                  ? 'border-[#73c2e2] bg-gradient-to-r from-[#73c2e2]/10 to-[#badde9]/10 text-[#181818]'
-                  : 'border-gray-200 hover:border-[#73c2e2]/50 hover:bg-gray-50 text-gray-700'
-              }`}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              {option}
-            </motion.button>
-          ))}
+          {currentStepData.options.map((option, index) => {
+            const isObject = typeof option === 'object';
+            const displayText = isObject ? option.label : option;
+            const optionValue = isObject ? option.value : option;
+            const isSelected = answers[currentStepData.field] === optionValue;
+            
+            return (
+              <motion.button
+                key={optionValue}
+                onClick={() => handleOptionSelect(option)}
+                className={`w-full p-4 rounded-xl border-2 text-left font-medium transition-all ${
+                  isSelected
+                    ? 'border-[#73c2e2] bg-gradient-to-r from-[#73c2e2]/10 to-[#badde9]/10 text-[#181818]'
+                    : 'border-gray-200 hover:border-[#73c2e2]/50 hover:bg-gray-50 text-gray-700'
+                }`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {displayText}
+              </motion.button>
+            );
+          })}
         </motion.div>
 
         {/* Navigation */}
