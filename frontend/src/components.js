@@ -1178,6 +1178,7 @@ const ChatInterface = ({ user, onLogout }) => {
 const Components = {
   LoadingScreen,
   AuthScreen,
+  OnboardingScreen,
   ChatInterface
 };
 
