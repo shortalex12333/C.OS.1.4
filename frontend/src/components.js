@@ -82,7 +82,7 @@ const OnboardingScreen = ({ user, onComplete }) => {
     {
       id: 1,
       question: "What's your age range?",
-      field: 'ageRange',
+      field: 'age_range',
       options: [
         "18-22",
         "23-26", 
@@ -93,37 +93,37 @@ const OnboardingScreen = ({ user, onComplete }) => {
     {
       id: 2,
       question: "What's your main focus right now?",
-      field: 'mainFocus',
+      field: 'primary_goal',
       options: [
-        "Growing my business",
-        "Career advancement",
-        "Fitness & health",
-        "Being more productive",
-        "Work-life balance"
+        { label: "Growing my business", value: "business_growth" },
+        { label: "Career advancement", value: "career_advancement" },
+        { label: "Fitness & health", value: "fitness_health" },
+        { label: "Being more productive", value: "productivity" },
+        { label: "Work-life balance", value: "work_life_balance" }
       ]
     },
     {
       id: 3,
       question: "How do you typically work?",
-      field: 'workType',
+      field: 'work_style',
       options: [
-        "Entrepreneur/Self-employed",
-        "Remote employee",
-        "Office-based",
-        "Student",
-        "Freelancer/Contractor"
+        { label: "Entrepreneur/Self-employed", value: "entrepreneur" },
+        { label: "Remote employee", value: "remote_employee" },
+        { label: "Office-based", value: "office_based" },
+        { label: "Student", value: "student" },
+        { label: "Freelancer/Contractor", value: "freelancer" }
       ]
     },
     {
       id: 4,
       question: "What's your biggest challenge?",
-      field: 'biggestChallenge',
+      field: 'biggest_challenge',
       options: [
-        "Procrastination",
-        "Staying focused",
-        "Following through on plans",
-        "Time management",
-        "Being consistent"
+        { label: "Procrastination", value: "procrastination" },
+        { label: "Staying focused", value: "staying_focused" },
+        { label: "Following through on plans", value: "following_through" },
+        { label: "Time management", value: "time_management" },
+        { label: "Being consistent", value: "being_consistent" }
       ]
     }
   ];
