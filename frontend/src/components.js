@@ -132,9 +132,10 @@ const OnboardingScreen = ({ user, onComplete }) => {
   const progressPercentage = (currentStep / steps.length) * 100;
 
   const handleOptionSelect = (option) => {
+    const value = typeof option === 'object' ? option.value : option;
     setAnswers(prev => ({
       ...prev,
-      [currentStepData.field]: option
+      [currentStepData.field]: value
     }));
   };
 
