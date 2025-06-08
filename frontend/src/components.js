@@ -651,6 +651,83 @@ const ChatInterface = ({ user, onLogout }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [activeConversation?.messages]);
 
+  // Check for intervention messages periodically
+  useEffect(() => {
+    const checkForInterventions = async () => {
+      if (!user?.id || !activeConversation) return;
+
+      try {
+        const response = await fetch('https://ventruk.app.n8n.cloud/webhook/intervention-delivery', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          mode: 'cors',
+          credentials: 'omit',
+          body: JSON.stringify({
+            userId: user.id,
+            chatId: activeConversation.id,
+            lastCheck: lastInterventionCheck
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Intervention check response:', data);
+          
+          // Handle single intervention or array of interventions
+          const interventions = Array.isArray(data) ? data : data.interventions ? data.interventions : [data];
+          
+          interventions.forEach(intervention => {
+            if (intervention.message && intervention.status !== 'delivered') {
+              // Create intervention message
+              const interventionMessage = {
+                id: `intervention_${intervention.delivery_timestamp || Date.now()}`,
+                text: `🎯 **Intervention Alert**\n\n${intervention.message}`,
+                isUser: false,
+                timestamp: intervention.delivery_timestamp || Date.now(),
+                isIntervention: true,
+                rawData: intervention
+              };
+
+              // Add intervention to active conversation
+              setActiveConversation(prev => {
+                if (prev && !prev.messages.find(msg => msg.id === interventionMessage.id)) {
+                  return {
+                    ...prev,
+                    messages: [...prev.messages, interventionMessage],
+                    lastMessage: intervention.message
+                  };
+                }
+                return prev;
+              });
+
+              // Update conversation in sidebar
+              setConversations(prev => prev.map(conv => 
+                conv.id === activeConversation.id 
+                  ? { ...conv, lastMessage: intervention.message, timestamp: intervention.delivery_timestamp || Date.now() }
+                  : conv
+              ));
+            }
+          });
+          
+          setLastInterventionCheck(Date.now());
+        }
+      } catch (error) {
+        console.error('Intervention check error:', error);
+      }
+    };
+
+    // Check for interventions every 30 seconds
+    const intervalId = setInterval(checkForInterventions, 30000);
+    
+    // Initial check
+    checkForInterventions();
+
+    return () => clearInterval(intervalId);
+  }, [user?.id, activeConversation?.id, lastInterventionCheck]);
+
   const handleSendMessage = async () => {
     if (!message.trim() || !activeConversation) return;
 
