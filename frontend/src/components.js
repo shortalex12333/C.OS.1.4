@@ -16,6 +16,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
+import { useInterventionsWithEvents } from './hooks/useInterventions';
 
 // Loading Screen Component
 const LoadingScreen = () => {
