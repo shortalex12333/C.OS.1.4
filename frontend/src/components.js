@@ -582,6 +582,7 @@ const ChatInterface = ({ user, onLogout }) => {
   const [isTyping, setIsTyping] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const messagesEndRef = useRef(null);
+  const [lastInterventionCheck, setLastInterventionCheck] = useState(Date.now());
 
   // Initialize conversations - fetch list from webhook or use mock data
   useEffect(() => {
