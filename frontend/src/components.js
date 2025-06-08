@@ -1201,9 +1201,20 @@ const ChatInterface = ({ user, onLogout }) => {
                     )}
                   </div>
                   {!msg.isLoading && (
-                    <p className={`text-xs mt-2 opacity-70`}>
-                      {new Date(msg.timestamp).toLocaleTimeString()}
-                    </p>
+                    <div className="flex items-center justify-between mt-2">
+                      <p className={`text-xs opacity-70`}>
+                        {new Date(msg.timestamp).toLocaleTimeString()}
+                      </p>
+                      {msg.isIntervention && (
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          isDarkMode 
+                            ? 'bg-orange-900/30 text-orange-300' 
+                            : 'bg-orange-200 text-orange-700'
+                        }`}>
+                          Intervention
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
               </motion.div>
