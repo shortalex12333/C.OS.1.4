@@ -692,31 +692,30 @@ const ChatInterface = ({ user, onLogout }) => {
         const data = await response.json();
         console.log('Webhook response:', data); // Debug log
         
-        if (data.success) {
-          // Format the AI response with content, pattern_insight, and action_items
+        if (data.success || data.response) {
+          // Format the AI response with new schema
           let aiResponseText = '';
           
-          // Add main content
-          if (data.content) {
-            aiResponseText += data.content;
+          // Add response action if present
+          if (data.response?.action) {
+            aiResponseText += data.response.action;
           }
           
-          // Add pattern insight
-          if (data.pattern_insight) {
-            aiResponseText += '\n\n💡 **Insight:** ' + data.pattern_insight;
+          // Add response question if present  
+          if (data.response?.question) {
+            aiResponseText += '\n\n🤔 **Question:** ' + data.response.question;
           }
           
-          // Add action items
-          if (data.action_items && Array.isArray(data.action_items) && data.action_items.length > 0) {
-            aiResponseText += '\n\n📋 **Action Items:**';
-            data.action_items.forEach((item, index) => {
-              aiResponseText += `\n${index + 1}. ${item}`;
-            });
-          }
-          
-          // Add strategic question if present
+          // Add strategic question if present (check multiple possible locations)
           if (data.strategic_question) {
-            aiResponseText += '\n\n🤔 **Strategic Question:** ' + data.strategic_question;
+            aiResponseText += '\n\n💡 **Strategic Question:** ' + data.strategic_question;
+          } else if (data.userResponse?.question) {
+            aiResponseText += '\n\n💡 **Strategic Question:** ' + data.userResponse.question;
+          }
+          
+          // Fallback if no structured response found
+          if (!aiResponseText.trim()) {
+            aiResponseText = data.content || data.message || "I understand your message. How can I help you further?";
           }
           
           const aiMessage = {
@@ -730,13 +729,13 @@ const ChatInterface = ({ user, onLogout }) => {
           setActiveConversation(prev => ({
             ...prev,
             messages: [...prev.messages, aiMessage],
-            lastMessage: data.content || aiResponseText.substring(0, 100) + '...'
+            lastMessage: data.response?.action || aiResponseText.substring(0, 100) + '...'
           }));
 
           // Update conversation in list
           setConversations(prev => prev.map(conv => 
             conv.id === activeConversation.id 
-              ? { ...conv, lastMessage: data.content || aiResponseText.substring(0, 100) + '...', timestamp: data.timestamp || Date.now() }
+              ? { ...conv, lastMessage: data.response?.action || aiResponseText.substring(0, 100) + '...', timestamp: data.timestamp || Date.now() }
               : conv
           ));
         } else {
