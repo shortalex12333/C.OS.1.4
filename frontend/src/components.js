@@ -1163,9 +1163,11 @@ const ChatInterface = ({ user, onLogout }) => {
                       ? isDarkMode ? 'bg-[#2a2a2a] text-gray-400' : 'bg-gray-100 text-gray-500'
                       : msg.isError
                         ? isDarkMode ? 'bg-red-900/50 text-red-200' : 'bg-red-100 text-red-700'
-                        : isDarkMode 
-                          ? 'bg-[#2a2a2a] text-gray-100' 
-                          : 'bg-gray-100 text-[#181818]'
+                        : msg.isIntervention
+                          ? isDarkMode ? 'bg-gradient-to-r from-orange-900/50 to-yellow-900/50 text-orange-200 border border-orange-500/30' : 'bg-gradient-to-r from-orange-100 to-yellow-100 text-orange-800 border border-orange-300'
+                          : isDarkMode 
+                            ? 'bg-[#2a2a2a] text-gray-100' 
+                            : 'bg-gray-100 text-[#181818]'
                 }`}>
                   <div className="whitespace-pre-wrap">
                     {msg.isLoading ? (
