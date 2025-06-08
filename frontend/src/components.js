@@ -852,28 +852,35 @@ const ChatInterface = ({ user, onLogout }) => {
         console.log('Fetch conversation response:', data);
         
         if (data.success) {
-          // Process messages to format rich content if they exist
+          // Process messages to format with new schema
           let processedMessages = [];
           
           if (data.messages && Array.isArray(data.messages)) {
             processedMessages = data.messages.map(msg => {
-              if (!msg.isUser && (msg.content || msg.pattern_insight || msg.action_items)) {
-                // Format AI messages with rich content
-                let formattedText = msg.content || msg.text || '';
+              if (!msg.isUser && (msg.response || msg.strategic_question)) {
+                // Format AI messages with new response schema
+                let formattedText = '';
                 
-                if (msg.pattern_insight) {
-                  formattedText += '\n\n💡 **Insight:** ' + msg.pattern_insight;
+                // Add response action if present
+                if (msg.response?.action) {
+                  formattedText += msg.response.action;
                 }
                 
-                if (msg.action_items && Array.isArray(msg.action_items) && msg.action_items.length > 0) {
-                  formattedText += '\n\n📋 **Action Items:**';
-                  msg.action_items.forEach((item, index) => {
-                    formattedText += `\n${index + 1}. ${item}`;
-                  });
+                // Add response question if present  
+                if (msg.response?.question) {
+                  formattedText += '\n\n🤔 **Question:** ' + msg.response.question;
                 }
                 
+                // Add strategic question if present
                 if (msg.strategic_question) {
-                  formattedText += '\n\n🤔 **Strategic Question:** ' + msg.strategic_question;
+                  formattedText += '\n\n💡 **Strategic Question:** ' + msg.strategic_question;
+                } else if (msg.userResponse?.question) {
+                  formattedText += '\n\n💡 **Strategic Question:** ' + msg.userResponse.question;
+                }
+                
+                // Fallback to existing text or content
+                if (!formattedText.trim()) {
+                  formattedText = msg.text || msg.content || msg.message || '';
                 }
                 
                 return {
