@@ -663,6 +663,9 @@ const ChatInterface = ({ user, onLogout }) => {
   const handleSendMessage = async () => {
     if (!message.trim() || !activeConversation) return;
 
+    // Get pending intervention ID to include with message
+    const interventionId = getPendingInterventionId();
+
     const userMessage = {
       id: Date.now(),
       text: message.trim(),
@@ -681,6 +684,20 @@ const ChatInterface = ({ user, onLogout }) => {
     setIsTyping(true);
 
     try {
+      // Prepare request payload with optional intervention_id
+      const requestPayload = {
+        userId: user.id,
+        chatId: activeConversation.id,
+        message: message.trim(),
+        timestamp: Date.now()
+      };
+
+      // Add intervention_id if there's a pending intervention
+      if (interventionId) {
+        requestPayload.intervention_id = interventionId;
+        console.log('🎯 Including intervention ID with message:', interventionId);
+      }
+
       // Send to webhook
       const response = await fetch('https://ventruk.app.n8n.cloud/webhook/c7/text-chat', {
         method: 'POST',
@@ -690,17 +707,12 @@ const ChatInterface = ({ user, onLogout }) => {
         },
         mode: 'cors',
         credentials: 'omit',
-        body: JSON.stringify({
-          userId: user.id,
-          chatId: activeConversation.id,
-          message: message.trim(),
-          timestamp: Date.now()
-        })
+        body: JSON.stringify(requestPayload)
       });
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Webhook response:', data); // Debug log
+        console.log('Webhook response:', data);
         
         if (data.success || data.response) {
           // Format the AI response with new schema
@@ -723,6 +735,11 @@ const ChatInterface = ({ user, onLogout }) => {
             aiResponseText += '\n\n💡 **Strategic Question:** ' + data.userResponse.question;
           }
           
+          // If intervention was included, add special note
+          if (interventionId) {
+            aiResponseText += '\n\n🎯 **Intervention Applied:** Response tailored based on detected patterns';
+          }
+          
           // Fallback if no structured response found
           if (!aiResponseText.trim()) {
             aiResponseText = data.content || data.message || "I understand your message. How can I help you further?";
@@ -733,7 +750,8 @@ const ChatInterface = ({ user, onLogout }) => {
             text: aiResponseText,
             isUser: false,
             timestamp: data.timestamp || Date.now(),
-            rawData: data // Store full webhook response for potential future use
+            rawData: data,
+            interventionId: interventionId // Track which intervention was used
           };
 
           setActiveConversation(prev => ({
@@ -748,6 +766,11 @@ const ChatInterface = ({ user, onLogout }) => {
               ? { ...conv, lastMessage: data.response?.action || aiResponseText.substring(0, 100) + '...', timestamp: data.timestamp || Date.now() }
               : conv
           ));
+
+          // Mark intervention as used if it was included
+          if (interventionId) {
+            markInterventionUsed(interventionId);
+          }
         } else {
           throw new Error(data.message || 'Chat request failed');
         }
@@ -767,11 +790,19 @@ const ChatInterface = ({ user, onLogout }) => {
           "I appreciate you reaching out. As your AI assistant, I can help break down complex topics, provide step-by-step guidance, or explore creative solutions together."
         ];
         
+        let aiResponseText = responses[Math.floor(Math.random() * responses.length)];
+        
+        // Add intervention note for demo
+        if (interventionId) {
+          aiResponseText += '\n\n🎯 **Intervention Applied:** Response tailored based on detected patterns (Demo Mode)';
+        }
+        
         const aiResponse = {
           id: Date.now() + 1,
-          text: responses[Math.floor(Math.random() * responses.length)],
+          text: aiResponseText,
           isUser: false,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          interventionId: interventionId
         };
 
         setActiveConversation(prev => ({
@@ -786,6 +817,11 @@ const ChatInterface = ({ user, onLogout }) => {
             ? { ...conv, lastMessage: aiResponse.text, timestamp: aiResponse.timestamp }
             : conv
         ));
+
+        // Mark intervention as used if it was included
+        if (interventionId) {
+          markInterventionUsed(interventionId);
+        }
       }, 1500);
     }
 
