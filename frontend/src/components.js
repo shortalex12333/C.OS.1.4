@@ -731,7 +731,7 @@ const ChatInterface = ({ user, onLogout }) => {
           // Try to get the action response
           const actionText = data.userResponse?.action || data.response?.action || data.action;
           if (actionText) {
-            if (aiResponseText.trim()) aiResponseText += '\n\n';
+            if (aiResponseText.trim()) aiResponseText += '\n';
             aiResponseText += actionText;
             console.log('✅ Found action text:', actionText);
           }
@@ -739,7 +739,7 @@ const ChatInterface = ({ user, onLogout }) => {
           // Try to get the question
           const questionText = data.userResponse?.question || data.response?.question || data.question;
           if (questionText) {
-            if (aiResponseText.trim()) aiResponseText += '\n\n';
+            if (aiResponseText.trim()) aiResponseText += '\n';
             aiResponseText += questionText;
             console.log('✅ Found question text:', questionText);
           }
