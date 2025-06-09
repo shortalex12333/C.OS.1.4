@@ -714,25 +714,27 @@ const ChatInterface = ({ user, onLogout }) => {
         const data = await response.json();
         console.log('Webhook response:', data);
         
-        if (data.success || data.response) {
-          // Format the AI response with new schema
+        if (data.success || data.response || data.userResponse) {
+          // Format the AI response with new schema - check multiple locations
           let aiResponseText = '';
           
-          // Add response action if present
+          // Add response action - check both locations
           if (data.response?.action) {
             aiResponseText += data.response.action;
+          } else if (data.userResponse?.action) {
+            aiResponseText += data.userResponse.action;
           }
           
-          // Add response question if present  
+          // Add response question - check both locations  
           if (data.response?.question) {
             aiResponseText += '\n\n🤔 **Question:** ' + data.response.question;
+          } else if (data.userResponse?.question) {
+            aiResponseText += '\n\n🤔 **Question:** ' + data.userResponse.question;
           }
           
           // Add strategic question if present (check multiple possible locations)
           if (data.strategic_question) {
             aiResponseText += '\n\n💡 **Strategic Question:** ' + data.strategic_question;
-          } else if (data.userResponse?.question) {
-            aiResponseText += '\n\n💡 **Strategic Question:** ' + data.userResponse.question;
           }
           
           // If intervention was included, add special note
@@ -742,7 +744,8 @@ const ChatInterface = ({ user, onLogout }) => {
           
           // Fallback if no structured response found
           if (!aiResponseText.trim()) {
-            aiResponseText = data.content || data.message || "I understand your message. How can I help you further?";
+            // Try other possible response fields
+            aiResponseText = data.content || data.message || data.text || "I understand your message. How can I help you further?";
           }
           
           const aiMessage = {
