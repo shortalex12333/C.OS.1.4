@@ -714,38 +714,45 @@ const ChatInterface = ({ user, onLogout }) => {
         const data = await response.json();
         console.log('🔍 Full Webhook Response:', JSON.stringify(data, null, 2)); // Enhanced debug log
         
-        if (data.success || data.response || data.userResponse) {
-          // Format the AI response with new schema - check multiple locations
+        if (data) {
+          console.log('🔍 Parsing webhook response...');
+          console.log('📊 Available fields:', Object.keys(data));
+          
+          // Format the AI response - simplified parsing
           let aiResponseText = '';
           
-          // Add response action - check both locations
-          if (data.response?.action) {
-            aiResponseText += data.response.action;
-          } else if (data.userResponse?.action) {
-            aiResponseText += data.userResponse.action;
+          // Try to get the action response (main content)
+          const actionText = data.userResponse?.action || data.response?.action || data.action;
+          if (actionText) {
+            aiResponseText += actionText;
+            console.log('✅ Found action text:', actionText);
           }
           
-          // Add response question - check both locations  
-          if (data.response?.question) {
-            aiResponseText += '\n\n🤔 **Question:** ' + data.response.question;
-          } else if (data.userResponse?.question) {
-            aiResponseText += '\n\n🤔 **Question:** ' + data.userResponse.question;
+          // Try to get the question (without prefix)
+          const questionText = data.userResponse?.question || data.response?.question || data.question;
+          if (questionText) {
+            aiResponseText += '\n\n' + questionText;
+            console.log('✅ Found question text:', questionText);
           }
           
-          // Add strategic question if present (check multiple possible locations)
+          // Try strategic question if present
           if (data.strategic_question) {
-            aiResponseText += '\n\n💡 **Strategic Question:** ' + data.strategic_question;
+            aiResponseText += '\n\n💡 ' + data.strategic_question;
+            console.log('✅ Found strategic question:', data.strategic_question);
           }
           
           // If intervention was included, add special note
           if (interventionId) {
-            aiResponseText += '\n\n🎯 **Intervention Applied:** Response tailored based on detected patterns';
+            aiResponseText += '\n\n🎯 Response enhanced with behavioral insights';
           }
           
-          // Fallback if no structured response found
+          // Final fallback check
           if (!aiResponseText.trim()) {
-            // Try other possible response fields
-            aiResponseText = data.content || data.message || data.text || "I understand your message. How can I help you further?";
+            console.log('⚠️ No structured response found, checking other fields...');
+            aiResponseText = data.content || data.message || data.text || data.response || "No response received from AI service.";
+            console.log('📝 Using fallback content:', aiResponseText);
+          } else {
+            console.log('✅ Successfully parsed structured response');
           }
           
           const aiMessage = {
