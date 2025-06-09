@@ -786,7 +786,8 @@ const ChatInterface = ({ user, onLogout }) => {
             markInterventionUsed(interventionId);
           }
         } else {
-          throw new Error(data.message || 'Chat request failed');
+          console.error('❌ No valid response data found in webhook response');
+          throw new Error('Invalid webhook response structure');
         }
       } else {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
