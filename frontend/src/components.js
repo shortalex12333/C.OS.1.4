@@ -776,7 +776,7 @@ const ChatInterface = ({ user, onLogout }) => {
           setActiveConversation(prev => ({
             ...prev,
             messages: [...prev.messages, aiMessage],
-            lastMessage: actionText || aiResponseText.substring(0, 100) + '...'
+            lastMessage: messageText || actionText || aiResponseText.substring(0, 100) + '...'
           }));
 
           // Update conversation in list
@@ -784,7 +784,7 @@ const ChatInterface = ({ user, onLogout }) => {
             conv.id === activeConversation.id 
               ? { 
                   ...conv, 
-                  lastMessage: actionText || aiResponseText.substring(0, 100) + '...', 
+                  lastMessage: messageText || actionText || aiResponseText.substring(0, 100) + '...', 
                   timestamp: data.timestamp || Date.now() 
                 }
               : conv
