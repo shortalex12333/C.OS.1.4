@@ -767,7 +767,7 @@ const ChatInterface = ({ user, onLogout }) => {
           setActiveConversation(prev => ({
             ...prev,
             messages: [...prev.messages, aiMessage],
-            lastMessage: data.userResponse?.action || data.response?.action || aiResponseText.substring(0, 100) + '...'
+            lastMessage: actionText || aiResponseText.substring(0, 100) + '...'
           }));
 
           // Update conversation in list
