@@ -775,7 +775,7 @@ const ChatInterface = ({ user, onLogout }) => {
             conv.id === activeConversation.id 
               ? { 
                   ...conv, 
-                  lastMessage: data.userResponse?.action || data.response?.action || aiResponseText.substring(0, 100) + '...', 
+                  lastMessage: actionText || aiResponseText.substring(0, 100) + '...', 
                   timestamp: data.timestamp || Date.now() 
                 }
               : conv
