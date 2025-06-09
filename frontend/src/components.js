@@ -712,7 +712,7 @@ const ChatInterface = ({ user, onLogout }) => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Webhook response:', data);
+        console.log('🔍 Full Webhook Response:', JSON.stringify(data, null, 2)); // Enhanced debug log
         
         if (data.success || data.response || data.userResponse) {
           // Format the AI response with new schema - check multiple locations
