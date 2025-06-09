@@ -683,21 +683,21 @@ const ChatInterface = ({ user, onLogout }) => {
     setMessage('');
     setIsTyping(true);
 
+    // Prepare request payload with optional intervention_id
+    const requestPayload = {
+      userId: user.id,
+      chatId: activeConversation.id,
+      message: message.trim(),
+      timestamp: Date.now()
+    };
+
+    // Add intervention_id if there's a pending intervention
+    if (interventionId) {
+      requestPayload.intervention_id = interventionId;
+      console.log('🎯 Including intervention ID with message:', interventionId);
+    }
+
     try {
-      // Prepare request payload with optional intervention_id
-      const requestPayload = {
-        userId: user.id,
-        chatId: activeConversation.id,
-        message: message.trim(),
-        timestamp: Date.now()
-      };
-
-      // Add intervention_id if there's a pending intervention
-      if (interventionId) {
-        requestPayload.intervention_id = interventionId;
-        console.log('🎯 Including intervention ID with message:', interventionId);
-      }
-
       // Send to webhook
       const response = await fetch('https://ventruk.app.n8n.cloud/webhook/c7/text-chat', {
         method: 'POST',
