@@ -1211,19 +1211,49 @@ const ChatInterface = ({ user, onLogout }) => {
         {/* Input Area */}
         {activeConversation && (
           <div className={`${isDarkMode ? 'bg-[#202020]' : 'bg-white'} border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} p-4`}>
+            {/* Pending Intervention Indicator */}
+            {pendingIntervention && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`mb-3 p-3 rounded-lg border-l-4 border-orange-500 ${
+                  isDarkMode ? 'bg-orange-900/20 text-orange-200' : 'bg-orange-50 text-orange-800'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <span className="text-lg">🎯</span>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Intervention Ready</p>
+                    <p className="text-xs opacity-80">Your next message will include personalized guidance</p>
+                  </div>
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    isDarkMode ? 'bg-orange-800/50 text-orange-300' : 'bg-orange-200 text-orange-700'
+                  }`}>
+                    Priority {pendingIntervention.priority}
+                  </span>
+                </div>
+              </motion.div>
+            )}
+
             <div className="flex space-x-4">
               <input
                 type="text"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                placeholder="Type your message..."
-                className={`flex-1 px-4 py-3 rounded-xl border ${isDarkMode ? 'bg-[#2a2a2a] border-gray-600 text-white' : 'bg-white border-gray-300 text-[#181818]'} focus:outline-none focus:ring-2 focus:ring-[#73c2e2] focus:border-transparent transition-all`}
+                placeholder={pendingIntervention ? "Type your message (intervention will be applied)..." : "Type your message..."}
+                className={`flex-1 px-4 py-3 rounded-xl border ${isDarkMode ? 'bg-[#2a2a2a] border-gray-600 text-white' : 'bg-white border-gray-300 text-[#181818]'} focus:outline-none focus:ring-2 focus:ring-[#73c2e2] focus:border-transparent transition-all ${
+                  pendingIntervention ? 'ring-2 ring-orange-500/50' : ''
+                }`}
               />
               <motion.button
                 onClick={handleSendMessage}
                 disabled={!message.trim()}
-                className="bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white p-3 rounded-xl hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className={`p-3 rounded-xl hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all ${
+                  pendingIntervention 
+                    ? 'bg-gradient-to-r from-orange-500 to-orange-400 text-white' 
+                    : 'bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white'
+                }`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
