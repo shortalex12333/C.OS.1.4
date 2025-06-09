@@ -785,7 +785,13 @@ const ChatInterface = ({ user, onLogout }) => {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
-      console.error('Message send error:', error);
+      console.error('❌ Message send error:', error);
+      console.log('🔍 Request payload was:', JSON.stringify(requestPayload, null, 2));
+      
+      // Check if it's actually a response parsing issue
+      if (error.message.includes('Unexpected token') || error.message.includes('JSON')) {
+        console.error('🚨 JSON parsing error - webhook may be returning non-JSON response');
+      }
       
       // Mock AI response for demo when webhook fails
       setTimeout(() => {
