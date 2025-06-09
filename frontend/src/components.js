@@ -766,7 +766,11 @@ const ChatInterface = ({ user, onLogout }) => {
           // Update conversation in list
           setConversations(prev => prev.map(conv => 
             conv.id === activeConversation.id 
-              ? { ...conv, lastMessage: data.response?.action || aiResponseText.substring(0, 100) + '...', timestamp: data.timestamp || Date.now() }
+              ? { 
+                  ...conv, 
+                  lastMessage: data.userResponse?.action || data.response?.action || aiResponseText.substring(0, 100) + '...', 
+                  timestamp: data.timestamp || Date.now() 
+                }
               : conv
           ));
 
