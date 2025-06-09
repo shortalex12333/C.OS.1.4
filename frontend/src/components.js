@@ -592,15 +592,6 @@ const ChatInterface = ({ user, onLogout }) => {
     markInterventionUsed,
     clearInterventions
   } = useInterventionsWithEvents(user?.id);
-  
-  // Use intervention hooks
-  const {
-    interventions,
-    pendingIntervention,
-    getPendingInterventionId,
-    markInterventionUsed,
-    clearInterventions
-  } = useInterventionsWithEvents(user?.id);
 
   // Initialize conversations - fetch list from webhook or use mock data
   useEffect(() => {
