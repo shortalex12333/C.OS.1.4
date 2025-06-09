@@ -718,20 +718,29 @@ const ChatInterface = ({ user, onLogout }) => {
           console.log('🔍 Parsing webhook response...');
           console.log('📊 Available fields:', Object.keys(data));
           
-          // Format the AI response - simplified parsing
+          // Format the AI response - complete parsing
           let aiResponseText = '';
           
-          // Try to get the action response (main content)
+          // Try to get the message (main response)
+          const messageText = data.userResponse?.message || data.response?.message || data.message;
+          if (messageText) {
+            aiResponseText += messageText;
+            console.log('✅ Found message text:', messageText);
+          }
+          
+          // Try to get the action response
           const actionText = data.userResponse?.action || data.response?.action || data.action;
           if (actionText) {
+            if (aiResponseText.trim()) aiResponseText += '\n\n';
             aiResponseText += actionText;
             console.log('✅ Found action text:', actionText);
           }
           
-          // Try to get the question (without prefix)
+          // Try to get the question
           const questionText = data.userResponse?.question || data.response?.question || data.question;
           if (questionText) {
-            aiResponseText += '\n\n' + questionText;
+            if (aiResponseText.trim()) aiResponseText += '\n\n';
+            aiResponseText += questionText;
             console.log('✅ Found question text:', questionText);
           }
           
