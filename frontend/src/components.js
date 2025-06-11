@@ -688,7 +688,8 @@ const ChatInterface = ({ user, onLogout }) => {
       userId: user.id,
       chatId: activeConversation.id,
       message: message.trim(),
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      userEmail: user.email // Added user email to text-chat requests
     };
 
     // Add intervention_id if there's a pending intervention
