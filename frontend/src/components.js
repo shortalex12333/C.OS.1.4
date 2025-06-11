@@ -927,41 +927,46 @@ const ChatInterface = ({ user, onLogout }) => {
         const data = await response.json();
         console.log('Fetch conversation response:', data);
         
-        if (data.success) {
-          // Process messages to format with new schema
+        if (data.success || data.output) {
+          // Handle the simple output schema
           let processedMessages = [];
           
-          if (data.messages && Array.isArray(data.messages)) {
+          if (data.output) {
+            // Single output response - create a simple AI message
+            const aiMessage = {
+              id: `history_${Date.now()}`,
+              text: data.output.trim(),
+              isUser: false,
+              timestamp: Date.now() - 3600000, // 1 hour ago for demo
+              isHistorical: true
+            };
+            processedMessages = [aiMessage];
+            console.log('✅ Processed single output message:', data.output);
+          } else if (data.messages && Array.isArray(data.messages)) {
+            // Handle array of messages if provided
             processedMessages = data.messages.map(msg => {
-              if (!msg.isUser && (msg.response || msg.strategic_question)) {
-                // Format AI messages with new response schema
+              if (!msg.isUser && (msg.userResponse || msg.output)) {
+                // Format AI messages with response schema or simple output
                 let formattedText = '';
                 
-                // Add response action if present
-                if (msg.response?.action) {
-                  formattedText += msg.response.action;
-                }
-                
-                // Add response question if present  
-                if (msg.response?.question) {
-                  formattedText += '\n\n🤔 **Question:** ' + msg.response.question;
-                }
-                
-                // Add strategic question if present
-                if (msg.strategic_question) {
-                  formattedText += '\n\n💡 **Strategic Question:** ' + msg.strategic_question;
-                } else if (msg.userResponse?.question) {
-                  formattedText += '\n\n💡 **Strategic Question:** ' + msg.userResponse.question;
-                }
-                
-                // Fallback to existing text or content
-                if (!formattedText.trim()) {
-                  formattedText = msg.text || msg.content || msg.message || '';
+                if (msg.output) {
+                  formattedText = msg.output.trim();
+                } else if (msg.userResponse) {
+                  // Handle userResponse format
+                  if (msg.userResponse.message) formattedText += msg.userResponse.message;
+                  if (msg.userResponse.action) {
+                    if (formattedText) formattedText += '\n';
+                    formattedText += msg.userResponse.action;
+                  }
+                  if (msg.userResponse.question) {
+                    if (formattedText) formattedText += '\n';
+                    formattedText += msg.userResponse.question;
+                  }
                 }
                 
                 return {
                   ...msg,
-                  text: formattedText
+                  text: formattedText || msg.text || msg.content || msg.message || ''
                 };
               }
               return {
@@ -978,7 +983,7 @@ const ChatInterface = ({ user, onLogout }) => {
             const updatedConversation = {
               ...conversation,
               messages: processedMessages,
-              lastMessage: data.lastMessage || (processedMessages.length > 0 ? processedMessages[processedMessages.length - 1].text.substring(0, 100) + '...' : 'No messages yet')
+              lastMessage: data.output ? data.output.substring(0, 100) + '...' : (processedMessages.length > 0 ? processedMessages[processedMessages.length - 1].text.substring(0, 100) + '...' : 'No messages yet')
             };
             
             setActiveConversation(updatedConversation);
