@@ -413,7 +413,15 @@ const AuthScreen = ({ onLogin }) => {
           setError(data.message || 'Authentication failed');
         }
       } else {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        console.error('❌ Auth failed with status:', response.status);
+        console.error('❌ Response headers:', [...response.headers.entries()]);
+        
+        // Check if it's a CORS preflight issue
+        if (response.status === 0) {
+          setError('Network connection issue. Please check your internet connection.');
+        } else {
+          setError(`Authentication failed (${response.status}). Please try again.`);
+        }
       }
     } catch (error) {
       console.error('Auth error:', error);
