@@ -931,7 +931,11 @@ const ChatInterface = ({ user, onLogout }) => {
         credentials: 'omit',
         body: JSON.stringify({
           userId: user.id,
-          chatId: conversationId
+          chatId: conversationId,
+          user: {
+            email: user.email,
+            displayName: user.name
+          }
         })
       });
 
