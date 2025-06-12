@@ -940,7 +940,7 @@ const ChatInterface = ({ user, onLogout }) => {
           chatId: conversationId,
           user: {
             email: user.email,
-            displayName: user.name
+            displayName: user.name || user.displayName || 'Unknown User'
           }
         })
       });
