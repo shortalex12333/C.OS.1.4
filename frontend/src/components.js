@@ -738,50 +738,62 @@ const ChatInterface = ({ user, onLogout }) => {
           console.log('🔍 Parsing webhook response...');
           console.log('📊 Available fields:', Object.keys(data));
           
-          // Format the AI response - complete parsing
+          // Format the AI response - look for new Ai_reply schema
           let aiResponseText = '';
           
-          // Try to get the message (main response)
-          const messageText = data.userResponse?.message || data.response?.message || data.message;
-          if (messageText) {
-            aiResponseText += messageText;
-            console.log('✅ Found message text:', messageText);
+          // Primary: Check for new Ai_reply field
+          if (data.Ai_reply) {
+            aiResponseText = data.Ai_reply.trim();
+            console.log('✅ Found Ai_reply:', data.Ai_reply);
           }
-          
-          // Try to get the action response
-          const actionText = data.userResponse?.action || data.response?.action || data.action;
-          if (actionText) {
-            if (aiResponseText.trim()) aiResponseText += '\n';
-            aiResponseText += actionText;
-            console.log('✅ Found action text:', actionText);
+          // Fallback: Check for legacy userResponse format (for backwards compatibility)
+          else if (data.userResponse) {
+            const messageText = data.userResponse.message;
+            const actionText = data.userResponse.action;
+            const questionText = data.userResponse.question;
+            
+            if (messageText) {
+              aiResponseText += messageText;
+              console.log('✅ Found legacy message text:', messageText);
+            }
+            if (actionText) {
+              if (aiResponseText.trim()) aiResponseText += '\n';
+              aiResponseText += actionText;
+              console.log('✅ Found legacy action text:', actionText);
+            }
+            if (questionText) {
+              if (aiResponseText.trim()) aiResponseText += '\n';
+              aiResponseText += questionText;
+              console.log('✅ Found legacy question text:', questionText);
+            }
           }
-          
-          // Try to get the question
-          const questionText = data.userResponse?.question || data.response?.question || data.question;
-          if (questionText) {
-            if (aiResponseText.trim()) aiResponseText += '\n';
-            aiResponseText += questionText;
-            console.log('✅ Found question text:', questionText);
+          // Final fallback: Check other possible fields
+          else {
+            aiResponseText = data.output || data.content || data.message || data.text || data.response;
+            if (aiResponseText) {
+              console.log('✅ Found fallback response:', aiResponseText);
+            }
           }
           
           // Try strategic question if present
           if (data.strategic_question) {
-            aiResponseText += '\n\n💡 ' + data.strategic_question;
+            if (aiResponseText.trim()) aiResponseText += '\n\n';
+            aiResponseText += '💡 ' + data.strategic_question;
             console.log('✅ Found strategic question:', data.strategic_question);
           }
           
           // If intervention was included, add special note
           if (interventionId) {
-            aiResponseText += '\n\n🎯 Response enhanced with behavioral insights';
+            if (aiResponseText.trim()) aiResponseText += '\n\n';
+            aiResponseText += '🎯 Response enhanced with behavioral insights';
           }
           
           // Final fallback check
           if (!aiResponseText.trim()) {
-            console.log('⚠️ No structured response found, checking other fields...');
-            aiResponseText = data.content || data.message || data.text || data.response || "No response received from AI service.";
-            console.log('📝 Using fallback content:', aiResponseText);
+            console.log('⚠️ No AI response found in any expected fields');
+            aiResponseText = "No response received from AI service.";
           } else {
-            console.log('✅ Successfully parsed structured response');
+            console.log('✅ Successfully parsed AI response from Ai_reply field');
           }
           
           const aiMessage = {
