@@ -699,9 +699,13 @@ const ChatInterface = ({ user, onLogout }) => {
       timestamp: Date.now(),
       user: {
         email: user.email,
-        displayName: user.name
+        displayName: user.name || user.displayName || 'Unknown User'
       }
     };
+
+    // Debug user object to ensure we have the right data
+    console.log('👤 Current user object:', JSON.stringify(user, null, 2));
+    console.log('📝 User displayName being sent:', user.name || user.displayName || 'Unknown User');
 
     // Add intervention_id if there's a pending intervention
     if (interventionId) {
