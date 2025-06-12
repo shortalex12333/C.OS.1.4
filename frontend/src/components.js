@@ -708,6 +708,8 @@ const ChatInterface = ({ user, onLogout }) => {
       requestPayload.intervention_id = interventionId;
       console.log('🎯 Including intervention ID with message:', interventionId);
     }
+    
+    console.log('📤 Sending text-chat payload:', JSON.stringify(requestPayload, null, 2));
 
     try {
       // Send to webhook
