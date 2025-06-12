@@ -438,8 +438,10 @@ const AuthScreen = ({ onLogin }) => {
         const mockUser = {
           id: 'demo_user_123',
           email: formData.email,
-          name: formData.name || 'Demo User'
+          name: formData.name || 'Demo User',
+          displayName: formData.name || 'Demo User' // Ensure both name and displayName are set
         };
+        console.log('✅ Mock login successful with user:', mockUser);
         onLogin(mockUser, 'demo_token_123');
       }, 1000);
     }
