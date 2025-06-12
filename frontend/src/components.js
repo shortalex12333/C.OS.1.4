@@ -691,13 +691,16 @@ const ChatInterface = ({ user, onLogout }) => {
     setMessage('');
     setIsTyping(true);
 
-    // Prepare request payload with optional intervention_id
+    // Prepare request payload with user context and optional intervention_id
     const requestPayload = {
       userId: user.id,
       chatId: activeConversation.id,
       message: message.trim(),
       timestamp: Date.now(),
-      userEmail: user.email // Added user email to text-chat requests
+      user: {
+        email: user.email,
+        displayName: user.name
+      }
     };
 
     // Add intervention_id if there's a pending intervention
