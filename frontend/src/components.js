@@ -592,6 +592,7 @@ const ChatInterface = ({ user, onLogout }) => {
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [onlineUserCount, setOnlineUserCount] = useState(1); // New state for online users
   const messagesEndRef = useRef(null);
   
   // Use intervention hooks
