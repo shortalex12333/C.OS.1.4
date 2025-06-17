@@ -1167,6 +1167,16 @@ const ChatInterface = ({ user, onLogout }) => {
                   {isDarkMode ? <Sun className="text-yellow-400" size={18} /> : <Moon className="text-gray-600" size={18} />}
                 </button>
               </div>
+
+              {/* Online Users Counter */}
+              <div className={`mb-4 p-3 rounded-lg ${isDarkMode ? 'bg-gray-800/50' : 'bg-gray-100'} border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {onlineUserCount} {onlineUserCount === 1 ? 'user' : 'users'} online
+                  </span>
+                </div>
+              </div>
               
               <motion.button
                 onClick={handleNewConversation}
