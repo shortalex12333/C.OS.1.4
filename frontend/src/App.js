@@ -70,11 +70,39 @@ function App() {
   }, []);
 
   const handleLogin = (userData, token) => {
+    // Generate unique sessionId for this login session
+    const sessionId = generateUniqueSessionId(userData.id);
+    
     setUser(userData);
     setIsAuthenticated(true);
     setShowOnboarding(true); // Always show onboarding for new login
     localStorage.setItem('celeste7_token', token);
     localStorage.setItem('celeste7_user', JSON.stringify(userData));
+    
+    // Store sessionId in sessionStorage (clears when browser tab closes)
+    sessionStorage.setItem('celeste7_session_id', sessionId);
+    localStorage.setItem('celeste7_session_created', Date.now().toString());
+    
+    console.log('🔑 New session created:', sessionId);
+  };
+
+  // Generate truly unique session ID
+  const generateUniqueSessionId = (userId) => {
+    const timestamp = Date.now();
+    const randomComponent = Math.random().toString(36).substring(2, 15);
+    const userComponent = userId.substring(0, 8); // First 8 chars of userId
+    
+    // Create crypto-random component if available
+    let cryptoComponent = '';
+    if (window.crypto && window.crypto.getRandomValues) {
+      const array = new Uint32Array(2);
+      window.crypto.getRandomValues(array);
+      cryptoComponent = Array.from(array, dec => dec.toString(16)).join('');
+    } else {
+      cryptoComponent = Math.random().toString(16).substring(2, 10);
+    }
+    
+    return `session_${userComponent}_${timestamp}_${randomComponent}_${cryptoComponent}`;
   };
 
   const handleOnboardingComplete = (profileData) => {
