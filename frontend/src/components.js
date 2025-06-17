@@ -694,27 +694,24 @@ const ChatInterface = ({ user, onLogout }) => {
     setIsTyping(true);
 
     // Prepare request payload with user context and optional intervention_id
+    const sessionId = getOrCreateSessionId(user.id);
+    
     const requestPayload = {
       userId: user.id,
       chatId: activeConversation.id,
       message: message.trim(),
       timestamp: Date.now(),
-      sessionId: localStorage.getItem('celeste7_session_id') || `session_${user.id}_${Date.now()}`,
+      sessionId: sessionId,
       user: {
         email: user.email,
         displayName: user.name || user.displayName || 'Unknown User'
       }
     };
 
-    // Ensure sessionId is stored for future requests
-    if (!localStorage.getItem('celeste7_session_id')) {
-      localStorage.setItem('celeste7_session_id', requestPayload.sessionId);
-    }
-
     // Debug user object to ensure we have the right data
     console.log('👤 Current user object:', JSON.stringify(user, null, 2));
     console.log('📝 User displayName being sent:', user.name || user.displayName || 'Unknown User');
-    console.log('🔑 SessionId being sent:', requestPayload.sessionId);
+    console.log('🔑 SessionId being sent:', sessionId);
 
     // Add intervention_id if there's a pending intervention
     if (interventionId) {
