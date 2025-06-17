@@ -55,6 +55,20 @@ function App() {
           console.error('Session verification failed:', error);
           // For demo purposes, auto-login with mock data if there's stored user data
           if (userData) {
+            // Check if we need to create a new session (no existing sessionId or session expired)
+            const existingSessionId = sessionStorage.getItem('celeste7_session_id');
+            const sessionCreated = localStorage.getItem('celeste7_session_created');
+            const sessionAge = Date.now() - parseInt(sessionCreated || '0');
+            const maxSessionAge = 24 * 60 * 60 * 1000; // 24 hours
+            
+            if (!existingSessionId || sessionAge > maxSessionAge) {
+              // Generate new session for returning user
+              const newSessionId = generateUniqueSessionId(JSON.parse(userData).id);
+              sessionStorage.setItem('celeste7_session_id', newSessionId);
+              localStorage.setItem('celeste7_session_created', Date.now().toString());
+              console.log('🔑 New session created for returning user:', newSessionId);
+            }
+            
             setUser(JSON.parse(userData));
             setIsAuthenticated(true);
             setShowOnboarding(!onboardingCompleted);
