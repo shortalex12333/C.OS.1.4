@@ -671,6 +671,71 @@ const ChatInterface = ({ user, onLogout }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [activeConversation?.messages]);
 
+  // Online users heartbeat system
+  useEffect(() => {
+    const sendHeartbeat = async () => {
+      try {
+        const sessionId = sessionStorage.getItem('celeste7_session_id');
+        const response = await fetch('https://ventruk.app.n8n.cloud/webhook/c7/user-heartbeat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          mode: 'cors',
+          credentials: 'omit',
+          body: JSON.stringify({
+            userId: user.id,
+            sessionId: sessionId,
+            timestamp: Date.now(),
+            user: {
+              email: user.email,
+              displayName: user.name || user.displayName || 'Unknown User'
+            }
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.onlineUsers || data.activeUsers || data.userCount) {
+            const count = data.onlineUsers || data.activeUsers || data.userCount;
+            setOnlineUserCount(count);
+            console.log('👥 Online users updated:', count);
+          }
+        }
+      } catch (error) {
+        console.error('❌ Heartbeat failed:', error);
+        // Keep existing count on error
+      }
+    };
+
+    // Send initial heartbeat
+    sendHeartbeat();
+
+    // Send heartbeat every 30 seconds
+    const heartbeatInterval = setInterval(sendHeartbeat, 30000);
+
+    // Cleanup on unmount
+    return () => {
+      clearInterval(heartbeatInterval);
+      
+      // Send offline status when component unmounts
+      fetch('https://ventruk.app.n8n.cloud/webhook/c7/user-offline', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        mode: 'cors',
+        credentials: 'omit',
+        body: JSON.stringify({
+          userId: user.id,
+          sessionId: sessionStorage.getItem('celeste7_session_id'),
+          timestamp: Date.now()
+        })
+      }).catch(console.error);
+    };
+  }, [user?.id]);
+
   const handleSendMessage = async () => {
     if (!message.trim() || !activeConversation) return;
 
