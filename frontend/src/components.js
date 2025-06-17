@@ -693,6 +693,17 @@ const ChatInterface = ({ user, onLogout }) => {
     setMessage('');
     setIsTyping(true);
 
+    // Helper function to get or create session ID
+    const getOrCreateSessionId = (userId) => {
+      const existingSessionId = localStorage.getItem('celeste7_session_id');
+      if (existingSessionId) {
+        return existingSessionId;
+      }
+      const newSessionId = `session_${userId}_${Date.now()}`;
+      localStorage.setItem('celeste7_session_id', newSessionId);
+      return newSessionId;
+    };
+
     // Prepare request payload with user context and optional intervention_id
     const sessionId = getOrCreateSessionId(user.id);
     
