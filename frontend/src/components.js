@@ -848,18 +848,32 @@ const ChatInterface = ({ user, onLogout }) => {
         console.log('🔍 Full Webhook Response:', JSON.stringify(data, null, 2)); // Enhanced debug log
         
         if (data) {
-          console.log('🔍 Parsing webhook response...');
+          console.log('🔍 Oracle API Enhanced Response:', JSON.stringify(data, null, 2));
           console.log('📊 Available fields:', Object.keys(data));
           
-          // Format the AI response - look for new Ai_reply schema
+          // Format the AI response - handle both simple and enhanced Oracle API responses
           let aiResponseText = '';
+          let patternDetected = null;
+          let confidence = null;
+          let interventionType = null;
           
-          // Primary: Check for new Ai_reply field
-          if (data.Ai_reply) {
-            aiResponseText = data.Ai_reply.trim();
-            console.log('✅ Found Ai_reply:', data.Ai_reply);
+          // Check for Oracle API enhanced response
+          if (data.metadata && data.metadata.enhanced) {
+            console.log('✨ Oracle API Enhancement Detected!');
+            patternDetected = data.metadata.pattern_detected;
+            confidence = data.metadata.confidence;
+            interventionType = data.metadata.intervention_type;
+            
+            // Use enhanced message from Oracle API
+            aiResponseText = data.message || data.Ai_reply || '';
+            console.log('🧠 Pattern detected:', patternDetected, 'with confidence:', confidence);
           }
-          // Fallback: Check for legacy userResponse format (for backwards compatibility)
+          // Fallback to standard Ai_reply format
+          else if (data.Ai_reply) {
+            aiResponseText = data.Ai_reply.trim();
+            console.log('✅ Found standard Ai_reply:', data.Ai_reply);
+          }
+          // Legacy userResponse format support
           else if (data.userResponse) {
             const messageText = data.userResponse.message;
             const actionText = data.userResponse.action;
@@ -880,7 +894,7 @@ const ChatInterface = ({ user, onLogout }) => {
               console.log('✅ Found legacy question text:', questionText);
             }
           }
-          // Final fallback: Check other possible fields
+          // Final fallback for other formats
           else {
             aiResponseText = data.output || data.content || data.message || data.text || data.response;
             if (aiResponseText) {
@@ -906,7 +920,7 @@ const ChatInterface = ({ user, onLogout }) => {
             console.log('⚠️ No AI response found in any expected fields');
             aiResponseText = "No response received from AI service.";
           } else {
-            console.log('✅ Successfully parsed AI response from Ai_reply field');
+            console.log('✅ Successfully parsed AI response');
           }
           
           const aiMessage = {
