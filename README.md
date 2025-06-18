@@ -418,9 +418,9 @@ const sessionId = sessionStorage.getItem('celeste7_session_id')
 const [onlineUserCount, setOnlineUserCount] = useState(1)
 ```
 
-### **API Integration Example**
+### **API Integration Example (Oracle Enhanced)**
 ```javascript
-// Send text chat message
+// Send text chat message with Oracle API context
 const sendMessage = async (message) => {
   const payload = {
     userId: user.id,
@@ -431,6 +431,12 @@ const sendMessage = async (message) => {
     user: {
       email: user.email,
       displayName: user.name
+    },
+    // NEW: Oracle API Context
+    context: {
+      businessType: detectBusinessType(user, message),
+      messageCount: sessionMessageCount + 1,
+      lastMessageTime: lastMessageTime
     }
   }
   
@@ -441,8 +447,20 @@ const sendMessage = async (message) => {
   })
   
   const data = await response.json()
-  return data.Ai_reply
+  
+  // Handle Oracle API enhanced responses
+  if (data.metadata?.enhanced) {
+    console.log('🧠 Pattern detected:', data.metadata.pattern_detected)
+    console.log('📊 Confidence:', data.metadata.confidence)
+    return data.message // Enhanced response
+  }
+  
+  return data.Ai_reply // Standard response
 }
+
+// Pattern Detection UI State
+const [patternDetected, setPatternDetected] = useState(null)
+const [confidence, setConfidence] = useState(null)
 ```
 
 ---
