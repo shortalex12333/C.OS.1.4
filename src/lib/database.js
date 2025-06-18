@@ -3,20 +3,22 @@ import { createClient } from '@supabase/supabase-js';
 let supabase = null;
 
 export async function connectDatabase() {
+  if (process.env.SKIP_DB_CHECK === 'true') {
+    console.log('Skipping database connection (SKIP_DB_CHECK=true)');
+    return;
+  }
+
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_KEY;
   
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Missing Supabase configuration');
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+    if (process.env.SKIP_DB_CHECK !== 'true') {
+      throw new Error('Missing Supabase configuration');
+    }
+    return;
   }
   
   supabase = createClient(supabaseUrl, supabaseKey);
-  
-  // Skip health check if SKIP_DB_CHECK is true
-  if (process.env.SKIP_DB_CHECK === 'true') {
-    console.log('Skipping database health check (SKIP_DB_CHECK=true)');
-    return supabase;
-  }
   
   // Test the connection
   const { data, error } = await supabase.from('health_check').select('*').limit(1);
