@@ -5,11 +5,11 @@
   "type": "module",
   "main": "src/index.js",
   "scripts": {
+    "build": "echo 'No build step required'",
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "test": "jest",
     "lint": "eslint src/",
-    "build": "docker build -t celeste7-oracle .",
     "deploy": "npm run build && npm run push"
   },
   "dependencies": {
