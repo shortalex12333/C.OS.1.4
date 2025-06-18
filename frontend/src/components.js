@@ -1389,15 +1389,35 @@ const ChatInterface = ({ user, onLogout }) => {
                       <p className={`text-xs opacity-70`}>
                         {new Date(msg.timestamp).toLocaleTimeString()}
                       </p>
-                      {msg.isIntervention && (
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          isDarkMode 
-                            ? 'bg-orange-900/30 text-orange-300' 
-                            : 'bg-orange-200 text-orange-700'
-                        }`}>
-                          Intervention
-                        </span>
-                      )}
+                      <div className="flex items-center space-x-1">
+                        {msg.isIntervention && (
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            isDarkMode 
+                              ? 'bg-orange-900/30 text-orange-300' 
+                              : 'bg-orange-200 text-orange-700'
+                          }`}>
+                            Intervention
+                          </span>
+                        )}
+                        {msg.isEnhanced && (
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            isDarkMode 
+                              ? 'bg-purple-900/30 text-purple-300' 
+                              : 'bg-purple-200 text-purple-700'
+                          }`}>
+                            🧠 Enhanced
+                          </span>
+                        )}
+                        {msg.patternDetected && (
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            isDarkMode 
+                              ? 'bg-blue-900/30 text-blue-300' 
+                              : 'bg-blue-200 text-blue-700'
+                          }`} title={`Pattern: ${msg.patternDetected} (${Math.round(msg.confidence * 100)}% confidence)`}>
+                            🔍 {msg.patternDetected}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
