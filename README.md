@@ -7,11 +7,20 @@
 
 ## 🚀 **Project Overview**
 
-Celeste7 is a sophisticated AI conversation platform that replicates ChatGPT Plus functionality while adding advanced behavioral pattern recognition, personalized interventions, and real-time user analytics. Built with React frontend and Python ML backend.
+Celeste7 is a sophisticated AI conversation platform that replicates ChatGPT Plus functionality while adding advanced behavioral pattern recognition, personalized interventions, and real-time user analytics. Built with React frontend, n8n orchestration, and Oracle API ML backend.
+
+### **🏗 Production Architecture**
+```
+Frontend → n8n webhook → Oracle API (Vercel) → n8n → Frontend
+             ↓               ↓
+     (orchestration)   (Real ML behavioral intelligence)
+```
 
 ### **Key Features**
 - 🤖 **ChatGPT-style Interface** - Familiar chat experience with enhanced capabilities
-- 🎯 **Pattern Recognition** - ML-powered behavioral analysis and interventions
+- 🧠 **Oracle API Integration** - ML-powered behavioral analysis using HuggingFace + OpenAI
+- 🎯 **Pattern Recognition** - Detects procrastination, perfectionism, pricing anxiety patterns
+- 📈 **Enhanced Responses** - AI responses enriched with behavioral interventions
 - 👥 **Real-time User Counter** - Live online user tracking
 - 🔄 **Session Management** - Secure, unique session handling
 - 📊 **Profile Building** - 4-step onboarding for personalized experiences
