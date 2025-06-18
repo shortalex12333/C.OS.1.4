@@ -107,11 +107,11 @@ POST /webhook/c7/auth/verify-token
 
 ### **Chat & AI Endpoints**
 
-#### **Analyze User Message**
+#### **Analyze User Message (Oracle API Enhanced)**
 ```javascript
 POST /webhook/c7/text-chat
 
-// Request Payload
+// Request Payload (Enhanced with Oracle API Context)
 {
   "userId": "user_uuid",
   "chatId": "1",
@@ -122,15 +122,33 @@ POST /webhook/c7/text-chat
     "email": "user@example.com",
     "displayName": "John Doe"
   },
+  "context": {
+    "businessType": "saas",           // "saas", "agency", "ecommerce", "consultant", "unknown"
+    "messageCount": 5,                // Total messages in this session
+    "lastMessageTime": 1749715171301  // For detecting patterns over time
+  },
   "intervention_id": "intervention_123" // Optional
 }
 
-// Response Format
+// Enhanced Response Format (Oracle API)
 {
   "success": true,
-  "Ai_reply": "I understand you're looking to improve productivity. Here are some strategies...",
+  "message": "I understand you're looking to improve productivity. Based on your patterns, I notice you might be overthinking your approach...",
+  "metadata": {
+    "enhanced": true,
+    "pattern_detected": "procrastination",
+    "confidence": 0.85,
+    "intervention_type": "direct_challenge"
+  },
   "timestamp": "2025-01-08T12:00:00Z",
   "sessionId": "session_user_1749715171301_abc123"
+}
+
+// Legacy Response Format (Fallback)
+{
+  "success": true,
+  "Ai_reply": "Standard AI response without behavioral enhancement...",
+  "timestamp": "2025-01-08T12:00:00Z"
 }
 ```
 
