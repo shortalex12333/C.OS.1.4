@@ -929,7 +929,12 @@ const ChatInterface = ({ user, onLogout }) => {
             isUser: false,
             timestamp: data.timestamp || Date.now(),
             rawData: data,
-            interventionId: interventionId // Track which intervention was used
+            interventionId: interventionId,
+            // NEW: Oracle API Pattern Detection Metadata
+            patternDetected: patternDetected,
+            confidence: confidence,
+            interventionType: interventionType,
+            isEnhanced: data.metadata?.enhanced || false
           };
 
           setActiveConversation(prev => ({
