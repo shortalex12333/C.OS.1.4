@@ -31,16 +31,8 @@ const config = {
 
 // Initialize logger
 const logger = pino({
-  level: process.env.LOG_LEVEL || 'info',
-  ...(config.environment === 'production' && {
-    transport: {
-      target: 'pino-logflare',
-      options: {
-        apiKey: process.env.LOGFLARE_API_KEY,
-        sourceToken: process.env.LOGFLARE_SOURCE_TOKEN
-      }
-    }
-  })
+  level: process.env.LOG_LEVEL || 'info'
+  // No transport in production - Vercel handles logs
 });
 
 // Initialize Sentry for production
