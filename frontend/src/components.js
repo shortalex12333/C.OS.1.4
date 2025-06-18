@@ -768,6 +768,11 @@ const ChatInterface = ({ user, onLogout }) => {
     if (!sessionStorage.getItem('celeste7_session_id')) {
       sessionStorage.setItem('celeste7_session_id', sessionId);
     }
+
+    // Increment message count for this session
+    const newMessageCount = sessionMessageCount + 1;
+    setSessionMessageCount(newMessageCount);
+    setLastMessageTime(Date.now());
     
     const requestPayload = {
       userId: user.id,
@@ -778,6 +783,12 @@ const ChatInterface = ({ user, onLogout }) => {
       user: {
         email: user.email,
         displayName: user.name || user.displayName || 'Unknown User'
+      },
+      // NEW: Oracle API Context Fields
+      context: {
+        businessType: detectBusinessType(user, message.trim()),
+        messageCount: newMessageCount,
+        lastMessageTime: lastMessageTime
       }
     };
 
