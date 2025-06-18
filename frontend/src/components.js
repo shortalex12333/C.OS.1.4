@@ -593,6 +593,8 @@ const ChatInterface = ({ user, onLogout }) => {
   const [isTyping, setIsTyping] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [onlineUserCount, setOnlineUserCount] = useState(1); // New state for online users
+  const [sessionMessageCount, setSessionMessageCount] = useState(0); // Track messages per session
+  const [lastMessageTime, setLastMessageTime] = useState(Date.now()); // Track timing patterns
   const messagesEndRef = useRef(null);
   
   // Use intervention hooks
