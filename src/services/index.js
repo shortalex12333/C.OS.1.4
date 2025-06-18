@@ -689,29 +689,29 @@ export async function initializeServices(config = {}) {
   // Initialize ML service
   const mlService = new MLService();
   
-  // Set up queue processors if queues are provided
+  // Set up simple queue processors for Vercel compatibility
   if (queues) {
-    // Analysis queue processor
-    queues.analysis.process(async (job) => {
-      const { message, context } = job.data;
+    // Analysis queue processor - simplified for Vercel
+    queues.analysis.process = async (data) => {
+      const { message, context } = data;
       return await mlService.analyzeMessage(message, context);
-    });
+    };
     
-    // Learning queue processor
-    queues.learning.process(async (job) => {
-      const { userId, pattern, feedback } = job.data;
+    // Learning queue processor - simplified for Vercel
+    queues.learning.process = async (data) => {
+      const { userId, pattern, feedback } = data;
       // Process learning data
       logger.info({ userId, pattern }, 'Processing learning data');
       return { success: true };
-    });
+    };
     
-    // Notifications queue processor
-    queues.notifications.process(async (job) => {
-      const { userId, message, type } = job.data;
+    // Notifications queue processor - simplified for Vercel
+    queues.notifications.process = async (data) => {
+      const { userId, message, type } = data;
       // Process notifications
       logger.info({ userId, type }, 'Processing notification');
       return { success: true };
-    });
+    };
   }
   
   logger.info('Services initialized successfully');

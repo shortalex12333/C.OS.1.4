@@ -4,9 +4,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import { rateLimit } from 'express-rate-limit';
-import bullBoard from '@bull-board/express';
-import { BullAdapter } from '@bull-board/api/bullAdapter.js';
-import Queue from 'bull';
 import pino from 'pino';
 import pinoHttp from 'pino-http';
 import * as Sentry from '@sentry/node';
@@ -29,9 +26,7 @@ const config = {
   port: process.env.PORT || 3000,
   environment: process.env.NODE_ENV || 'development',
   corsOrigins: process.env.CORS_ORIGINS?.split(',') || ['*'],
-  sentryDsn: process.env.SENTRY_DSN,
-  redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
-  bullboard: process.env.ENABLE_BULLBOARD === 'true'
+  sentryDsn: process.env.SENTRY_DSN
 };
 
 // Initialize logger
@@ -117,26 +112,12 @@ const limiter = rateLimit({
 // Apply rate limiting to API routes
 app.use('/api/', limiter);
 
-// Initialize queues for async processing
+// Simple in-memory queue simulation for Vercel compatibility
 const queues = {
-  analysis: new Queue('analysis', config.redisUrl),
-  learning: new Queue('learning', config.redisUrl),
-  notifications: new Queue('notifications', config.redisUrl)
+  analysis: { add: (data) => Promise.resolve(data) },
+  learning: { add: (data) => Promise.resolve(data) },
+  notifications: { add: (data) => Promise.resolve(data) }
 };
-
-// TODO: Fix Bull Board imports for ESM compatibility. Bull Board dashboard is disabled for now.
-/*
-if (config.bullboard && config.environment !== 'production') {
-  const serverAdapter = new bullBoard.ExpressAdapter();
-  const { addQueue, removeQueue, setQueues, replaceQueues } = bullBoard.createBullBoard({
-    queues: Object.values(queues).map(q => new BullAdapter(q)),
-    serverAdapter
-  });
-  
-  serverAdapter.setBasePath('/admin/queues');
-  app.use('/admin/queues', serverAdapter.getRouter());
-}
-*/
 
 // Health check (no rate limit)
 app.use('/health', healthRoute);
@@ -230,10 +211,6 @@ async function start() {
       server.close(() => {
         logger.info('HTTP server closed');
       });
-
-      // Close queues
-      await Promise.all(Object.values(queues).map(q => q.close()));
-      logger.info('Queues closed');
 
       // Close database
       await disconnectDatabase();

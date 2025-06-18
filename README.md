@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # CELESTE7 Behavioral Intelligence API
 
 A sophisticated behavioral intelligence system that detects patterns in user communication and enhances responses with targeted behavioral interventions.
@@ -214,17 +213,30 @@ curl -X POST http://localhost:3000/api/enhance \
 
 ## 🚀 Deployment
 
-### Docker
+### Vercel (Recommended)
 ```bash
-docker build -t celeste7-api .
-docker run -p 3000:3000 --env-file .env celeste7-api
+# Deploy to Vercel
+vercel --prod
+
+# Or connect your GitHub repo to Vercel for automatic deployments
 ```
 
-### Production
+### Manual Deployment
 1. Set `NODE_ENV=production`
 2. Configure proper environment variables
 3. Use a process manager like PM2
 4. Set up monitoring and logging
+
+### Environment Variables for Production
+```env
+NODE_ENV=production
+PORT=3000
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_key
+HUGGINGFACE_TOKEN=your_huggingface_token
+OPENAI_API_KEY=your_openai_api_key
+SENTRY_DSN=your_sentry_dsn
+```
 
 ## 📊 Monitoring
 
@@ -257,6 +269,3 @@ For support and questions:
 ---
 
 **CELESTE7 Behavioral Intelligence API** - Transforming how we understand and respond to human behavior patterns.
-=======
-# Here are your Instructions
->>>>>>> 64a77e2f694ffe24336c4d7dcb5a4f2a63b849d0
