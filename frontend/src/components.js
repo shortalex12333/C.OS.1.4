@@ -597,6 +597,31 @@ const ChatInterface = ({ user, onLogout }) => {
   const [lastMessageTime, setLastMessageTime] = useState(Date.now()); // Track timing patterns
   const messagesEndRef = useRef(null);
   
+  // Helper function to detect business type from user profile and message content
+  const detectBusinessType = (user, message) => {
+    const lowerMessage = message.toLowerCase();
+    const userProfile = JSON.parse(localStorage.getItem('celeste7_profile') || '{}');
+    
+    // Check user profile first
+    if (userProfile.primary_goal === 'business_growth' || userProfile.work_style === 'entrepreneur') {
+      // Analyze message content for specific business types
+      if (lowerMessage.includes('saas') || lowerMessage.includes('software') || lowerMessage.includes('subscription')) {
+        return 'saas';
+      }
+      if (lowerMessage.includes('agency') || lowerMessage.includes('client') || lowerMessage.includes('marketing')) {
+        return 'agency';
+      }
+      if (lowerMessage.includes('ecommerce') || lowerMessage.includes('product') || lowerMessage.includes('store')) {
+        return 'ecommerce';
+      }
+      if (lowerMessage.includes('consultant') || lowerMessage.includes('consulting') || lowerMessage.includes('advice')) {
+        return 'consultant';
+      }
+    }
+    
+    return 'unknown';
+  };
+  
   // Use intervention hooks
   const {
     interventions,
