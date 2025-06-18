@@ -355,7 +355,46 @@ POST http://localhost:3001/api/interventions
 
 ---
 
-## 🎨 **Frontend Integration**
+## 🧠 **Oracle API Integration**
+
+### **What the Oracle API Does:**
+- **Pattern Detection**: Identifies behavioral patterns (procrastination, perfectionism, pricing anxiety)
+- **ML Analysis**: Uses HuggingFace + OpenAI for real behavioral intelligence
+- **Response Enhancement**: Enriches AI responses with personalized interventions
+- **Learning System**: Learns from every interaction to improve accuracy
+
+### **Behavioral Patterns Detected:**
+- **Procrastination**: "I'll work on pricing tomorrow maybe"
+- **Planning Paralysis**: "Need to make another plan for my launch"
+- **Perfectionism**: "It's not perfect yet"
+- **Pricing Anxiety**: "Not sure what to charge for this"
+
+### **Enhanced Message Flow:**
+1. User types message → Frontend sends to n8n webhook
+2. n8n calls GPT for base response
+3. n8n calls Oracle API for pattern detection
+4. Oracle enhances response if pattern detected
+5. Enhanced response returns to frontend
+
+### **Pattern Detection UI:**
+- **Enhanced Messages**: Purple border indicates Oracle API enhancement
+- **Pattern Badges**: Show detected pattern with confidence level
+- **Confidence Tooltips**: Hover to see pattern confidence percentage
+
+### **Business Type Detection:**
+```javascript
+// Automatic detection based on user profile and message content
+const businessTypes = {
+  "saas": ["saas", "software", "subscription"],
+  "agency": ["agency", "client", "marketing"], 
+  "ecommerce": ["ecommerce", "product", "store"],
+  "consultant": ["consultant", "consulting", "advice"]
+}
+```
+
+---
+
+## 🎨 **Frontend Integration (Updated)**
 
 ### **Key Components**
 - **AuthScreen** - Authentication interface
