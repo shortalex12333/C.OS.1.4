@@ -44,9 +44,9 @@ function App() {
               setShowOnboarding(!onboardingCompleted);
             } else {
               // Invalid token, clear storage
-              localStorage.removeItem('celeste7_token');
-              localStorage.removeItem('celeste7_user');
-              localStorage.removeItem('celeste7_onboarding_completed');
+              localStorage.removeItem('celesteos_token');
+              localStorage.removeItem('celesteos_user');
+              localStorage.removeItem('celesteos_onboarding_completed');
             }
           } else {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
