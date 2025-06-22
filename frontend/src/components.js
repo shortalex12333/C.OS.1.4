@@ -1076,7 +1076,7 @@ const ChatInterface = ({ user, onLogout }) => {
     try {
       console.log('Fetching conversation:', conversationId, 'for user:', user.id);
       
-      const response = await fetch('https://ventruk.app.n8n.cloud/webhook/c7/fetch-chat', {
+      const response = await fetch('http://46.62.139.129:5678/webhook/fetch-chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
