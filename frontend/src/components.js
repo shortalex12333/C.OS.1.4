@@ -1450,9 +1450,10 @@ const ChatInterface = ({ user, onLogout }) => {
         </div>
 
         {/* ChatGPT-Style Messages Area */}
-        <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
+        <div className="flex-1 flex flex-col w-full min-h-0">
           <div className="flex-1 overflow-y-auto px-4 py-6 chat-scrollbar">
-            {activeConversation?.messages?.length === 0 ? (
+            <div className="max-w-4xl mx-auto">
+              {activeConversation?.messages?.length === 0 ? (
               <div className="flex-1 flex items-center justify-center min-h-[60vh]">
                 <motion.div 
                   className="text-center max-w-md"
