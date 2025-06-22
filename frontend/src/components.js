@@ -706,7 +706,7 @@ const ChatInterface = ({ user, onLogout }) => {
     const sendHeartbeat = async () => {
       try {
         const sessionId = sessionStorage.getItem('celeste7_session_id');
-        const response = await fetch('https://ventruk.app.n8n.cloud/webhook/c7/user-heartbeat', {
+        const response = await fetch('http://46.62.139.129:5678/webhook/user-heartbeat', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
