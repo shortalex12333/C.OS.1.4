@@ -790,11 +790,11 @@ const ChatInterface = ({ user, onLogout }) => {
     setIsTyping(true);
 
     // Get or create session ID from sessionStorage
-    const sessionId = sessionStorage.getItem('celeste7_session_id') || `session_${user.id}_${Date.now()}`;
+    const sessionId = sessionStorage.getItem('celesteos_session_id') || `session_${user.id}_${Date.now()}`;
     
     // Store sessionId if it was just created
-    if (!sessionStorage.getItem('celeste7_session_id')) {
-      sessionStorage.setItem('celeste7_session_id', sessionId);
+    if (!sessionStorage.getItem('celesteos_session_id')) {
+      sessionStorage.setItem('celesteos_session_id', sessionId);
     }
 
     // Increment message count for this session
