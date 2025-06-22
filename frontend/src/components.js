@@ -1217,7 +1217,7 @@ const ChatInterface = ({ user, onLogout }) => {
                     />
                   </div>
                   <h1 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-[#181818]'}`} style={{ fontFamily: 'Eloquia-Text, sans-serif' }}>
-                    Celeste7
+                    Celeste<span className="bg-gradient-to-r from-[#73c2e2] to-[#badde9] bg-clip-text text-transparent">OS</span>
                   </h1>
                 </div>
                 <button
