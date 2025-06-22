@@ -766,10 +766,250 @@ const ChatInterface = ({ user, onLogout }) => {
     }
   }, [user]);
 
-  // Auto scroll to bottom
+  // Auto scroll to bottom with smooth animation
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'end',
+        inline: 'nearest'
+      });
+    }
   }, [activeConversation?.messages]);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+    }
+  }, [message]);
+
+  // Handle message editing
+  const handleEditMessage = (messageId) => {
+    const messageToEdit = activeConversation?.messages.find(msg => msg.id === messageId);
+    if (messageToEdit && messageToEdit.isUser) {
+      setEditingMessageId(messageId);
+      setEditingText(messageToEdit.text);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMessageId(null);
+    setEditingText('');
+  };
+
+  const handleSaveEdit = async (messageId) => {
+    if (!editingText.trim() || !activeConversation) return;
+
+    // Find the message index
+    const messageIndex = activeConversation.messages.findIndex(msg => msg.id === messageId);
+    if (messageIndex === -1) return;
+
+    // Remove all messages after this one (including AI responses)
+    const messagesToKeep = activeConversation.messages.slice(0, messageIndex);
+    
+    // Update the edited message
+    const editedMessage = {
+      ...activeConversation.messages[messageIndex],
+      text: editingText.trim(),
+      isEdited: true,
+      editedAt: Date.now()
+    };
+
+    // Update the conversation
+    setActiveConversation(prev => ({
+      ...prev,
+      messages: [...messagesToKeep, editedMessage]
+    }));
+
+    // Clear editing state
+    setEditingMessageId(null);
+    setEditingText('');
+
+    // Send the edited message to webhook
+    await sendMessageToWebhook(editedMessage.text);
+  };
+
+  const sendMessageToWebhook = async (messageText) => {
+    setIsTyping(true);
+
+    // Get pending intervention ID to include with message
+    const interventionId = getPendingInterventionId();
+
+    // Get or create session ID from sessionStorage
+    const sessionId = sessionStorage.getItem('celesteos_session_id') || `session_${user.id}_${Date.now()}`;
+    
+    // Store sessionId if it was just created
+    if (!sessionStorage.getItem('celesteos_session_id')) {
+      sessionStorage.setItem('celesteos_session_id', sessionId);
+    }
+
+    // Increment message count for this session
+    const newMessageCount = sessionMessageCount + 1;
+    setSessionMessageCount(newMessageCount);
+    setLastMessageTime(Date.now());
+    
+    const requestPayload = {
+      userId: user.id,
+      chatId: activeConversation.id,
+      message: messageText,
+      timestamp: Date.now(),
+      sessionId: sessionId,
+      user: {
+        email: user.email,
+        displayName: user.name || user.displayName || 'Unknown User'
+      },
+      context: {
+        businessType: detectBusinessType(user, messageText),
+        messageCount: newMessageCount,
+        lastMessageTime: lastMessageTime
+      }
+    };
+
+    // Add intervention_id if there's a pending intervention
+    if (interventionId) {
+      requestPayload.intervention_id = interventionId;
+    }
+
+    try {
+      const response = await fetch('https://api.celeste7.ai/webhook/text-chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        mode: 'cors',
+        credentials: 'omit',
+        body: JSON.stringify(requestPayload)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Process AI response (same logic as before)
+        let aiResponseText = '';
+        let patternDetected = null;
+        let confidence = null;
+        let interventionType = null;
+        
+        if (data.metadata && data.metadata.enhanced) {
+          patternDetected = data.metadata.pattern_detected;
+          confidence = data.metadata.confidence;
+          interventionType = data.metadata.intervention_type;
+          aiResponseText = data.message || data.Ai_reply || '';
+        } else if (data.Ai_reply) {
+          aiResponseText = data.Ai_reply.trim();
+        } else if (data.userResponse) {
+          const messageText = data.userResponse.message;
+          const actionText = data.userResponse.action;
+          const questionText = data.userResponse.question;
+          
+          if (messageText) aiResponseText += messageText;
+          if (actionText) {
+            if (aiResponseText.trim()) aiResponseText += '\n';
+            aiResponseText += actionText;
+          }
+          if (questionText) {
+            if (aiResponseText.trim()) aiResponseText += '\n';
+            aiResponseText += questionText;
+          }
+        } else {
+          aiResponseText = data.output || data.content || data.message || data.text || data.response || '';
+        }
+        
+        if (data.strategic_question) {
+          if (aiResponseText.trim()) aiResponseText += '\n\n';
+          aiResponseText += '💡 ' + data.strategic_question;
+        }
+        
+        if (interventionId) {
+          if (aiResponseText.trim()) aiResponseText += '\n\n';
+          aiResponseText += '🎯 Response enhanced with behavioral insights';
+        }
+        
+        if (!aiResponseText.trim()) {
+          aiResponseText = "No response received from AI service.";
+        }
+        
+        const aiMessage = {
+          id: Date.now() + 1,
+          text: aiResponseText,
+          isUser: false,
+          timestamp: data.timestamp || Date.now(),
+          rawData: data,
+          interventionId: interventionId,
+          patternDetected: patternDetected,
+          confidence: confidence,
+          interventionType: interventionType,
+          isEnhanced: data.metadata?.enhanced || false
+        };
+
+        setActiveConversation(prev => ({
+          ...prev,
+          messages: [...prev.messages, aiMessage],
+          lastMessage: aiResponseText.substring(0, 100) + '...'
+        }));
+
+        // Update conversation in list
+        setConversations(prev => prev.map(conv => 
+          conv.id === activeConversation.id 
+            ? { 
+                ...conv, 
+                lastMessage: aiResponseText.substring(0, 100) + '...', 
+                timestamp: data.timestamp || Date.now() 
+              }
+            : conv
+        ));
+
+        // Mark intervention as used if it was included
+        if (interventionId) {
+          markInterventionUsed(interventionId);
+        }
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Message send error:', error);
+      
+      // Mock AI response for demo when webhook fails
+      setTimeout(() => {
+        const responses = [
+          "I understand your question. As an AI assistant, I'm here to help with a wide variety of tasks including answering questions, providing explanations, helping with creative projects, and more. How can I assist you further?",
+          "That's a great question! Let me help you with that. I can provide detailed explanations, code examples, creative writing assistance, and much more.",
+          "I'm happy to help! Based on your message, I can offer insights and assistance. What specific aspect would you like me to focus on?",
+          "Thanks for your message! I'm designed to be helpful, harmless, and honest. I can assist with analysis, creative tasks, problem-solving, and general questions.",
+          "I appreciate you reaching out. As your AI assistant, I can help break down complex topics, provide step-by-step guidance, or explore creative solutions together."
+        ];
+        
+        let aiResponseText = responses[Math.floor(Math.random() * responses.length)];
+        
+        if (interventionId) {
+          aiResponseText += '\n\n🎯 **Intervention Applied:** Response tailored based on detected patterns (Demo Mode)';
+        }
+        
+        const aiResponse = {
+          id: Date.now() + 1,
+          text: aiResponseText,
+          isUser: false,
+          timestamp: Date.now(),
+          interventionId: interventionId
+        };
+
+        setActiveConversation(prev => ({
+          ...prev,
+          messages: [...prev.messages, aiResponse],
+          lastMessage: aiResponse.text
+        }));
+
+        if (interventionId) {
+          markInterventionUsed(interventionId);
+        }
+      }, 1500);
+    }
+
+    setIsTyping(false);
+  };
 
   // Online users heartbeat system
   useEffect(() => {
