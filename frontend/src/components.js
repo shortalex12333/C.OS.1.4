@@ -1143,7 +1143,7 @@ const ChatInterface = ({ user, onLogout }) => {
     try {
       console.log('Fetching conversation:', conversationId, 'for user:', user.id);
       
-      const response = await fetch('https://46.62.139.129:5678/webhook/fetch-chat', {
+      const response = await fetch('https://api.celeste7.ai/webhook/fetch-chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
