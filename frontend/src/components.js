@@ -238,126 +238,188 @@ const OnboardingScreen = ({ user, onComplete }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#73c2e2] via-[#badde9] to-[#73c2e2] flex items-center justify-center p-4">
       <motion.div 
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8"
+        className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        {/* Header */}
-        <div className="mb-8">
+        {/* Enhanced Header with Better Branding */}
+        <div className="bg-gradient-to-r from-[#73c2e2] to-[#badde9] p-8 text-white">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-[#181818]" style={{ fontFamily: 'Eloquia-Text, sans-serif' }}>
-              Quick Setup
-            </h1>
-            <span className="text-gray-500 text-sm font-medium">
-              {currentStep} of {steps.length}
-            </span>
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                <img 
+                  src="https://images.unsplash.com/photo-1633412802994-5c058f151b66?w=100&h=100&fit=crop&crop=center"
+                  alt="CelesteOS"
+                  className="w-8 h-8 rounded-lg object-cover"
+                />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold" style={{ fontFamily: 'Eloquia-Text, sans-serif' }}>
+                  Welcome to Celeste<span className="text-white/90">OS</span>
+                </h1>
+                <p className="text-white/80 text-sm">Your proactive AI assistant</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-sm text-white/70">Step</div>
+              <div className="text-2xl font-bold">{currentStep}</div>
+              <div className="text-sm text-white/70">of {steps.length}</div>
+            </div>
           </div>
           
-          {/* Progress Bar */}
-          <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
-            <motion.div 
-              className="bg-gradient-to-r from-[#73c2e2] to-[#badde9] h-2 rounded-full"
-              initial={{ width: '25%' }}
-              animate={{ width: `${progressPercentage}%` }}
-              transition={{ duration: 0.3 }}
-            />
+          {/* Enhanced Progress Bar */}
+          <div className="relative">
+            <div className="w-full bg-white/20 rounded-full h-3">
+              <motion.div 
+                className="bg-white h-3 rounded-full shadow-lg"
+                initial={{ width: '25%' }}
+                animate={{ width: `${progressPercentage}%` }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
+              />
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-xs font-medium text-white/90">
+                {Math.round(progressPercentage)}% Complete
+              </span>
+            </div>
           </div>
+        </div>
 
-          {/* Question */}
-          <motion.h2 
-            className="text-xl font-semibold text-[#181818] mb-6"
+        {/* Enhanced Question Section */}
+        <div className="p-8">
+          <motion.div
             key={currentStep}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4 }}
+            className="mb-8"
           >
-            {currentStepData.question}
-          </motion.h2>
-        </div>
-
-        {/* Options */}
-        <motion.div 
-          className="space-y-3 mb-8"
-          key={currentStep}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-        >
-          {currentStepData.options.map((option, index) => {
-            const isObject = typeof option === 'object';
-            const displayText = isObject ? option.label : option;
-            const optionValue = isObject ? option.value : option;
-            const isSelected = answers[currentStepData.field] === optionValue;
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="w-10 h-10 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-full flex items-center justify-center text-white font-bold">
+                {currentStep}
+              </div>
+              <h2 className="text-2xl font-semibold text-[#181818]">
+                {currentStepData.question}
+              </h2>
+            </div>
             
-            return (
-              <motion.button
-                key={optionValue}
-                onClick={() => handleOptionSelect(option)}
-                className={`w-full p-4 rounded-xl border-2 text-left font-medium transition-all ${
-                  isSelected
-                    ? 'border-[#73c2e2] bg-gradient-to-r from-[#73c2e2]/10 to-[#badde9]/10 text-[#181818]'
-                    : 'border-gray-200 hover:border-[#73c2e2]/50 hover:bg-gray-50 text-gray-700'
-                }`}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                {displayText}
-              </motion.button>
-            );
-          })}
-        </motion.div>
+            <p className="text-gray-600 mb-6">
+              {currentStep === 1 && "This helps us understand your stage of life and tailor recommendations accordingly."}
+              {currentStep === 2 && "Let us know what you're focusing on so we can provide relevant guidance."}
+              {currentStep === 3 && "Understanding your work environment helps us suggest better productivity strategies."}
+              {currentStep === 4 && "Knowing your main challenge allows us to provide targeted support and interventions."}
+            </p>
+          </motion.div>
 
-        {/* Navigation */}
-        <div className="flex items-center justify-between">
-          <button
-            onClick={handleBack}
-            disabled={currentStep === 1}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
-              currentStep === 1 
-                ? 'text-gray-400 cursor-not-allowed' 
-                : 'text-gray-600 hover:text-[#73c2e2] hover:bg-gray-100'
-            }`}
+          {/* Enhanced Options Grid */}
+          <motion.div 
+            className="grid gap-4 mb-8"
+            key={currentStep}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
           >
-            <ChevronLeft size={18} />
-            <span>Back</span>
-          </button>
+            {currentStepData.options.map((option, index) => {
+              const isObject = typeof option === 'object';
+              const displayText = isObject ? option.label : option;
+              const optionValue = isObject ? option.value : option;
+              const isSelected = answers[currentStepData.field] === optionValue;
+              
+              return (
+                <motion.button
+                  key={optionValue}
+                  onClick={() => handleOptionSelect(option)}
+                  className={`relative p-6 rounded-2xl border-2 text-left font-medium transition-all duration-300 ${
+                    isSelected
+                      ? 'border-[#73c2e2] bg-gradient-to-r from-[#73c2e2]/10 to-[#badde9]/10 text-[#181818] shadow-lg transform scale-[1.02]'
+                      : 'border-gray-200 hover:border-[#73c2e2]/50 hover:bg-gray-50 text-gray-700 hover:shadow-md hover:transform hover:scale-[1.01]'
+                  }`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  whileHover={{ scale: isSelected ? 1.02 : 1.01 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {isSelected && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute top-4 right-4 w-6 h-6 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-full flex items-center justify-center"
+                    >
+                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </motion.div>
+                  )}
+                  <div className="pr-8">
+                    <span className="text-lg">{displayText}</span>
+                  </div>
+                </motion.button>
+              );
+            })}
+          </motion.div>
 
-          <motion.button
-            onClick={handleNext}
-            disabled={!canProceed || isSubmitting}
-            className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all ${
-              canProceed && !isSubmitting
-                ? 'bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white hover:shadow-lg transform hover:scale-[1.02]'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-            whileHover={canProceed ? { scale: 1.02 } : {}}
-            whileTap={canProceed ? { scale: 0.98 } : {}}
-          >
-            {isSubmitting ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Setting up...</span>
-              </>
-            ) : currentStep === steps.length ? (
-              <span>Complete Setup</span>
-            ) : (
-              <>
-                <span>Next</span>
-                <ChevronRight size={18} />
-              </>
-            )}
-          </motion.button>
-        </div>
+          {/* Enhanced Navigation */}
+          <div className="flex items-center justify-between pt-6 border-t border-gray-100">
+            <button
+              onClick={handleBack}
+              disabled={currentStep === 1}
+              className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all ${
+                currentStep === 1 
+                  ? 'text-gray-400 cursor-not-allowed' 
+                  : 'text-gray-600 hover:text-[#73c2e2] hover:bg-gray-100 border border-gray-200 hover:border-[#73c2e2]/30'
+              }`}
+            >
+              <ChevronLeft size={18} />
+              <span>Back</span>
+            </button>
 
-        {/* Footer message */}
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-500">
-            This helps us personalize your AI experience
-          </p>
+            <motion.button
+              onClick={handleNext}
+              disabled={!canProceed || isSubmitting}
+              className={`flex items-center space-x-3 px-8 py-4 rounded-xl font-medium transition-all shadow-lg ${
+                canProceed && !isSubmitting
+                  ? 'bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white hover:shadow-xl transform hover:scale-[1.02]'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+              whileHover={canProceed ? { scale: 1.02 } : {}}
+              whileTap={canProceed ? { scale: 0.98 } : {}}
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Setting up your AI...</span>
+                </>
+              ) : currentStep === steps.length ? (
+                <>
+                  <span>Complete Setup</span>
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </>
+              ) : (
+                <>
+                  <span>Continue</span>
+                  <ChevronRight size={18} />
+                </>
+              )}
+            </motion.button>
+          </div>
+
+          {/* Enhanced Footer */}
+          <div className="mt-8 text-center">
+            <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
+              <div className="flex items-center space-x-1">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                </svg>
+                <span>Secure & Private</span>
+              </div>
+              <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
+              <span>Powered by Celeste7</span>
+            </div>
+          </div>
         </div>
       </motion.div>
     </div>
