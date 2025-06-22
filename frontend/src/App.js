@@ -129,7 +129,7 @@ function App() {
     try {
       const token = localStorage.getItem('celeste7_token');
       if (token) {
-        await fetch('https://ventruk.app.n8n.cloud/webhook/c7/auth/logout', {
+        await fetch('http://46.62.139.129:5678/webhook/auth/logout', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
