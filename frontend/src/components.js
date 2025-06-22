@@ -42,7 +42,7 @@ const LoadingScreen = () => {
         >
           <img 
             src="https://images.unsplash.com/photo-1633412802994-5c058f151b66?w=100&h=100&fit=crop&crop=center"
-            alt="Celeste7"
+            alt="CelesteOS"
             className="w-12 h-12 rounded-lg object-cover"
           />
         </motion.div>
