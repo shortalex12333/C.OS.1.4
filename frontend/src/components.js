@@ -701,7 +701,7 @@ const ChatInterface = ({ user, onLogout }) => {
     const initializeConversations = async () => {
       try {
         // Try to fetch conversation list from webhook
-        const response = await fetch('http://46.62.139.129:5678/webhook/fetch-conversations', {
+        const response = await fetch('https://46.62.139.129:5678/webhook/fetch-conversations', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
