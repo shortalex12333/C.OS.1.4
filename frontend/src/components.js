@@ -902,7 +902,7 @@ const ChatInterface = ({ user, onLogout }) => {
 
     try {
       // Send to webhook
-      const response = await fetch('https://46.62.139.129:5678/webhook/text-chat', {
+      const response = await fetch('https://api.celeste7.ai/webhook/text-chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
