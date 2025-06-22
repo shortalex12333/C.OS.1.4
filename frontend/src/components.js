@@ -390,7 +390,7 @@ const AuthScreen = ({ onLogin }) => {
 
     try {
       const endpoint = isSignUp ? 'signup' : 'login'; // Changed from 'signin' to 'login'
-      const response = await fetch(`https://ventruk.app.n8n.cloud/webhook/c7/auth/${endpoint}`, {
+      const response = await fetch(`http://46.62.139.129:5678/webhook/auth/${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
