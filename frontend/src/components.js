@@ -144,7 +144,7 @@ const OnboardingScreen = ({ user, onComplete }) => {
     try {
       console.log(`Sending stage ${stage} data:`, stageData);
       
-      const response = await fetch('https://api.celeste7.ai/webhook-test/profile-building', {
+      const response = await fetch('https://api.celeste7.ai/webhook/profile-building', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
