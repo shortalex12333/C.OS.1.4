@@ -1515,7 +1515,7 @@ const ChatInterface = ({ user, onLogout }) => {
                         {/* Message Content */}
                         <div className={`relative group/message ${
                           msg.isUser 
-                            ? 'bg-[#181818] text-white rounded-3xl rounded-br-lg px-6 py-4 border border-transparent bg-gradient-to-r from-[#73c2e2] to-[#badde9] bg-clip-border border-[1px] max-w-2xl message-animation-user' 
+                            ? 'bg-[#181818] text-white rounded-3xl rounded-br-lg px-6 py-4 border-2 border-transparent bg-clip-padding relative max-w-2xl message-animation-user' 
                             : msg.isLoading
                               ? `${isDarkMode ? 'text-gray-300' : 'text-gray-700'} rounded-3xl rounded-bl-lg px-0 py-2 max-w-full`
                               : msg.isError
@@ -1524,6 +1524,13 @@ const ChatInterface = ({ user, onLogout }) => {
                                   ? `${isDarkMode ? 'text-purple-300' : 'text-purple-700'} rounded-3xl rounded-bl-lg px-0 py-2 max-w-full`
                                   : `${isDarkMode ? 'text-gray-100' : 'text-gray-900'} rounded-3xl rounded-bl-lg px-0 py-2 max-w-full message-animation-ai`
                         }`}>
+                          
+                          {/* Gradient Border for User Messages */}
+                          {msg.isUser && (
+                            <div className="absolute inset-0 rounded-3xl rounded-br-lg bg-gradient-to-r from-[#73c2e2] to-[#badde9] p-[1px] -z-10">
+                              <div className="h-full w-full rounded-3xl rounded-br-lg bg-[#181818]"></div>
+                            </div>
+                          )}
                           
                           {/* Edit Mode */}
                           {editingMessageId === msg.id ? (
