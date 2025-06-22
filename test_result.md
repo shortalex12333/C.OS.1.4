@@ -116,6 +116,69 @@ backend:
       - working: true
         agent: "main"
         comment: "Successfully integrated JWT secret in backend/.env file"
+      - working: true
+        agent: "testing"
+        comment: "Verified JWT_SECRET is correctly loaded from .env file and available in the environment"
+        
+  - task: "Basic API Health Check"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Successfully tested the root endpoint /api/ which returns a 'Hello World' message with 200 status code"
+        
+  - task: "MongoDB Connection"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Successfully tested creating and retrieving status checks, confirming MongoDB integration is working properly"
+        
+  - task: "CORS Configuration"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Verified CORS middleware is properly configured with appropriate headers for frontend communication"
+        
+  - task: "Environment Variables"
+    implemented: true
+    working: true
+    file: "backend/.env"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Verified that MONGO_URL, DB_NAME, and JWT_SECRET are properly loaded from .env file"
+        
+  - task: "API Endpoints"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Successfully tested /api/status POST and GET endpoints, confirming they work as expected"
 
 frontend:
   - task: "Branding Update - Celeste7 to CelesteOS"
