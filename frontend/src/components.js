@@ -144,7 +144,7 @@ const OnboardingScreen = ({ user, onComplete }) => {
     try {
       console.log(`Sending stage ${stage} data:`, stageData);
       
-      const response = await fetch('http://46.62.139.129:5678/webhook-test/profile-building', {
+      const response = await fetch('https://46.62.139.129:5678/webhook-test/profile-building', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
