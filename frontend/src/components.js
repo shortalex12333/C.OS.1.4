@@ -1730,9 +1730,12 @@ const ChatInterface = ({ user, onLogout }) => {
               )}
 
               {/* Premium Input Container */}
-              <div className={`relative ${isDarkMode ? 'bg-[#2a2a2a]' : 'bg-white'} rounded-3xl border ${
-                isDarkMode ? 'border-[#373737]' : 'border-gray-200'
-              } shadow-2xl backdrop-blur-xl ${pendingIntervention ? 'ring-2 ring-orange-500/50' : ''} transition-all duration-300`}>
+              <div className={`relative ${isDarkMode ? 'bg-[#181818]' : 'bg-white'} rounded-3xl border-2 border-transparent bg-clip-padding shadow-2xl backdrop-blur-xl ${pendingIntervention ? 'ring-2 ring-orange-500/50' : ''} transition-all duration-300`}>
+                
+                {/* Gradient Border */}
+                <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-[#73c2e2] to-[#badde9] p-[1px] -z-10">
+                  <div className={`h-full w-full rounded-3xl ${isDarkMode ? 'bg-[#181818]' : 'bg-white'}`}></div>
+                </div>
                 
                 {/* Input Field */}
                 <div className="flex items-end p-4">
