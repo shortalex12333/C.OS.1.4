@@ -53,7 +53,7 @@ const LoadingScreen = () => {
           transition={{ delay: 0.3, duration: 0.6 }}
           style={{ fontFamily: 'Eloquia-Text, sans-serif' }}
         >
-          Celeste7
+          Celeste<span className="bg-gradient-to-r from-[#badde9] to-white bg-clip-text text-transparent">OS</span>
         </motion.h1>
         <motion.p 
           className="text-[#f8f8ff] text-lg opacity-90"
@@ -61,7 +61,7 @@ const LoadingScreen = () => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.6 }}
         >
-          AI-Powered Conversations
+          Your proactive AI assistant
         </motion.p>
       </motion.div>
     </div>
