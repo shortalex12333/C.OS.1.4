@@ -18,9 +18,9 @@ function App() {
   // Check for existing session on app load
   useEffect(() => {
     const checkSession = async () => {
-      const token = localStorage.getItem('celeste7_token');
-      const userData = localStorage.getItem('celeste7_user');
-      const onboardingCompleted = localStorage.getItem('celeste7_onboarding_completed');
+      const token = localStorage.getItem('celesteos_token');
+      const userData = localStorage.getItem('celesteos_user');
+      const onboardingCompleted = localStorage.getItem('celesteos_onboarding_completed');
       
       if (token && userData) {
         try {
