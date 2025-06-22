@@ -817,7 +817,7 @@ const ChatInterface = ({ user, onLogout }) => {
       clearInterval(heartbeatInterval);
       
       // Send offline status when component unmounts
-      fetch('https://46.62.139.129:5678/webhook/user-offline', {
+      fetch('https://api.celeste7.ai/webhook/user-offline', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
