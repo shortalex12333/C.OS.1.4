@@ -1449,134 +1449,247 @@ const ChatInterface = ({ user, onLogout }) => {
           )}
         </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {activeConversation?.messages?.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-full flex items-center justify-center">
-                  <MessageSquare className="text-white" size={24} />
-                </div>
-                <h3 className={`text-lg font-medium ${isDarkMode ? 'text-white' : 'text-[#181818]'} mb-2`}>
-                  Start a Conversation
-                </h3>
-                <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Send a message to begin this conversation.
-                </p>
-              </div>
-            </div>
-          ) : (
-            activeConversation?.messages.map((msg) => (
-              <motion.div
-                key={msg.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}
-              >
-                <div className={`max-w-xs lg:max-w-md xl:max-w-lg px-4 py-3 rounded-2xl ${
-                  msg.isUser 
-                    ? 'bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white' 
-                    : msg.isLoading
-                      ? isDarkMode ? 'bg-[#2a2a2a] text-gray-400' : 'bg-gray-100 text-gray-500'
-                      : msg.isError
-                        ? isDarkMode ? 'bg-red-900/50 text-red-200' : 'bg-red-100 text-red-700'
-                        : msg.isIntervention
-                          ? isDarkMode ? 'bg-gradient-to-r from-orange-900/50 to-yellow-900/50 text-orange-200 border border-orange-500/30' : 'bg-gradient-to-r from-orange-100 to-yellow-100 text-orange-800 border border-orange-300'
-                          : msg.isEnhanced
-                            ? isDarkMode ? 'bg-gradient-to-r from-purple-900/30 to-blue-900/30 text-purple-200 border border-purple-500/30' : 'bg-gradient-to-r from-purple-50 to-blue-50 text-purple-800 border border-purple-200'
-                            : isDarkMode 
-                              ? 'bg-[#2a2a2a] text-gray-100' 
-                              : 'bg-gray-100 text-[#181818]'
-                }`}>
-                  <div className="whitespace-pre-wrap">
-                    {msg.isLoading ? (
-                      <div className="flex items-center space-x-2">
-                        <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-[#73c2e2] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                          <div className="w-2 h-2 bg-[#73c2e2] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                          <div className="w-2 h-2 bg-[#73c2e2] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                        </div>
-                        <span>Loading conversation...</span>
-                      </div>
-                    ) : (
-                      msg.text.split('\n').map((line, index) => {
-                        // Handle bold text formatting
-                        if (line.includes('**')) {
-                          const parts = line.split('**');
-                          return (
-                            <p key={index} className={index > 0 ? 'mt-2' : ''}>
-                              {parts.map((part, partIndex) => 
-                                partIndex % 2 === 1 ? (
-                                  <strong key={partIndex} className="font-semibold">{part}</strong>
-                                ) : (
-                                  part
-                                )
-                              )}
-                            </p>
-                          );
-                        }
-                        return line ? <p key={index} className={index > 0 ? 'mt-2' : ''}>{line}</p> : <br key={index} />;
-                      })
-                    )}
+        {/* ChatGPT-Style Messages Area */}
+        <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
+          <div className="flex-1 overflow-y-auto px-4 py-6 chat-scrollbar">
+            {activeConversation?.messages?.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center min-h-[60vh]">
+                <motion.div 
+                  className="text-center max-w-md"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-3xl flex items-center justify-center shadow-2xl glow-effect float-animation">
+                    <MessageSquare className="text-white" size={32} />
                   </div>
-                  {!msg.isLoading && (
-                    <div className="flex items-center justify-between mt-2">
-                      <p className={`text-xs opacity-70`}>
-                        {new Date(msg.timestamp).toLocaleTimeString()}
-                      </p>
-                      <div className="flex items-center space-x-1">
-                        {msg.isIntervention && (
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            isDarkMode 
-                              ? 'bg-orange-900/30 text-orange-300' 
-                              : 'bg-orange-200 text-orange-700'
-                          }`}>
-                            Intervention
-                          </span>
-                        )}
-                        {msg.isEnhanced && (
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            isDarkMode 
-                              ? 'bg-purple-900/30 text-purple-300' 
-                              : 'bg-purple-200 text-purple-700'
-                          }`}>
-                            🧠 Enhanced
-                          </span>
-                        )}
-                        {msg.patternDetected && (
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            isDarkMode 
-                              ? 'bg-blue-900/30 text-blue-300' 
-                              : 'bg-blue-200 text-blue-700'
-                          }`} title={`Pattern: ${msg.patternDetected} (${Math.round(msg.confidence * 100)}% confidence)`}>
-                            🔍 {msg.patternDetected}
-                          </span>
-                        )}
+                  <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-3`}>
+                    Welcome to CelesteOS
+                  </h3>
+                  <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'} text-lg leading-relaxed`}>
+                    Your proactive AI assistant is ready to help. Start a conversation to begin.
+                  </p>
+                  <div className="mt-6 flex flex-wrap gap-2 justify-center">
+                    {['Ask me anything', 'Get creative help', 'Solve problems', 'Learn something new'].map((suggestion, index) => (
+                      <motion.button
+                        key={suggestion}
+                        onClick={() => setMessage(suggestion)}
+                        className={`px-4 py-2 rounded-full text-sm ${isDarkMode ? 'bg-[#2a2a2a] text-gray-300 hover:bg-[#373737]' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} transition-all duration-200 hover:scale-105`}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        {suggestion}
+                      </motion.button>
+                    ))}
+                  </div>
+                </motion.div>
+              </div>
+            ) : (
+              <div className="space-y-6 pb-6">
+                {activeConversation?.messages.map((msg, index) => (
+                  <motion.div
+                    key={msg.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                    className={`group ${msg.isUser ? 'flex justify-end' : 'flex justify-start'}`}
+                  >
+                    <div className={`relative max-w-3xl w-full ${msg.isUser ? 'flex justify-end' : 'flex justify-start'}`}>
+                      {/* AI Avatar */}
+                      {!msg.isUser && (
+                        <div className="flex-shrink-0 mr-4">
+                          <div className="w-8 h-8 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-full flex items-center justify-center shadow-lg">
+                            <img 
+                              src="https://images.unsplash.com/photo-1633412802994-5c058f151b66?w=100&h=100&fit=crop&crop=center"
+                              alt="CelesteOS"
+                              className="w-6 h-6 rounded-full object-cover"
+                            />
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className={`flex-1 ${msg.isUser ? 'flex justify-end' : ''}`}>
+                        {/* Message Content */}
+                        <div className={`relative group/message ${
+                          msg.isUser 
+                            ? 'bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white rounded-3xl rounded-br-lg px-6 py-4 shadow-lg max-w-2xl message-animation-user' 
+                            : msg.isLoading
+                              ? `${isDarkMode ? 'bg-[#2a2a2a]' : 'bg-gray-100'} rounded-3xl rounded-bl-lg px-6 py-4 shadow-sm max-w-full`
+                              : msg.isError
+                                ? `${isDarkMode ? 'bg-red-900/20 border border-red-500/30' : 'bg-red-50 border border-red-200'} rounded-3xl rounded-bl-lg px-6 py-4 max-w-full`
+                                : msg.isEnhanced
+                                  ? `${isDarkMode ? 'bg-[#2a2a2a] border border-purple-500/30' : 'bg-purple-50 border border-purple-200'} rounded-3xl rounded-bl-lg px-6 py-4 shadow-sm max-w-full`
+                                  : `${isDarkMode ? 'bg-[#2a2a2a]' : 'bg-gray-100'} rounded-3xl rounded-bl-lg px-6 py-4 shadow-sm max-w-full message-animation-ai`
+                        }`}>
+                          
+                          {/* Edit Mode */}
+                          {editingMessageId === msg.id ? (
+                            <div className="space-y-3">
+                              <textarea
+                                value={editingText}
+                                onChange={(e) => setEditingText(e.target.value)}
+                                className={`w-full bg-transparent border-none outline-none resize-none auto-resize ${
+                                  isDarkMode ? 'text-white' : 'text-gray-900'
+                                } placeholder-gray-400`}
+                                placeholder="Edit your message..."
+                                autoFocus
+                              />
+                              <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={() => handleSaveEdit(msg.id)}
+                                  className="px-4 py-2 bg-[#73c2e2] text-white rounded-lg text-sm font-medium hover:bg-[#5bb3db] transition-colors"
+                                >
+                                  Save
+                                </button>
+                                <button
+                                  onClick={handleCancelEdit}
+                                  className={`px-4 py-2 ${isDarkMode ? 'bg-[#373737] text-gray-300' : 'bg-gray-200 text-gray-700'} rounded-lg text-sm font-medium transition-colors`}
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              {/* Message Text */}
+                              <div className={`whitespace-pre-wrap leading-relaxed ${
+                                msg.isUser ? 'text-white' : isDarkMode ? 'text-gray-100' : 'text-gray-900'
+                              }`}>
+                                {msg.isLoading ? (
+                                  <div className="flex items-center space-x-3">
+                                    <div className="flex space-x-1">
+                                      <div className="w-3 h-3 bg-[#73c2e2] rounded-full typing-dot"></div>
+                                      <div className="w-3 h-3 bg-[#73c2e2] rounded-full typing-dot"></div>
+                                      <div className="w-3 h-3 bg-[#73c2e2] rounded-full typing-dot"></div>
+                                    </div>
+                                    <span className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>CelesteOS is thinking...</span>
+                                  </div>
+                                ) : (
+                                  msg.text.split('\n').map((line, index) => {
+                                    // Handle bold text formatting
+                                    if (line.includes('**')) {
+                                      const parts = line.split('**');
+                                      return (
+                                        <p key={index} className={index > 0 ? 'mt-3' : ''}>
+                                          {parts.map((part, partIndex) => 
+                                            partIndex % 2 === 1 ? (
+                                              <strong key={partIndex} className="font-semibold">{part}</strong>
+                                            ) : (
+                                              part
+                                            )
+                                          )}
+                                        </p>
+                                      );
+                                    }
+                                    return line ? <p key={index} className={index > 0 ? 'mt-3' : ''}>{line}</p> : <br key={index} />;
+                                  })
+                                )}
+                              </div>
+                              
+                              {/* Message Metadata */}
+                              {!msg.isLoading && (
+                                <div className="flex items-center justify-between mt-4">
+                                  <div className="flex items-center space-x-2">
+                                    <p className={`text-xs ${
+                                      msg.isUser ? 'text-white/70' : isDarkMode ? 'text-gray-500' : 'text-gray-400'
+                                    }`}>
+                                      {new Date(msg.timestamp).toLocaleTimeString()}
+                                    </p>
+                                    {msg.isEdited && (
+                                      <span className={`text-xs px-2 py-1 rounded-full ${
+                                        msg.isUser ? 'bg-white/20 text-white/70' : isDarkMode ? 'bg-[#373737] text-gray-400' : 'bg-gray-200 text-gray-500'
+                                      }`}>
+                                        edited
+                                      </span>
+                                    )}
+                                  </div>
+                                  
+                                  <div className="flex items-center space-x-2">
+                                    {msg.isEnhanced && (
+                                      <span className={`text-xs px-2 py-1 rounded-full ${
+                                        isDarkMode ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-200 text-purple-700'
+                                      }`}>
+                                        🧠 Enhanced
+                                      </span>
+                                    )}
+                                    {msg.patternDetected && (
+                                      <span className={`text-xs px-2 py-1 rounded-full ${
+                                        isDarkMode ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-200 text-blue-700'
+                                      }`} title={`Pattern: ${msg.patternDetected} (${Math.round(msg.confidence * 100)}% confidence)`}>
+                                        🔍 {msg.patternDetected}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </>
+                          )}
+                          
+                          {/* Message Actions */}
+                          {msg.isUser && editingMessageId !== msg.id && (
+                            <div className="absolute -right-2 top-2 opacity-0 group-hover/message:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => handleEditMessage(msg.id)}
+                                className="p-2 bg-white/20 hover:bg-white/30 rounded-full backdrop-blur-sm transition-colors"
+                                title="Edit message"
+                              >
+                                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                                </svg>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* User Avatar */}
+                      {msg.isUser && (
+                        <div className="flex-shrink-0 ml-4">
+                          <div className="w-8 h-8 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-full flex items-center justify-center shadow-lg">
+                            <User size={16} className="text-white" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+                
+                {/* Typing Indicator */}
+                {isTyping && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex justify-start"
+                  >
+                    <div className="flex items-start space-x-4">
+                      <div className="w-8 h-8 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-full flex items-center justify-center shadow-lg">
+                        <img 
+                          src="https://images.unsplash.com/photo-1633412802994-5c058f151b66?w=100&h=100&fit=crop&crop=center"
+                          alt="CelesteOS"
+                          className="w-6 h-6 rounded-full object-cover"
+                        />
+                      </div>
+                      <div className={`${isDarkMode ? 'bg-[#2a2a2a]' : 'bg-gray-100'} rounded-3xl rounded-bl-lg px-6 py-4 shadow-sm`}>
+                        <div className="flex items-center space-x-3">
+                          <div className="flex space-x-1">
+                            <div className="w-3 h-3 bg-[#73c2e2] rounded-full typing-dot"></div>
+                            <div className="w-3 h-3 bg-[#73c2e2] rounded-full typing-dot"></div>
+                            <div className="w-3 h-3 bg-[#73c2e2] rounded-full typing-dot"></div>
+                          </div>
+                          <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>CelesteOS is thinking...</span>
+                        </div>
                       </div>
                     </div>
-                  )}
-                </div>
-              </motion.div>
-            ))
-          )}
-          
-          {isTyping && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex justify-start"
-            >
-              <div className={`px-4 py-3 rounded-2xl ${isDarkMode ? 'bg-[#2a2a2a]' : 'bg-gray-100'}`}>
-                <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-[#73c2e2] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                  <div className="w-2 h-2 bg-[#73c2e2] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                  <div className="w-2 h-2 bg-[#73c2e2] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                </div>
+                  </motion.div>
+                )}
+                
+                <div ref={messagesEndRef} />
               </div>
-            </motion.div>
-          )}
-          
-          <div ref={messagesEndRef} />
+            )}
+          </div>
         </div>
 
         {/* Input Area */}
