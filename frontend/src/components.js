@@ -1212,7 +1212,7 @@ const ChatInterface = ({ user, onLogout }) => {
                   <div className="w-8 h-8 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-lg flex items-center justify-center">
                     <img 
                       src="https://images.unsplash.com/photo-1633412802994-5c058f151b66?w=100&h=100&fit=crop&crop=center"
-                      alt="Celeste7"
+                      alt="CelesteOS"
                       className="w-6 h-6 rounded object-cover"
                     />
                   </div>
