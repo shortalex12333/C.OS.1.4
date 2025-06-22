@@ -121,8 +121,8 @@ function App() {
 
   const handleOnboardingComplete = (profileData) => {
     setShowOnboarding(false);
-    localStorage.setItem('celeste7_onboarding_completed', 'true');
-    localStorage.setItem('celeste7_profile', JSON.stringify(profileData));
+    localStorage.setItem('celesteos_onboarding_completed', 'true');
+    localStorage.setItem('celesteos_profile', JSON.stringify(profileData));
   };
 
   const handleLogout = async () => {
