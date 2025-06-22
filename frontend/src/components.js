@@ -1087,7 +1087,7 @@ const ChatInterface = ({ user, onLogout }) => {
         body: JSON.stringify({
           userId: user.id,
           chatId: conversationId,
-          sessionId: sessionStorage.getItem('celeste7_session_id') || `session_${user.id}_${Date.now()}`,
+          sessionId: sessionStorage.getItem('celesteos_session_id') || `session_${user.id}_${Date.now()}`,
           user: {
             email: user.email,
             displayName: user.name || user.displayName || 'Unknown User'
