@@ -64,8 +64,8 @@ function App() {
             if (!existingSessionId || sessionAge > maxSessionAge) {
               // Generate new session for returning user
               const newSessionId = generateUniqueSessionId(JSON.parse(userData).id);
-              sessionStorage.setItem('celeste7_session_id', newSessionId);
-              localStorage.setItem('celeste7_session_created', Date.now().toString());
+              sessionStorage.setItem('celesteos_session_id', newSessionId);
+              localStorage.setItem('celesteos_session_created', Date.now().toString());
               console.log('🔑 New session created for returning user:', newSessionId);
             }
             
