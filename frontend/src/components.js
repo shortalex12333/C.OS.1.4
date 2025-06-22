@@ -603,7 +603,7 @@ const ChatInterface = ({ user, onLogout }) => {
   // Helper function to detect business type from user profile and message content
   const detectBusinessType = (user, message) => {
     const lowerMessage = message.toLowerCase();
-    const userProfile = JSON.parse(localStorage.getItem('celeste7_profile') || '{}');
+    const userProfile = JSON.parse(localStorage.getItem('celesteos_profile') || '{}');
     
     // Check user profile first
     if (userProfile.primary_goal === 'business_growth' || userProfile.work_style === 'entrepreneur') {
