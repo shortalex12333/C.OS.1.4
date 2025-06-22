@@ -12,7 +12,7 @@ class InterventionServer {
 
   setupMiddleware() {
     this.app.use(cors({
-      origin: ['http://localhost:3000', 'https://chatgpt-replica.preview.emergentagent.com'],
+      origin: ['http://localhost:3000', 'https://08fe1b88-73fb-425a-855c-2d7c4e1ac9c1.preview.emergentagent.com'],
       methods: ['POST', 'GET', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization']
     }));
