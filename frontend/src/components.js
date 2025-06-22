@@ -1270,126 +1270,183 @@ const ChatInterface = ({ user, onLogout }) => {
   };
 
   return (
-    <div className={`flex h-screen ${isDarkMode ? 'bg-[#181818]' : 'bg-[#f8f8ff]'} transition-colors duration-300`}>
-      {/* Sidebar */}
+    <div className={`flex h-screen ${isDarkMode ? 'bg-[#0f0f0f]' : 'bg-white'} transition-all duration-300`}>
+      {/* Premium Sidebar */}
       <AnimatePresence>
         {isSidebarOpen && (
           <motion.div
-            initial={{ x: -300 }}
-            animate={{ x: 0 }}
-            exit={{ x: -300 }}
-            className={`w-80 ${isDarkMode ? 'bg-[#202020]' : 'bg-white'} border-r ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} flex flex-col`}
+            initial={{ x: -320, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -320, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className={`w-80 ${isDarkMode ? 'bg-[#171717]' : 'bg-[#f7f7f8]'} border-r ${isDarkMode ? 'border-[#2a2a2a]' : 'border-gray-200'} flex flex-col shadow-2xl backdrop-blur-xl`}
           >
-            {/* Sidebar Header */}
-            <div className="p-4 border-b border-gray-700">
-              <div className="flex items-center justify-between mb-4">
+            {/* Enhanced Sidebar Header */}
+            <div className={`p-6 border-b ${isDarkMode ? 'border-[#2a2a2a]' : 'border-gray-200'}`}>
+              <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-lg flex items-center justify-center">
-                    <img 
-                      src="https://images.unsplash.com/photo-1633412802994-5c058f151b66?w=100&h=100&fit=crop&crop=center"
-                      alt="CelesteOS"
-                      className="w-6 h-6 rounded object-cover"
-                    />
+                  <div className="relative">
+                    <div className="w-10 h-10 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-xl flex items-center justify-center shadow-lg">
+                      <img 
+                        src="https://images.unsplash.com/photo-1633412802994-5c058f151b66?w=100&h=100&fit=crop&crop=center"
+                        alt="CelesteOS"
+                        className="w-7 h-7 rounded-lg object-cover"
+                      />
+                    </div>
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
                   </div>
-                  <h1 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-[#181818]'}`} style={{ fontFamily: 'Eloquia-Text, sans-serif' }}>
-                    Celeste<span className="bg-gradient-to-r from-[#73c2e2] to-[#badde9] bg-clip-text text-transparent">OS</span>
-                  </h1>
+                  <div>
+                    <h1 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-[#0d1117]'}`} style={{ fontFamily: 'Eloquia-Text, sans-serif' }}>
+                      Celeste<span className="bg-gradient-to-r from-[#73c2e2] to-[#badde9] bg-clip-text text-transparent">OS</span>
+                    </h1>
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Your proactive AI assistant</p>
+                  </div>
                 </div>
-                <button
+                <motion.button
                   onClick={() => setIsDarkMode(!isDarkMode)}
-                  className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}
+                  className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-200'} transition-all duration-200`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  {isDarkMode ? <Sun className="text-yellow-400" size={18} /> : <Moon className="text-gray-600" size={18} />}
-                </button>
+                  {isDarkMode ? (
+                    <Sun className="text-yellow-400" size={20} />
+                  ) : (
+                    <Moon className="text-gray-600" size={20} />
+                  )}
+                </motion.button>
               </div>
 
-              {/* Online Users Counter */}
-              <div className={`mb-4 p-3 rounded-lg ${isDarkMode ? 'bg-gray-800/50' : 'bg-gray-100'} border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    {onlineUserCount} {onlineUserCount === 1 ? 'user' : 'users'} online
-                  </span>
+              {/* Premium Online Users Display */}
+              <div className={`mb-6 p-4 rounded-xl ${isDarkMode ? 'bg-[#2a2a2a]/50' : 'bg-white'} border ${isDarkMode ? 'border-[#373737]' : 'border-gray-200'} backdrop-blur-sm`}>
+                <div className="flex items-center space-x-3">
+                  <div className="relative">
+                    <div className="w-3 h-3 bg-gradient-to-r from-green-400 to-green-500 rounded-full"></div>
+                    <div className="absolute inset-0 w-3 h-3 bg-gradient-to-r from-green-400 to-green-500 rounded-full animate-ping opacity-75"></div>
+                  </div>
+                  <div>
+                    <span className={`text-sm font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {onlineUserCount} {onlineUserCount === 1 ? 'user' : 'users'} online
+                    </span>
+                    <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Active now</p>
+                  </div>
                 </div>
               </div>
               
               <motion.button
                 onClick={handleNewConversation}
-                className="w-full bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white px-4 py-3 rounded-lg font-medium flex items-center justify-center space-x-2 hover:shadow-lg transition-all"
-                whileHover={{ scale: 1.02 }}
+                className="w-full bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white px-6 py-4 rounded-xl font-semibold flex items-center justify-center space-x-3 hover:shadow-2xl transition-all duration-300 group"
+                whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Plus size={18} />
+                <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
                 <span>New Conversation</span>
               </motion.button>
             </div>
 
-            {/* Conversations List */}
-            <div className="flex-1 overflow-y-auto p-2">
-              {conversations.map((conversation) => (
+            {/* Premium Conversations List */}
+            <div className="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar">
+              {conversations.map((conversation, index) => (
                 <motion.button
                   key={conversation.id}
                   onClick={() => fetchConversation(conversation.id)}
-                  className={`w-full p-3 mb-2 rounded-lg text-left transition-all ${
+                  className={`w-full p-4 rounded-xl text-left transition-all duration-200 group ${
                     activeConversation?.id === conversation.id 
-                      ? 'bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white' 
+                      ? 'bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white shadow-lg' 
                       : isDarkMode 
-                        ? 'hover:bg-gray-700 text-gray-300' 
-                        : 'hover:bg-gray-100 text-gray-700'
+                        ? 'hover:bg-[#2a2a2a] text-gray-300 hover:shadow-md' 
+                        : 'hover:bg-white text-gray-700 hover:shadow-md border border-transparent hover:border-gray-200'
                   }`}
-                  whileHover={{ scale: 1.02 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  whileHover={{ scale: 1.02, x: 4 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   <div className="flex items-center space-x-3">
-                    <MessageSquare size={16} />
+                    <div className={`w-2 h-2 rounded-full ${
+                      activeConversation?.id === conversation.id ? 'bg-white' : 'bg-[#73c2e2]'
+                    } group-hover:scale-150 transition-transform duration-200`}></div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{conversation.title}</p>
-                      <p className="text-sm opacity-70 truncate">{conversation.lastMessage}</p>
+                      <p className="font-semibold truncate text-sm">{conversation.title}</p>
+                      <p className={`text-xs truncate mt-1 ${
+                        activeConversation?.id === conversation.id ? 'text-white/80' : isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                      }`}>
+                        {conversation.lastMessage || 'Start a conversation...'}
+                      </p>
                     </div>
                   </div>
                 </motion.button>
               ))}
             </div>
 
-            {/* Sidebar Footer */}
-            <div className={`p-4 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+            {/* Enhanced Sidebar Footer */}
+            <div className={`p-4 border-t ${isDarkMode ? 'border-[#2a2a2a]' : 'border-gray-200'} backdrop-blur-sm`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-full flex items-center justify-center">
-                    <User size={16} className="text-white" />
+                  <div className="relative">
+                    <div className="w-10 h-10 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-full flex items-center justify-center shadow-lg">
+                      <User size={18} className="text-white" />
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
                   </div>
                   <div>
-                    <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-[#181818]'}`}>{user.name}</p>
-                    <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{user.email}</p>
+                    <p className={`font-semibold text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{user.name}</p>
+                    <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{user.email}</p>
                   </div>
                 </div>
-                <button
+                <motion.button
                   onClick={onLogout}
-                  className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}
+                  className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-200'} transition-colors duration-200`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   <LogOut size={18} className={isDarkMode ? 'text-gray-400' : 'text-gray-600'} />
-                </button>
+                </motion.button>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Main Chat Area */}
+      {/* Main Chat Area - ChatGPT Style */}
       <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <div className={`${isDarkMode ? 'bg-[#202020]' : 'bg-white'} border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} p-4 flex items-center justify-between`}>
+        {/* Premium Header */}
+        <div className={`${isDarkMode ? 'bg-[#171717]/80' : 'bg-white/80'} backdrop-blur-xl border-b ${isDarkMode ? 'border-[#2a2a2a]' : 'border-gray-200'} p-4 flex items-center justify-between sticky top-0 z-10`}>
           <div className="flex items-center space-x-4">
-            <button
+            <motion.button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}
+              className={`p-3 rounded-lg ${isDarkMode ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-100'} transition-all duration-200`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               <Menu size={20} className={isDarkMode ? 'text-gray-400' : 'text-gray-600'} />
-            </button>
-            <h2 className={`text-lg font-medium ${isDarkMode ? 'text-white' : 'text-[#181818]'}`}>
-              {activeConversation?.title || 'Select a conversation'}
-            </h2>
+            </motion.button>
+            <div>
+              <h2 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                {activeConversation?.title || 'Select a conversation'}
+              </h2>
+              {activeConversation && (
+                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  CelesteOS is ready to assist
+                </p>
+              )}
+            </div>
           </div>
+          
+          {/* Conversation Actions */}
+          {activeConversation && (
+            <div className="flex items-center space-x-2">
+              <motion.button
+                className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-100'} transition-colors`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <svg className={`w-5 h-5 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                </svg>
+              </motion.button>
+            </div>
+          )}
         </div>
 
         {/* Messages */}
