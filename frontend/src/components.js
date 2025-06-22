@@ -488,24 +488,29 @@ const AuthScreen = ({ onLogin }) => {
     } catch (error) {
       console.error('Auth error:', error);
       
-      // Check if it's a CORS error
+      // Show the actual error instead of immediately falling back to demo mode
       if (error.message.includes('CORS') || error.message.includes('NetworkError')) {
-        setError('Network connection issue. Using demo mode.');
+        setError(`Network connection issue: ${error.message}. Please check the n8n webhook endpoint.`);
+      } else if (error.message.includes('Failed to fetch')) {
+        setError(`Connection failed: Cannot reach authentication service at your n8n endpoint. Please verify the webhook is running.`);
       } else {
-        setError('Authentication service unavailable. Using demo mode.');
+        setError(`Authentication error: ${error.message}`);
       }
       
-      // For demo purposes, simulate successful login
+      // Only fall back to demo mode after showing the real error for a few seconds
       setTimeout(() => {
-        const mockUser = {
-          id: 'demo_user_123',
-          email: formData.email,
-          name: formData.name || 'Demo User',
-          displayName: formData.name || 'Demo User' // Ensure both name and displayName are set
-        };
-        console.log('✅ Mock login successful with user:', mockUser);
-        onLogin(mockUser, 'demo_token_123');
-      }, 1000);
+        if (formData.email.includes('demo') || formData.email.includes('test')) {
+          console.log('Demo mode activated for testing...');
+          const mockUser = {
+            id: 'demo_user_123',
+            email: formData.email,
+            name: formData.name || 'Demo User',
+            displayName: formData.name || 'Demo User'
+          };
+          console.log('✅ Mock login successful with user:', mockUser);
+          onLogin(mockUser, 'demo_token_123');
+        }
+      }, 3000); // Show error for 3 seconds before demo mode
     }
 
     setIsLoading(false);
