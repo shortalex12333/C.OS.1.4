@@ -750,7 +750,7 @@ const ChatInterface = ({ user, onLogout }) => {
       clearInterval(heartbeatInterval);
       
       // Send offline status when component unmounts
-      fetch('https://ventruk.app.n8n.cloud/webhook/c7/user-offline', {
+      fetch('http://46.62.139.129:5678/webhook/user-offline', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
