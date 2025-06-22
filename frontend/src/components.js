@@ -465,15 +465,18 @@ const AuthScreen = ({ onLogin }) => {
           >
             <img 
               src="https://images.unsplash.com/photo-1633412802994-5c058f151b66?w=100&h=100&fit=crop&crop=center"
-              alt="Celeste7"
+              alt="CelesteOS"
               className="w-10 h-10 rounded-lg object-cover"
             />
           </motion.div>
           <h1 className="text-3xl font-bold text-[#181818] mb-2" style={{ fontFamily: 'Eloquia-Text, sans-serif' }}>
-            Celeste7
+            Celeste<span className="bg-gradient-to-r from-[#73c2e2] to-[#badde9] bg-clip-text text-transparent">OS</span>
           </h1>
           <p className="text-gray-600">
             {isSignUp ? 'Create your account' : 'Welcome back'}
+          </p>
+          <p className="text-sm text-gray-500 mt-1">
+            Your proactive AI assistant
           </p>
         </div>
 
