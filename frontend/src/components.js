@@ -1775,11 +1775,11 @@ const ChatInterface = ({ user, onLogout }) => {
                   <motion.button
                     onClick={handleSendMessage}
                     disabled={!message.trim() || isTyping}
-                    className={`ml-4 p-3 rounded-2xl transition-all duration-200 ${
+                    className={`relative ml-4 p-3 rounded-2xl transition-all duration-200 ${
                       message.trim() && !isTyping
                         ? pendingIntervention 
-                          ? 'bg-gradient-to-r from-orange-500 to-orange-400 text-white shadow-lg hover:shadow-xl glow-effect-hover' 
-                          : 'bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white shadow-lg hover:shadow-xl glow-effect-hover'
+                          ? 'bg-orange-600 text-white shadow-lg hover:shadow-xl' 
+                          : 'bg-[#181818] text-white shadow-lg hover:shadow-xl border-2 border-transparent bg-clip-padding'
                         : isDarkMode 
                           ? 'bg-[#373737] text-gray-500' 
                           : 'bg-gray-200 text-gray-400'
@@ -1787,6 +1787,13 @@ const ChatInterface = ({ user, onLogout }) => {
                     whileHover={message.trim() && !isTyping ? { scale: 1.05 } : {}}
                     whileTap={message.trim() && !isTyping ? { scale: 0.95 } : {}}
                   >
+                    {/* Gradient Border for Send Button */}
+                    {message.trim() && !isTyping && !pendingIntervention && (
+                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#73c2e2] to-[#badde9] p-[1px] -z-10">
+                        <div className="h-full w-full rounded-2xl bg-[#181818]"></div>
+                      </div>
+                    )}
+                    
                     {isTyping ? (
                       <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                     ) : (
