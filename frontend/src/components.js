@@ -768,7 +768,7 @@ const ChatInterface = ({ user, onLogout }) => {
     const sendHeartbeat = async () => {
       try {
         const sessionId = sessionStorage.getItem('celesteos_session_id');
-        const response = await fetch('http://46.62.139.129:5678/webhook/user-heartbeat', {
+        const response = await fetch('https://46.62.139.129:5678/webhook/user-heartbeat', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
