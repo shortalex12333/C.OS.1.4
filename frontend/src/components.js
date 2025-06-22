@@ -662,10 +662,13 @@ const ChatInterface = ({ user, onLogout }) => {
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [onlineUserCount, setOnlineUserCount] = useState(1); // New state for online users
-  const [sessionMessageCount, setSessionMessageCount] = useState(0); // Track messages per session
-  const [lastMessageTime, setLastMessageTime] = useState(Date.now()); // Track timing patterns
+  const [onlineUserCount, setOnlineUserCount] = useState(1);
+  const [sessionMessageCount, setSessionMessageCount] = useState(0);
+  const [lastMessageTime, setLastMessageTime] = useState(Date.now());
+  const [editingMessageId, setEditingMessageId] = useState(null);
+  const [editingText, setEditingText] = useState('');
   const messagesEndRef = useRef(null);
+  const textareaRef = useRef(null);
   
   // Helper function to detect business type from user profile and message content
   const detectBusinessType = (user, message) => {
