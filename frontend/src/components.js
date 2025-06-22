@@ -1692,57 +1692,144 @@ const ChatInterface = ({ user, onLogout }) => {
           </div>
         </div>
 
-        {/* Input Area */}
+        {/* ChatGPT-Style Input Area */}
         {activeConversation && (
-          <div className={`${isDarkMode ? 'bg-[#202020]' : 'bg-white'} border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} p-4`}>
-            {/* Pending Intervention Indicator */}
-            {pendingIntervention && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`mb-3 p-3 rounded-lg border-l-4 border-orange-500 ${
-                  isDarkMode ? 'bg-orange-900/20 text-orange-200' : 'bg-orange-50 text-orange-800'
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <span className="text-lg">🎯</span>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Intervention Ready</p>
-                    <p className="text-xs opacity-80">Your next message will include personalized guidance</p>
+          <div className="border-t border-transparent px-4 pb-6">
+            <div className="max-w-4xl mx-auto">
+              {/* Pending Intervention Indicator */}
+              {pendingIntervention && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`mb-4 p-4 rounded-2xl border-l-4 border-orange-500 backdrop-blur-sm ${
+                    isDarkMode ? 'bg-orange-900/20 text-orange-200' : 'bg-orange-50 text-orange-800'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <span className="text-2xl">🎯</span>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold">Intervention Ready</p>
+                      <p className="text-xs opacity-80">Your next message will include personalized guidance</p>
+                    </div>
+                    <span className={`text-xs px-3 py-1 rounded-full font-medium ${
+                      isDarkMode ? 'bg-orange-800/50 text-orange-300' : 'bg-orange-200 text-orange-700'
+                    }`}>
+                      Priority {pendingIntervention.priority}
+                    </span>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    isDarkMode ? 'bg-orange-800/50 text-orange-300' : 'bg-orange-200 text-orange-700'
-                  }`}>
-                    Priority {pendingIntervention.priority}
-                  </span>
-                </div>
-              </motion.div>
-            )}
+                </motion.div>
+              )}
 
-            <div className="flex space-x-4">
-              <input
-                type="text"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                placeholder={pendingIntervention ? "Type your message (intervention will be applied)..." : "Type your message..."}
-                className={`flex-1 px-4 py-3 rounded-xl border ${isDarkMode ? 'bg-[#2a2a2a] border-gray-600 text-white' : 'bg-white border-gray-300 text-[#181818]'} focus:outline-none focus:ring-2 focus:ring-[#73c2e2] focus:border-transparent transition-all ${
-                  pendingIntervention ? 'ring-2 ring-orange-500/50' : ''
-                }`}
-              />
-              <motion.button
-                onClick={handleSendMessage}
-                disabled={!message.trim()}
-                className={`p-3 rounded-xl hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all ${
-                  pendingIntervention 
-                    ? 'bg-gradient-to-r from-orange-500 to-orange-400 text-white' 
-                    : 'bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white'
-                }`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Send size={20} />
-              </motion.button>
+              {/* Premium Input Container */}
+              <div className={`relative ${isDarkMode ? 'bg-[#2a2a2a]' : 'bg-white'} rounded-3xl border ${
+                isDarkMode ? 'border-[#373737]' : 'border-gray-200'
+              } shadow-2xl backdrop-blur-xl ${pendingIntervention ? 'ring-2 ring-orange-500/50' : ''} transition-all duration-300`}>
+                
+                {/* Input Field */}
+                <div className="flex items-end p-4">
+                  <div className="flex-1 relative">
+                    <textarea
+                      ref={textareaRef}
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }
+                      }}
+                      placeholder={
+                        pendingIntervention 
+                          ? "Type your message (intervention will be applied)..." 
+                          : "Message CelesteOS..."
+                      }
+                      className={`w-full bg-transparent border-none outline-none resize-none auto-resize ${
+                        isDarkMode ? 'text-white' : 'text-gray-900'
+                      } placeholder-gray-400 text-base leading-relaxed`}
+                      style={{ minHeight: '24px', maxHeight: '200px' }}
+                    />
+                    
+                    {/* Character Count */}
+                    {message.length > 0 && (
+                      <div className={`absolute bottom-0 right-0 text-xs ${
+                        isDarkMode ? 'text-gray-500' : 'text-gray-400'
+                      }`}>
+                        {message.length}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Send Button */}
+                  <motion.button
+                    onClick={handleSendMessage}
+                    disabled={!message.trim() || isTyping}
+                    className={`ml-4 p-3 rounded-2xl transition-all duration-200 ${
+                      message.trim() && !isTyping
+                        ? pendingIntervention 
+                          ? 'bg-gradient-to-r from-orange-500 to-orange-400 text-white shadow-lg hover:shadow-xl glow-effect-hover' 
+                          : 'bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white shadow-lg hover:shadow-xl glow-effect-hover'
+                        : isDarkMode 
+                          ? 'bg-[#373737] text-gray-500' 
+                          : 'bg-gray-200 text-gray-400'
+                    } disabled:cursor-not-allowed`}
+                    whileHover={message.trim() && !isTyping ? { scale: 1.05 } : {}}
+                    whileTap={message.trim() && !isTyping ? { scale: 0.95 } : {}}
+                  >
+                    {isTyping ? (
+                      <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Send size={20} />
+                    )}
+                  </motion.button>
+                </div>
+                
+                {/* Input Footer */}
+                <div className={`px-4 pb-3 flex items-center justify-between text-xs ${
+                  isDarkMode ? 'text-gray-500' : 'text-gray-400'
+                }`}>
+                  <div className="flex items-center space-x-4">
+                    <span>Press Enter to send, Shift+Enter for new line</span>
+                    {pendingIntervention && (
+                      <span className="text-orange-400 font-medium">🎯 Intervention mode active</span>
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span>CelesteOS Online</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Quick Actions */}
+              {activeConversation?.messages?.length === 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="mt-4 flex flex-wrap gap-2 justify-center"
+                >
+                  {[
+                    "Help me brainstorm ideas",
+                    "Explain something complex",
+                    "Write something creative",
+                    "Solve a problem"
+                  ].map((prompt, index) => (
+                    <motion.button
+                      key={prompt}
+                      onClick={() => setMessage(prompt)}
+                      className={`px-4 py-2 rounded-full text-sm border transition-all duration-200 ${
+                        isDarkMode 
+                          ? 'border-[#373737] text-gray-400 hover:border-[#73c2e2] hover:text-[#73c2e2] hover:bg-[#73c2e2]/10' 
+                          : 'border-gray-200 text-gray-600 hover:border-[#73c2e2] hover:text-[#73c2e2] hover:bg-[#73c2e2]/10'
+                      }`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      {prompt}
+                    </motion.button>
+                  ))}
+                </motion.div>
+              )}
             </div>
           </div>
         )}
