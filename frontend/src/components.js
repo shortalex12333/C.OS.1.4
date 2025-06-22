@@ -1515,14 +1515,14 @@ const ChatInterface = ({ user, onLogout }) => {
                         {/* Message Content */}
                         <div className={`relative group/message ${
                           msg.isUser 
-                            ? 'bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white rounded-3xl rounded-br-lg px-6 py-4 shadow-lg max-w-2xl message-animation-user' 
+                            ? 'bg-[#181818] text-white rounded-3xl rounded-br-lg px-6 py-4 border border-transparent bg-gradient-to-r from-[#73c2e2] to-[#badde9] bg-clip-border border-[1px] max-w-2xl message-animation-user' 
                             : msg.isLoading
-                              ? `${isDarkMode ? 'bg-[#2a2a2a]' : 'bg-gray-100'} rounded-3xl rounded-bl-lg px-6 py-4 shadow-sm max-w-full`
+                              ? `${isDarkMode ? 'text-gray-300' : 'text-gray-700'} rounded-3xl rounded-bl-lg px-0 py-2 max-w-full`
                               : msg.isError
-                                ? `${isDarkMode ? 'bg-red-900/20 border border-red-500/30' : 'bg-red-50 border border-red-200'} rounded-3xl rounded-bl-lg px-6 py-4 max-w-full`
+                                ? `${isDarkMode ? 'text-red-300' : 'text-red-700'} rounded-3xl rounded-bl-lg px-0 py-2 max-w-full`
                                 : msg.isEnhanced
-                                  ? `${isDarkMode ? 'bg-[#2a2a2a] border border-purple-500/30' : 'bg-purple-50 border border-purple-200'} rounded-3xl rounded-bl-lg px-6 py-4 shadow-sm max-w-full`
-                                  : `${isDarkMode ? 'bg-[#2a2a2a]' : 'bg-gray-100'} rounded-3xl rounded-bl-lg px-6 py-4 shadow-sm max-w-full message-animation-ai`
+                                  ? `${isDarkMode ? 'text-purple-300' : 'text-purple-700'} rounded-3xl rounded-bl-lg px-0 py-2 max-w-full`
+                                  : `${isDarkMode ? 'text-gray-100' : 'text-gray-900'} rounded-3xl rounded-bl-lg px-0 py-2 max-w-full message-animation-ai`
                         }`}>
                           
                           {/* Edit Mode */}
