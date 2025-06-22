@@ -759,7 +759,7 @@ const ChatInterface = ({ user, onLogout }) => {
         credentials: 'omit',
         body: JSON.stringify({
           userId: user.id,
-          sessionId: sessionStorage.getItem('celeste7_session_id'),
+          sessionId: sessionStorage.getItem('celesteos_session_id'),
           timestamp: Date.now()
         })
       }).catch(console.error);
