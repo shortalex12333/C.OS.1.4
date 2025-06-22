@@ -90,12 +90,12 @@ function App() {
     setUser(userData);
     setIsAuthenticated(true);
     setShowOnboarding(true); // Always show onboarding for new login
-    localStorage.setItem('celeste7_token', token);
-    localStorage.setItem('celeste7_user', JSON.stringify(userData));
+    localStorage.setItem('celesteos_token', token);
+    localStorage.setItem('celesteos_user', JSON.stringify(userData));
     
     // Store sessionId in sessionStorage (clears when browser tab closes)
-    sessionStorage.setItem('celeste7_session_id', sessionId);
-    localStorage.setItem('celeste7_session_created', Date.now().toString());
+    sessionStorage.setItem('celesteos_session_id', sessionId);
+    localStorage.setItem('celesteos_session_created', Date.now().toString());
     
     console.log('🔑 New session created:', sessionId);
   };
