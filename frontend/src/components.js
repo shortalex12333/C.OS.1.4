@@ -812,7 +812,7 @@ const ChatInterface = ({ user, onLogout }) => {
       clearInterval(heartbeatInterval);
       
       // Send offline status when component unmounts
-      fetch('http://46.62.139.129:5678/webhook/user-offline', {
+      fetch('https://46.62.139.129:5678/webhook/user-offline', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
