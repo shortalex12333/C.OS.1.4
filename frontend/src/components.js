@@ -1696,7 +1696,7 @@ const ChatInterface = ({ user, onLogout }) => {
                 
                 <div ref={messagesEndRef} />
               </div>
-            )}
+            </div>
           </div>
         </div>
 
