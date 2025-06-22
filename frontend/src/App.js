@@ -145,14 +145,14 @@ function App() {
     }
     
     // Clear all session data
-    localStorage.removeItem('celeste7_token');
-    localStorage.removeItem('celeste7_user');
-    localStorage.removeItem('celeste7_onboarding_completed');
-    localStorage.removeItem('celeste7_profile');
-    localStorage.removeItem('celeste7_session_created');
+    localStorage.removeItem('celesteos_token');
+    localStorage.removeItem('celesteos_user');
+    localStorage.removeItem('celesteos_onboarding_completed');
+    localStorage.removeItem('celesteos_profile');
+    localStorage.removeItem('celesteos_session_created');
     
     // Clear session-specific data
-    sessionStorage.removeItem('celeste7_session_id');
+    sessionStorage.removeItem('celesteos_session_id');
     
     console.log('🔑 Session cleared on logout');
     
