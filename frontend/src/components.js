@@ -24,6 +24,136 @@ import {
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
+// CRITICAL: Performance Optimizations
+// 1. Debounce utility
+const debounce = (func, wait) => {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+};
+
+// 2. Global cache managers
+const ConversationCache = {
+  data: null,
+  timestamp: null,
+  ttl: 30000, // 30 seconds
+  
+  isValid() {
+    return this.data && this.timestamp && (Date.now() - this.timestamp < this.ttl);
+  },
+  
+  set(data) {
+    this.data = data;
+    this.timestamp = Date.now();
+  },
+  
+  get() {
+    return this.isValid() ? this.data : null;
+  },
+  
+  invalidate() {
+    this.data = null;
+    this.timestamp = null;
+  }
+};
+
+// 3. Common response cache for instant replies
+const CommonResponseCache = {
+  responses: {
+    'hi': { 
+      response: "Hey there! How can I help you grow your business today?",
+      category: 'casual',
+      confidence: 1.0
+    },
+    'hello': {
+      response: "Hello! What business challenge can I help you tackle?",
+      category: 'casual', 
+      confidence: 1.0
+    },
+    'thanks': {
+      response: "You're welcome! Anything else I can help with?",
+      category: 'casual',
+      confidence: 1.0
+    },
+    'thank you': {
+      response: "Happy to help! Let me know if you need anything else.",
+      category: 'casual',
+      confidence: 1.0
+    },
+    'bye': {
+      response: "Take care! Feel free to come back anytime you need business advice.",
+      category: 'casual',
+      confidence: 1.0
+    }
+  },
+  
+  get(message) {
+    const normalized = message.toLowerCase().trim();
+    return this.responses[normalized] || null;
+  }
+};
+
+// 4. Request deduplication
+const pendingRequests = new Map();
+const dedupedFetch = async (key, fetchFn) => {
+  if (pendingRequests.has(key)) {
+    return pendingRequests.get(key);
+  }
+  
+  const promise = fetchFn();
+  pendingRequests.set(key, promise);
+  
+  try {
+    const result = await promise;
+    return result;
+  } finally {
+    pendingRequests.delete(key);
+  }
+};
+
+// 5. Message queue for offline support
+const MessageQueue = {
+  queue: [],
+  processing: false,
+  
+  add(message) {
+    this.queue.push({
+      ...message,
+      id: `pending-${Date.now()}`,
+      status: 'pending'
+    });
+    this.process();
+  },
+  
+  async process() {
+    if (this.processing || this.queue.length === 0) return;
+    
+    this.processing = true;
+    const message = this.queue[0];
+    
+    try {
+      const response = await sendRequestWithRetry(API_CONFIG.endpoints.chat, message);
+      if (response.success) {
+        this.queue.shift(); // Remove sent message
+      }
+    } catch (error) {
+      // Retry later
+      setTimeout(() => this.process(), 5000);
+    } finally {
+      this.processing = false;
+      if (this.queue.length > 0) {
+        this.process(); // Process next
+      }
+    }
+  }
+};
+
 // CRITICAL: API Configuration with retry logic
 const API_CONFIG = {
   baseUrl: 'https://api.celeste7.ai/webhook',
@@ -32,12 +162,7 @@ const API_CONFIG = {
     stream: '/text-chat-stream', // For future SSE implementation
     fetchChat: '/fetch-chat',
     fetchConversations: '/fetch-conversations',
-    // UPDATED: New secure authentication endpoints
-    login: '/secure-login',
-    signup: '/secure-signup',
-    logout: '/secure-logout',
-    verifyToken: '/secure-token-verify',
-    refreshToken: '/secure-refresh',
+    auth: '/auth',
     heartbeat: '/user-heartbeat',
     offline: '/user-offline',
     profile: '/profile-building'
@@ -188,8 +313,71 @@ const useInterventionsWithEvents = (userId) => {
   };
 };
 
-// NEW: ConversationSwitcher Component
-const ConversationSwitcher = ({ userId, currentChatId, onSwitch, conversations, isDarkMode }) => {
+// CRITICAL: Enhanced ConversationSwitcher with caching
+const ConversationSwitcher = ({ userId, currentChatId, onSwitch, conversations, isDarkMode, setConversations }) => {
+  const [loading, setLoading] = useState(false);
+
+  const loadConversations = useCallback(async (forceRefresh = false) => {
+    // Check cache first
+    if (!forceRefresh) {
+      const cached = ConversationCache.get();
+      if (cached) {
+        setConversations(cached);
+        return;
+      }
+    }
+
+    setLoading(true);
+    try {
+      const result = await dedupedFetch(
+        `conversations-${userId}`,
+        () => sendRequestWithRetry(API_CONFIG.endpoints.fetchConversations, { userId })
+      );
+
+      if (result.success && result.data.conversations) {
+        const conversationSlots = Array.from({ length: 10 }, (_, i) => {
+          const chatId = String(i + 1);
+          const existingConv = result.data.conversations.find(conv => conv.chat_id === chatId || conv.id === chatId);
+          
+          return existingConv ? {
+            id: chatId,
+            title: existingConv.title || `Conversation ${i + 1}`,
+            lastMessage: existingConv.last_message || existingConv.lastMessage || '',
+            timestamp: existingConv.updated_at || existingConv.timestamp || null,
+            messages: []
+          } : {
+            id: chatId,
+            title: `Conversation ${i + 1}`,
+            lastMessage: null,
+            timestamp: null,
+            messages: [],
+            isEmpty: true
+          };
+        });
+        
+        ConversationCache.set(conversationSlots);
+        setConversations(conversationSlots);
+      }
+    } catch (error) {
+      console.error('Failed to load conversations:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId, setConversations]);
+
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    loadConversations();
+    const interval = setInterval(() => loadConversations(true), 30000);
+    return () => clearInterval(interval);
+  }, [loadConversations]);
+
+  const handleSwitch = (chatId) => {
+    onSwitch(chatId);
+    // Refresh in background after switch
+    setTimeout(() => loadConversations(true), 1000);
+  };
+
   const formatTime = (timestamp) => {
     if (!timestamp) return '';
     const date = new Date(timestamp);
@@ -220,6 +408,12 @@ const ConversationSwitcher = ({ userId, currentChatId, onSwitch, conversations, 
 
   return (
     <div className="space-y-2">
+      {loading && (
+        <div className={`text-xs text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+          <RefreshCw size={12} className="inline animate-spin mr-1" />
+          Syncing conversations...
+        </div>
+      )}
       {conversationSlots.map((conv, index) => {
         const isActive = conv.id === currentChatId;
         const isEmpty = conv.isEmpty || !conv.lastMessage;
@@ -227,7 +421,7 @@ const ConversationSwitcher = ({ userId, currentChatId, onSwitch, conversations, 
         return (
           <motion.button
             key={conv.id}
-            onClick={() => onSwitch(conv.id)}
+            onClick={() => handleSwitch(conv.id)}
             className={`w-full p-4 rounded-xl text-left transition-all duration-200 group relative ${
               isActive 
                 ? 'bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white shadow-lg' 
@@ -741,7 +935,7 @@ const AuthScreen = ({ onLogin }) => {
     }
 
     try {
-      const endpoint = isSignUp ? API_CONFIG.endpoints.signup : API_CONFIG.endpoints.login;
+      const endpoint = isSignUp ? `${API_CONFIG.endpoints.auth}/signup` : `${API_CONFIG.endpoints.auth}/login`;
       
       // CRITICAL: Use enhanced retry logic for authentication
       const result = await sendRequestWithRetry(endpoint, {
@@ -1432,25 +1626,22 @@ const ChatInterface = ({ user, onLogout }) => {
       streamResponse: true
     };
 
-    // Create temporary AI message for streaming
+    // CRITICAL FIX: Create AI message with thinking state immediately (no double messages)
     const aiMessage = {
       id: Date.now() + 1,
-      text: '',
+      text: 'CelesteOS is thinking...',
       isUser: false,
       role: 'assistant',
-      isStreaming: true,
+      isThinking: true, // NEW: Use thinking state instead of separate typing indicator
       timestamp: new Date().toISOString()
     };
 
-    // Add AI message placeholder immediately
+    // Add AI message with thinking state
     setActiveConversation(prev => ({
       ...prev,
       messages: [...prev.messages, aiMessage],
       isEmpty: false
     }));
-
-    // Track as streaming
-    setStreamingMessages(prev => new Set(prev).add(aiMessage.id));
 
     try {
       // CRITICAL: Use enhanced retry logic
@@ -1605,6 +1796,18 @@ const ChatInterface = ({ user, onLogout }) => {
   const checkRateLimit = useRateLimit(15, 60000); // 15 messages per minute
   const [rateLimitError, setRateLimitError] = useState(null);
   
+  // CRITICAL: Enhanced input handling with debouncing
+  const handleInputChange = useCallback((e) => {
+    setMessage(e.target.value);
+    
+    if (!isTyping && e.target.value.length > 0) {
+      setIsTyping(true);
+    }
+    
+    // Reset the debounce timer
+    stopTyping();
+  }, [isTyping, stopTyping]);
+
   const handleSendMessage = async () => {
     if (!message.trim() || !activeConversation) return;
 
@@ -1637,9 +1840,77 @@ const ChatInterface = ({ user, onLogout }) => {
 
     const messageToSend = message.trim();
     setMessage('');
+    setIsTyping(false); // Stop typing indicator immediately
     setRateLimitError(null); // Clear any existing rate limit errors
 
     await sendMessageToWebhook(messageToSend);
+  };
+
+  // CRITICAL: Message pagination with intersection observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && 
+            hasMoreMessages[activeConversation?.id] && 
+            !loadingHistory && 
+            activeConversation?.messages?.length > 20) {
+          loadOlderMessages();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    
+    const topElement = messagesTopRef.current;
+    if (topElement && activeConversation?.messages?.length > 20) {
+      observer.observe(topElement);
+    }
+    
+    return () => {
+      if (topElement) observer.unobserve(topElement);
+    };
+  }, [hasMoreMessages, loadingHistory, activeConversation?.id]);
+
+  const loadOlderMessages = async () => {
+    if (!activeConversation?.id || loadingHistory) return;
+    
+    setLoadingHistory(true);
+    try {
+      const currentPage = messagePage[activeConversation.id] || 1;
+      const result = await sendRequestWithRetry('/api/messages', {
+        chatId: activeConversation.id,
+        page: currentPage + 1,
+        limit: 20
+      });
+      
+      if (result.success && result.data.messages?.length > 0) {
+        setActiveConversation(prev => ({
+          ...prev,
+          messages: [...result.data.messages.reverse(), ...prev.messages]
+        }));
+        
+        setMessagePage(prev => ({
+          ...prev,
+          [activeConversation.id]: currentPage + 1
+        }));
+        
+        setHasMoreMessages(prev => ({
+          ...prev,
+          [activeConversation.id]: result.data.hasMore
+        }));
+        
+        // Maintain scroll position
+        messagesTopRef.current?.scrollIntoView({ block: 'end' });
+      } else {
+        setHasMoreMessages(prev => ({
+          ...prev,
+          [activeConversation.id]: false
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to load older messages:', error);
+    } finally {
+      setLoadingHistory(false);
+    }
   };
 
   const handleDeleteConversation = (conversationId) => {
@@ -1798,143 +2069,231 @@ const ChatInterface = ({ user, onLogout }) => {
   };
 
   return (
-    <div className={`flex h-screen ${isDarkMode ? 'bg-[#0f0f0f]' : 'bg-white'} transition-all duration-300 overflow-hidden`}>
-      {/* Sidebar */}
+    <div className={`flex h-screen ${isDarkMode ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' : 'bg-gradient-to-br from-gray-50 via-white to-gray-100'} transition-all duration-500 overflow-hidden`}>
+      {/* Premium Sidebar with Glassmorphism */}
       <AnimatePresence>
         {isSidebarOpen && (
           <motion.div
             initial={{ x: -320, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -320, opacity: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className={`w-80 ${isDarkMode ? 'bg-[#171717]' : 'bg-[#f7f7f8]'} border-r ${isDarkMode ? 'border-[#2a2a2a]' : 'border-gray-200'} flex flex-col shadow-2xl backdrop-blur-xl`}
+            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className={`w-80 ${
+              isDarkMode 
+                ? 'bg-gradient-to-b from-slate-800/90 via-slate-900/95 to-slate-900/90' 
+                : 'bg-gradient-to-b from-white/90 via-gray-50/95 to-white/90'
+            } backdrop-blur-xl border-r ${
+              isDarkMode ? 'border-slate-700/50' : 'border-gray-200/50'
+            } flex flex-col shadow-2xl relative overflow-hidden`}
           >
-            {/* Sidebar Header */}
-            <div className={`p-6 border-b ${isDarkMode ? 'border-[#2a2a2a]' : 'border-gray-200'}`}>
+            {/* Premium Background Pattern */}
+            <div className="absolute inset-0 opacity-5">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,200,230,0.3),transparent)] animate-pulse"></div>
+              <div className="absolute top-0 left-0 w-full h-full bg-[conic-gradient(from_0deg_at_50%_50%,transparent,rgba(120,200,230,0.1),transparent)]"></div>
+            </div>
+
+            {/* Enhanced Sidebar Header */}
+            <div className={`p-6 border-b ${isDarkMode ? 'border-slate-700/30' : 'border-gray-200/30'} relative z-10`}>
               <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-3">
-                  <div className="relative">
-                    <div className="w-10 h-10 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-xl flex items-center justify-center shadow-lg">
+                <div className="flex items-center space-x-4">
+                  <div className="relative group">
+                    <motion.div 
+                      className="w-12 h-12 bg-gradient-to-br from-blue-400 via-cyan-400 to-blue-500 rounded-2xl flex items-center justify-center shadow-xl relative overflow-hidden"
+                      whileHover={{ scale: 1.05, rotate: 5 }}
+                      transition={{ type: "spring", stiffness: 300 }}
+                    >
+                      {/* Shimmer effect */}
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                        animate={{ x: ['-100%', '100%'] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                      />
                       <img 
                         src="https://images.unsplash.com/photo-1633412802994-5c058f151b66?w=100&h=100&fit=crop&crop=center"
                         alt="CelesteOS"
-                        className="w-7 h-7 rounded-lg object-cover"
+                        className="w-8 h-8 rounded-xl object-cover relative z-10"
                       />
-                    </div>
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
+                    </motion.div>
+                    <motion.div 
+                      className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-2 border-white shadow-lg"
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    />
                   </div>
                   <div>
-                    <h1 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-[#0d1117]'}`} style={{ fontFamily: 'Eloquia-Text, sans-serif' }}>
-                      Celeste<span className="bg-gradient-to-r from-[#73c2e2] to-[#badde9] bg-clip-text text-transparent">OS</span>
-                    </h1>
-                    <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Your proactive AI assistant</p>
+                    <motion.h1 
+                      className={`text-xl font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent`}
+                      style={{ fontFamily: 'Eloquia-Text, sans-serif' }}
+                      animate={{ 
+                        backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
+                      }}
+                      transition={{ duration: 3, repeat: Infinity }}
+                    >
+                      Celeste<span className="text-slate-400">OS</span>
+                    </motion.h1>
+                    <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
+                      Proactive AI Assistant
+                    </p>
                   </div>
                 </div>
                 <motion.button
                   onClick={() => setIsDarkMode(!isDarkMode)}
-                  className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-200'} transition-all duration-200`}
-                  whileHover={{ scale: 1.05 }}
+                  className={`p-3 rounded-xl ${
+                    isDarkMode 
+                      ? 'bg-slate-700/50 hover:bg-slate-600/50 text-amber-400' 
+                      : 'bg-white/50 hover:bg-white/80 text-slate-600'
+                  } transition-all duration-300 backdrop-blur-sm border ${
+                    isDarkMode ? 'border-slate-600/30' : 'border-white/30'
+                  } shadow-lg`}
+                  whileHover={{ scale: 1.05, rotate: 180 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   {isDarkMode ? (
-                    <Sun className="text-yellow-400" size={20} />
+                    <Sun className="drop-shadow-sm" size={18} />
                   ) : (
-                    <Moon className="text-gray-600" size={20} />
+                    <Moon className="drop-shadow-sm" size={18} />
                   )}
                 </motion.button>
               </div>
 
-              {/* CRITICAL: Enhanced Online Users Display with Connection Status */}
-              <div className={`mb-6 p-4 rounded-xl ${isDarkMode ? 'bg-[#2a2a2a]/50' : 'bg-white'} border ${isDarkMode ? 'border-[#373737]' : 'border-gray-200'} backdrop-blur-sm`}>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-3">
-                    <div className="relative">
-                      <div className={`w-3 h-3 rounded-full ${
-                        connectionStatus.isOnline ? 'bg-gradient-to-r from-green-400 to-green-500' : 'bg-red-500'
-                      }`}></div>
-                      {connectionStatus.isOnline && (
-                        <div className="absolute inset-0 w-3 h-3 bg-gradient-to-r from-green-400 to-green-500 rounded-full animate-ping opacity-75"></div>
-                      )}
-                    </div>
-                    <div>
-                      <span className={`text-sm font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                        {onlineUserCount} {onlineUserCount === 1 ? 'user' : 'users'} online
-                      </span>
-                      <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                        {connectionStatus.isOnline ? 'Active now' : 'Disconnected'}
-                      </p>
-                    </div>
-                  </div>
-                  <ConnectionStatus 
-                    isOnline={connectionStatus.isOnline}
-                    isReconnecting={connectionStatus.isReconnecting}
-                    onReconnect={checkConnection}
-                    isDarkMode={isDarkMode}
-                  />
-                </div>
+              {/* Premium Status Card */}
+              <motion.div 
+                className={`mb-6 p-4 rounded-2xl ${
+                  isDarkMode 
+                    ? 'bg-gradient-to-br from-slate-700/40 via-slate-800/30 to-slate-700/40' 
+                    : 'bg-gradient-to-br from-white/80 via-gray-50/60 to-white/80'
+                } border ${
+                  isDarkMode ? 'border-slate-600/30' : 'border-white/50'
+                } backdrop-blur-sm shadow-xl relative overflow-hidden`}
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                {/* Animated background */}
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-cyan-500/5 to-blue-500/10"
+                  animate={{ opacity: [0.5, 0.8, 0.5] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                />
                 
-                {/* CRITICAL: API Error Queue Display */}
-                <AnimatePresence>
-                  {apiErrors.length > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="space-y-2 mt-3 pt-3 border-t border-gray-600"
-                    >
-                      {apiErrors.slice(0, 2).map((error) => (
-                        <div key={error.id} className={`text-xs p-2 rounded-lg ${
-                          isDarkMode ? 'bg-red-900/20 text-red-300' : 'bg-red-50 text-red-600'
-                        }`}>
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium">{error.type}</span>
-                            <button
-                              onClick={() => dismissError(error.id)}
-                              className="text-red-400 hover:text-red-300"
-                            >
-                              <X size={12} />
-                            </button>
-                          </div>
-                          <p className="mt-1 truncate">{error.message}</p>
-                          {error.canRetry && (
-                            <button
-                              onClick={() => retryErrorAction(error.id)}
-                              className="mt-1 text-xs underline hover:no-underline flex items-center space-x-1"
-                            >
-                              <RefreshCw size={10} />
-                              <span>Retry</span>
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                      {apiErrors.length > 2 && (
-                        <div className={`text-xs text-center ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                          +{apiErrors.length - 2} more errors
-                        </div>
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="relative">
+                        <motion.div 
+                          className={`w-3 h-3 rounded-full ${
+                            connectionStatus.isOnline 
+                              ? 'bg-gradient-to-r from-emerald-400 to-green-500' 
+                              : 'bg-gradient-to-r from-red-400 to-red-500'
+                          }`}
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        />
+                        {connectionStatus.isOnline && (
+                          <motion.div 
+                            className="absolute inset-0 w-3 h-3 bg-gradient-to-r from-emerald-400 to-green-500 rounded-full"
+                            animate={{ scale: [1, 2, 1], opacity: [0.7, 0, 0.7] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                          />
+                        )}
+                      </div>
+                      <div>
+                        <span className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                          {onlineUserCount} {onlineUserCount === 1 ? 'user' : 'users'} online
+                        </span>
+                        <p className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                          {connectionStatus.isOnline ? 'Connected' : 'Reconnecting...'}
+                        </p>
+                      </div>
+                    </div>
+                    <ConnectionStatus 
+                      isOnline={connectionStatus.isOnline}
+                      isReconnecting={connectionStatus.isReconnecting}
+                      onReconnect={checkConnection}
+                      isDarkMode={isDarkMode}
+                    />
+                  </div>
+                  
+                  {/* Enhanced API Error Display */}
+                  <AnimatePresence>
+                    {apiErrors.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="space-y-2 mt-3 pt-3 border-t border-slate-600/20"
+                      >
+                        {apiErrors.slice(0, 2).map((error) => (
+                          <motion.div 
+                            key={error.id} 
+                            className={`text-xs p-3 rounded-xl ${
+                              isDarkMode 
+                                ? 'bg-red-900/30 text-red-300 border border-red-700/30' 
+                                : 'bg-red-50 text-red-600 border border-red-200/50'
+                            } backdrop-blur-sm`}
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium">{error.type}</span>
+                              <button
+                                onClick={() => dismissError(error.id)}
+                                className="text-red-400 hover:text-red-300 transition-colors"
+                              >
+                                <X size={12} />
+                              </button>
+                            </div>
+                            <p className="mt-1 truncate opacity-80">{error.message}</p>
+                            {error.canRetry && (
+                              <motion.button
+                                onClick={() => retryErrorAction(error.id)}
+                                className="mt-2 text-xs underline hover:no-underline flex items-center space-x-1 opacity-80 hover:opacity-100"
+                                whileHover={{ scale: 1.05 }}
+                              >
+                                <RefreshCw size={10} />
+                                <span>Retry</span>
+                              </motion.button>
+                            )}
+                          </motion.div>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </motion.div>
               
+              {/* Premium New Conversation Button */}
               <motion.button
                 onClick={handleNewConversation}
-                className="w-full bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white px-6 py-4 rounded-xl font-semibold flex items-center justify-center space-x-3 hover:shadow-2xl transition-all duration-300 group"
+                className="w-full bg-gradient-to-r from-blue-500 via-cyan-500 to-blue-600 text-white px-6 py-4 rounded-2xl font-bold flex items-center justify-center space-x-3 shadow-2xl relative overflow-hidden group"
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
+                transition={{ type: "spring", stiffness: 300 }}
               >
-                <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
-                <span>New Conversation</span>
+                {/* Animated background */}
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/10 to-white/20"
+                  animate={{ x: ['-100%', '100%'] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                />
+                <motion.div
+                  className="relative z-10 flex items-center space-x-3"
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
+                  <span>New Conversation</span>
+                </motion.div>
               </motion.button>
             </div>
 
-            {/* FIXED: Use ConversationSwitcher */}
+            {/* FIXED: Use Enhanced ConversationSwitcher with caching */}
             <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
               <ConversationSwitcher
                 userId={user.id}
                 currentChatId={activeConversation?.id}
                 onSwitch={handleConversationSwitch}
                 conversations={conversations}
+                setConversations={setConversations}
                 isDarkMode={isDarkMode}
               />
             </div>
@@ -2366,6 +2725,13 @@ const ChatInterface = ({ user, onLogout }) => {
 
       {/* CRITICAL: Performance Monitor (Development Only) */}
       <PerformanceMonitor />
+
+      {/* CRITICAL: Hide Emergent Badge */}
+      <style jsx global>{`
+        #emergent-badge {
+          display: none !important;
+        }
+      `}</style>
 
       {/* FIXED: Enhanced Delete Modal */}
       <AnimatePresence>
