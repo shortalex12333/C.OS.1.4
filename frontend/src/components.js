@@ -1609,7 +1609,7 @@ const ChatInterface = ({ user, onLogout }) => {
                                       {new Date(msg.timestamp).toLocaleTimeString()}
                                       {/* Enhanced: Show response time for AI messages */}
                                       {!msg.isUser && msg.metadata?.responseTimeMs && (
-                                        <span className="ml-2">
+                                        <span className="response-time">
                                           ({(msg.metadata.responseTimeMs / 1000).toFixed(1)}s)
                                         </span>
                                       )}
