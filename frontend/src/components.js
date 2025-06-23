@@ -17,642 +17,18 @@ import {
   ChevronRight
 } from 'lucide-react';
 
-// Loading Screen Component
-const LoadingScreen = () => {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-[#73c2e2] via-[#badde9] to-[#73c2e2] flex items-center justify-center">
-      <motion.div 
-        className="text-center"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8 }}
-      >
-        <motion.div
-          className="w-20 h-20 mx-auto mb-6 bg-white rounded-2xl shadow-lg flex items-center justify-center"
-          animate={{ 
-            rotateY: [0, 360],
-            scale: [1, 1.1, 1]
-          }}
-          transition={{ 
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        >
-          <img 
-            src="https://images.unsplash.com/photo-1633412802994-5c058f151b66?w=100&h=100&fit=crop&crop=center"
-            alt="CelesteOS"
-            className="w-12 h-12 rounded-lg object-cover"
-          />
-        </motion.div>
-        <motion.h1 
-          className="text-4xl font-bold text-white mb-2"
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          style={{ fontFamily: 'Eloquia-Text, sans-serif' }}
-        >
-          Celeste<span className="bg-gradient-to-r from-[#badde9] to-white bg-clip-text text-transparent">OS</span>
-        </motion.h1>
-        <motion.p 
-          className="text-[#f8f8ff] text-lg opacity-90"
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.5, duration: 0.6 }}
-        >
-          Your proactive AI assistant
-        </motion.p>
-      </motion.div>
-    </div>
-  );
+// CRITICAL FIX: Add the missing hook or create a stub
+const useInterventionsWithEvents = (userId) => {
+  return {
+    interventions: [],
+    pendingIntervention: null,
+    getPendingInterventionId: () => null,
+    markInterventionUsed: (id) => {},
+    clearInterventions: () => {}
+  };
 };
 
-// Onboarding Screen Component
-const OnboardingScreen = ({ user, onComplete }) => {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [answers, setAnswers] = useState({
-    age_range: '',
-    primary_goal: '',
-    work_style: '',
-    biggest_challenge: ''
-  });
-
-  const steps = [
-    {
-      id: 1,
-      question: "What's your age range?",
-      field: 'age_range',
-      options: [
-        "18-22",
-        "23-26", 
-        "27-30",
-        "31+"
-      ]
-    },
-    {
-      id: 2,
-      question: "What's your main focus right now?",
-      field: 'primary_goal',
-      options: [
-        { label: "Growing my business", value: "business_growth" },
-        { label: "Career advancement", value: "career_advancement" },
-        { label: "Fitness & health", value: "fitness_health" },
-        { label: "Being more productive", value: "productivity" },
-        { label: "Work-life balance", value: "work_life_balance" }
-      ]
-    },
-    {
-      id: 3,
-      question: "How do you typically work?",
-      field: 'work_style',
-      options: [
-        { label: "Entrepreneur/Self-employed", value: "entrepreneur" },
-        { label: "Remote employee", value: "remote_employee" },
-        { label: "Office-based", value: "office_based" },
-        { label: "Student", value: "student" },
-        { label: "Freelancer/Contractor", value: "freelancer" }
-      ]
-    },
-    {
-      id: 4,
-      question: "What's your biggest challenge?",
-      field: 'biggest_challenge',
-      options: [
-        { label: "Procrastination", value: "procrastination" },
-        { label: "Staying focused", value: "staying_focused" },
-        { label: "Following through on plans", value: "following_through" },
-        { label: "Time management", value: "time_management" },
-        { label: "Being consistent", value: "being_consistent" }
-      ]
-    }
-  ];
-
-  const currentStepData = steps.find(step => step.id === currentStep);
-  const progressPercentage = (currentStep / steps.length) * 100;
-
-  const handleOptionSelect = (option) => {
-    const value = typeof option === 'object' ? option.value : option;
-    setAnswers(prev => ({
-      ...prev,
-      [currentStepData.field]: value
-    }));
-  };
-
-  const sendStageData = async (stage, stageData) => {
-    try {
-      console.log(`Sending stage ${stage} data:`, stageData);
-      
-      const response = await fetch('https://api.celeste7.ai/webhook/profile-building', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        mode: 'cors',
-        credentials: 'omit',
-        body: JSON.stringify({
-          userId: user.id,
-          stage: stage,
-          data: stageData
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log(`Stage ${stage} response:`, data);
-        return data;
-      }
-    } catch (error) {
-      console.error(`Stage ${stage} error:`, error);
-    }
-  };
-
-  const handleNext = async () => {
-    const currentValue = answers[currentStepData.field];
-    
-    // Send current stage data
-    const stageData = {
-      [currentStepData.field]: currentValue
-    };
-    
-    await sendStageData(currentStep, stageData);
-    
-    if (currentStep < steps.length) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      handleSubmit();
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-
-    // Send final stage (4) with complete profile data
-    const completeProfileData = {
-      age_range: answers.age_range,
-      primary_goal: answers.primary_goal,
-      work_style: answers.work_style,
-      biggest_challenge: answers.biggest_challenge
-    };
-
-    try {
-      const finalResponse = await sendStageData(4, completeProfileData);
-      
-      // Store the complete profile data locally
-      const profileData = {
-        userId: user.id,
-        email: user.email,
-        name: user.name,
-        ...completeProfileData,
-        timestamp: Date.now(),
-        finalResponse: finalResponse
-      };
-
-      onComplete(profileData);
-    } catch (error) {
-      console.error('Final submission error:', error);
-      // Complete onboarding even if final submission fails
-      onComplete({
-        userId: user.id,
-        email: user.email,
-        name: user.name,
-        ...completeProfileData,
-        timestamp: Date.now()
-      });
-    }
-
-    setIsSubmitting(false);
-  };
-
-  const isStepComplete = answers[currentStepData.field] !== '';
-  const canProceed = isStepComplete;
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-[#73c2e2] via-[#badde9] to-[#73c2e2] flex items-center justify-center p-4">
-      <motion.div 
-        className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        {/* Enhanced Header with Better Branding */}
-        <div className="bg-gradient-to-r from-[#73c2e2] to-[#badde9] p-8 text-white">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                <img 
-                  src="https://images.unsplash.com/photo-1633412802994-5c058f151b66?w=100&h=100&fit=crop&crop=center"
-                  alt="CelesteOS"
-                  className="w-8 h-8 rounded-lg object-cover"
-                />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold" style={{ fontFamily: 'Eloquia-Text, sans-serif' }}>
-                  Welcome to Celeste<span className="text-white/90">OS</span>
-                </h1>
-                <p className="text-white/80 text-sm">Your proactive AI assistant</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-sm text-white/70">Step</div>
-              <div className="text-2xl font-bold">{currentStep}</div>
-              <div className="text-sm text-white/70">of {steps.length}</div>
-            </div>
-          </div>
-          
-          {/* Enhanced Progress Bar */}
-          <div className="relative">
-            <div className="w-full bg-white/20 rounded-full h-3">
-              <motion.div 
-                className="bg-white h-3 rounded-full shadow-lg"
-                initial={{ width: '25%' }}
-                animate={{ width: `${progressPercentage}%` }}
-                transition={{ duration: 0.5, ease: "easeInOut" }}
-              />
-            </div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-xs font-medium text-white/90">
-                {Math.round(progressPercentage)}% Complete
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Enhanced Question Section */}
-        <div className="p-8">
-          <motion.div
-            key={currentStep}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4 }}
-            className="mb-8"
-          >
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="w-10 h-10 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-full flex items-center justify-center text-white font-bold">
-                {currentStep}
-              </div>
-              <h2 className="text-2xl font-semibold text-[#181818]">
-                {currentStepData.question}
-              </h2>
-            </div>
-            
-            <p className="text-gray-600 mb-6">
-              {currentStep === 1 && "This helps us understand your stage of life and tailor recommendations accordingly."}
-              {currentStep === 2 && "Let us know what you're focusing on so we can provide relevant guidance."}
-              {currentStep === 3 && "Understanding your work environment helps us suggest better productivity strategies."}
-              {currentStep === 4 && "Knowing your main challenge allows us to provide targeted support and interventions."}
-            </p>
-          </motion.div>
-
-          {/* Enhanced Options Grid */}
-          <motion.div 
-            className="grid gap-4 mb-8"
-            key={currentStep}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-          >
-            {currentStepData.options.map((option, index) => {
-              const isObject = typeof option === 'object';
-              const displayText = isObject ? option.label : option;
-              const optionValue = isObject ? option.value : option;
-              const isSelected = answers[currentStepData.field] === optionValue;
-              
-              return (
-                <motion.button
-                  key={optionValue}
-                  onClick={() => handleOptionSelect(option)}
-                  className={`relative p-6 rounded-2xl border-2 text-left font-medium transition-all duration-300 ${
-                    isSelected
-                      ? 'border-[#73c2e2] bg-gradient-to-r from-[#73c2e2]/10 to-[#badde9]/10 text-[#181818] shadow-lg transform scale-[1.02]'
-                      : 'border-gray-200 hover:border-[#73c2e2]/50 hover:bg-gray-50 text-gray-700 hover:shadow-md hover:transform hover:scale-[1.01]'
-                  }`}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                  whileHover={{ scale: isSelected ? 1.02 : 1.01 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  {isSelected && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="absolute top-4 right-4 w-6 h-6 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-full flex items-center justify-center"
-                    >
-                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </motion.div>
-                  )}
-                  <div className="pr-8">
-                    <span className="text-lg">{displayText}</span>
-                  </div>
-                </motion.button>
-              );
-            })}
-          </motion.div>
-
-          {/* Enhanced Navigation */}
-          <div className="flex items-center justify-between pt-6 border-t border-gray-100">
-            <button
-              onClick={handleBack}
-              disabled={currentStep === 1}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all ${
-                currentStep === 1 
-                  ? 'text-gray-400 cursor-not-allowed' 
-                  : 'text-gray-600 hover:text-[#73c2e2] hover:bg-gray-100 border border-gray-200 hover:border-[#73c2e2]/30'
-              }`}
-            >
-              <ChevronLeft size={18} />
-              <span>Back</span>
-            </button>
-
-            <motion.button
-              onClick={handleNext}
-              disabled={!canProceed || isSubmitting}
-              className={`flex items-center space-x-3 px-8 py-4 rounded-xl font-medium transition-all shadow-lg ${
-                canProceed && !isSubmitting
-                  ? 'bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white hover:shadow-xl transform hover:scale-[1.02]'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-              whileHover={canProceed ? { scale: 1.02 } : {}}
-              whileTap={canProceed ? { scale: 0.98 } : {}}
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Setting up your AI...</span>
-                </>
-              ) : currentStep === steps.length ? (
-                <>
-                  <span>Complete Setup</span>
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                </>
-              ) : (
-                <>
-                  <span>Continue</span>
-                  <ChevronRight size={18} />
-                </>
-              )}
-            </motion.button>
-          </div>
-
-          {/* Enhanced Footer */}
-          <div className="mt-8 text-center">
-            <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
-              <div className="flex items-center space-x-1">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                </svg>
-                <span>Secure & Private</span>
-              </div>
-              <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
-              <span>Powered by Celeste7</span>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  );
-};
-
-// Authentication Screen Component
-const AuthScreen = ({ onLogin }) => {
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    name: ''
-  });
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
-
-    if (isSignUp && formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const endpoint = isSignUp ? 'signup' : 'login'; // Changed from 'signin' to 'login'
-      const response = await fetch(`https://api.celeste7.ai/webhook/auth/${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        mode: 'cors',
-        credentials: 'omit',
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          name: isSignUp ? formData.name : undefined
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          onLogin(data.user, data.token);
-        } else {
-          setError(data.message || 'Authentication failed');
-        }
-      } else {
-        console.error('❌ Auth failed with status:', response.status);
-        console.error('❌ Response headers:', [...response.headers.entries()]);
-        
-        // Check if it's a CORS preflight issue
-        if (response.status === 0) {
-          setError('Network connection issue. Please check your internet connection.');
-        } else {
-          setError(`Authentication failed (${response.status}). Please try again.`);
-        }
-      }
-    } catch (error) {
-      console.error('Auth error:', error);
-      
-      // Show the actual error instead of immediately falling back to demo mode
-      if (error.message.includes('CORS') || error.message.includes('NetworkError')) {
-        setError(`Network connection issue: ${error.message}. Please check the n8n webhook endpoint.`);
-      } else if (error.message.includes('Failed to fetch')) {
-        setError(`Connection failed: Cannot reach authentication service at your n8n endpoint. Please verify the webhook is running.`);
-      } else {
-        setError(`Authentication error: ${error.message}`);
-      }
-      
-      // Only fall back to demo mode after showing the real error for a few seconds
-      setTimeout(() => {
-        if (formData.email.includes('demo') || formData.email.includes('test')) {
-          console.log('Demo mode activated for testing...');
-          const mockUser = {
-            id: 'demo_user_123',
-            email: formData.email,
-            name: formData.name || 'Demo User',
-            displayName: formData.name || 'Demo User'
-          };
-          console.log('✅ Mock login successful with user:', mockUser);
-          onLogin(mockUser, 'demo_token_123');
-        }
-      }, 3000); // Show error for 3 seconds before demo mode
-    }
-
-    setIsLoading(false);
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-[#73c2e2] via-[#badde9] to-[#73c2e2] flex items-center justify-center p-4">
-      <motion.div 
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <motion.div
-            className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-xl flex items-center justify-center"
-            whileHover={{ scale: 1.05 }}
-          >
-            <img 
-              src="https://images.unsplash.com/photo-1633412802994-5c058f151b66?w=100&h=100&fit=crop&crop=center"
-              alt="CelesteOS"
-              className="w-10 h-10 rounded-lg object-cover"
-            />
-          </motion.div>
-          <h1 className="text-3xl font-bold text-[#181818] mb-2" style={{ fontFamily: 'Eloquia-Text, sans-serif' }}>
-            Celeste<span className="bg-gradient-to-r from-[#73c2e2] to-[#badde9] bg-clip-text text-transparent">OS</span>
-          </h1>
-          <p className="text-gray-600">
-            {isSignUp ? 'Create your account' : 'Welcome back'}
-          </p>
-          <p className="text-sm text-gray-500 mt-1">
-            Your proactive AI assistant
-          </p>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {isSignUp && (
-            <div>
-              <input
-                type="text"
-                placeholder="Full Name"
-                value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#73c2e2] focus:border-transparent transition-all"
-                required
-              />
-            </div>
-          )}
-          
-          <div>
-            <input
-              type="email"
-              placeholder="Email address"
-              value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#73c2e2] focus:border-transparent transition-all"
-              required
-            />
-          </div>
-          
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Password"
-              value={formData.password}
-              onChange={(e) => setFormData({...formData, password: e.target.value})}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#73c2e2] focus:border-transparent transition-all pr-12"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-[#73c2e2] transition-colors"
-            >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-            </button>
-          </div>
-
-          {isSignUp && (
-            <div>
-              <input
-                type="password"
-                placeholder="Confirm Password"
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#73c2e2] focus:border-transparent transition-all"
-                required
-              />
-            </div>
-          )}
-
-          {error && (
-            <motion.div 
-              className="text-red-500 text-sm text-center bg-red-50 p-3 rounded-lg"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              {error}
-            </motion.div>
-          )}
-
-          <motion.button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white py-3 rounded-lg font-medium hover:shadow-lg transform hover:scale-[1.02] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            {isLoading ? (
-              <div className="flex items-center justify-center">
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                {isSignUp ? 'Creating Account...' : 'Signing In...'}
-              </div>
-            ) : (
-              isSignUp ? 'Create Account' : 'Sign In'
-            )}
-          </motion.button>
-        </form>
-
-        {/* Toggle Form */}
-        <div className="text-center mt-6">
-          <p className="text-gray-600">
-            {isSignUp ? 'Already have an account?' : "Don't have an account?"}
-            <button
-              onClick={() => {
-                setIsSignUp(!isSignUp);
-                setError('');
-                setFormData({ email: '', password: '', confirmPassword: '', name: '' });
-              }}
-              className="text-[#73c2e2] hover:underline ml-1 font-medium"
-            >
-              {isSignUp ? 'Sign In' : 'Sign Up'}
-            </button>
-          </p>
-        </div>
-      </motion.div>
-    </div>
-  );
-};
-
-// Main Chat Interface Component
+// Main Chat Interface Component with FIXED JSX
 const ChatInterface = ({ user, onLogout }) => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -669,14 +45,21 @@ const ChatInterface = ({ user, onLogout }) => {
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
   
+  // Use intervention hooks
+  const {
+    interventions,
+    pendingIntervention,
+    getPendingInterventionId,
+    markInterventionUsed,
+    clearInterventions
+  } = useInterventionsWithEvents(user?.id);
+
   // Helper function to detect business type from user profile and message content
   const detectBusinessType = (user, message) => {
     const lowerMessage = message.toLowerCase();
     const userProfile = JSON.parse(localStorage.getItem('celesteos_profile') || '{}');
     
-    // Check user profile first
     if (userProfile.primary_goal === 'business_growth' || userProfile.work_style === 'entrepreneur') {
-      // Analyze message content for specific business types
       if (lowerMessage.includes('saas') || lowerMessage.includes('software') || lowerMessage.includes('subscription')) {
         return 'saas';
       }
@@ -693,21 +76,11 @@ const ChatInterface = ({ user, onLogout }) => {
     
     return 'unknown';
   };
-  
-  // Use intervention hooks
-  const {
-    interventions,
-    pendingIntervention,
-    getPendingInterventionId,
-    markInterventionUsed,
-    clearInterventions
-  } = useInterventionsWithEvents(user?.id);
 
-  // Initialize conversations - fetch list from webhook or use mock data
+  // Initialize conversations
   useEffect(() => {
     const initializeConversations = async () => {
       try {
-        // Try to fetch conversation list from webhook
         const response = await fetch('https://api.celeste7.ai/webhook/fetch-conversations', {
           method: 'POST',
           headers: {
@@ -732,28 +105,28 @@ const ChatInterface = ({ user, onLogout }) => {
         console.error('Failed to fetch conversations list:', error);
       }
 
-      // Fallback to mock conversations (empty - will be populated when clicked)
+      // Fallback to mock conversations
       const mockConversations = [
         {
           id: 1,
           title: "Getting Started with AI",
           lastMessage: "Click to load conversation...",
           timestamp: Date.now() - 86400000,
-          messages: [] // Empty - will be populated via webhook
+          messages: []
         },
         {
           id: 2,
           title: "Python Programming Help",
           lastMessage: "Click to load conversation...",
           timestamp: Date.now() - 172800000,
-          messages: [] // Empty - will be populated via webhook
+          messages: []
         },
         {
           id: 3,
           title: "Creative Writing Ideas",
           lastMessage: "Click to load conversation...",
           timestamp: Date.now() - 259200000,
-          messages: [] // Empty - will be populated via webhook
+          messages: []
         }
       ];
       
@@ -765,7 +138,7 @@ const ChatInterface = ({ user, onLogout }) => {
     }
   }, [user]);
 
-  // Auto scroll to bottom with smooth animation
+  // Auto scroll to bottom
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ 
@@ -801,14 +174,11 @@ const ChatInterface = ({ user, onLogout }) => {
   const handleSaveEdit = async (messageId) => {
     if (!editingText.trim() || !activeConversation) return;
 
-    // Find the message index
     const messageIndex = activeConversation.messages.findIndex(msg => msg.id === messageId);
     if (messageIndex === -1) return;
 
-    // Remove all messages after this one (including AI responses)
     const messagesToKeep = activeConversation.messages.slice(0, messageIndex);
     
-    // Update the edited message
     const editedMessage = {
       ...activeConversation.messages[messageIndex],
       text: editingText.trim(),
@@ -816,35 +186,27 @@ const ChatInterface = ({ user, onLogout }) => {
       editedAt: Date.now()
     };
 
-    // Update the conversation
     setActiveConversation(prev => ({
       ...prev,
       messages: [...messagesToKeep, editedMessage]
     }));
 
-    // Clear editing state
     setEditingMessageId(null);
     setEditingText('');
 
-    // Send the edited message to webhook
     await sendMessageToWebhook(editedMessage.text);
   };
 
   const sendMessageToWebhook = async (messageText) => {
     setIsTyping(true);
 
-    // Get pending intervention ID to include with message
     const interventionId = getPendingInterventionId();
-
-    // Get or create session ID from sessionStorage
     const sessionId = sessionStorage.getItem('celesteos_session_id') || `session_${user.id}_${Date.now()}`;
     
-    // Store sessionId if it was just created
     if (!sessionStorage.getItem('celesteos_session_id')) {
       sessionStorage.setItem('celesteos_session_id', sessionId);
     }
 
-    // Increment message count for this session
     const newMessageCount = sessionMessageCount + 1;
     setSessionMessageCount(newMessageCount);
     setLastMessageTime(Date.now());
@@ -866,7 +228,6 @@ const ChatInterface = ({ user, onLogout }) => {
       }
     };
 
-    // Add intervention_id if there's a pending intervention
     if (interventionId) {
       requestPayload.intervention_id = interventionId;
     }
@@ -886,7 +247,6 @@ const ChatInterface = ({ user, onLogout }) => {
       if (response.ok) {
         const data = await response.json();
         
-        // Process AI response (same logic as before)
         let aiResponseText = '';
         let patternDetected = null;
         let confidence = null;
@@ -950,7 +310,6 @@ const ChatInterface = ({ user, onLogout }) => {
           lastMessage: aiResponseText.substring(0, 100) + '...'
         }));
 
-        // Update conversation in list
         setConversations(prev => prev.map(conv => 
           conv.id === activeConversation.id 
             ? { 
@@ -961,7 +320,6 @@ const ChatInterface = ({ user, onLogout }) => {
             : conv
         ));
 
-        // Mark intervention as used if it was included
         if (interventionId) {
           markInterventionUsed(interventionId);
         }
@@ -971,7 +329,6 @@ const ChatInterface = ({ user, onLogout }) => {
     } catch (error) {
       console.error('Message send error:', error);
       
-      // Mock AI response for demo when webhook fails
       setTimeout(() => {
         const responses = [
           "I understand your question. As an AI assistant, I'm here to help with a wide variety of tasks including answering questions, providing explanations, helping with creative projects, and more. How can I assist you further?",
@@ -1010,7 +367,7 @@ const ChatInterface = ({ user, onLogout }) => {
     setIsTyping(false);
   };
 
-  // Online users heartbeat system
+  // Online users heartbeat
   useEffect(() => {
     const sendHeartbeat = async () => {
       try {
@@ -1044,21 +401,16 @@ const ChatInterface = ({ user, onLogout }) => {
         }
       } catch (error) {
         console.error('❌ Heartbeat failed:', error);
-        // Keep existing count on error
       }
     };
 
-    // Send initial heartbeat
     sendHeartbeat();
 
-    // Send heartbeat every 30 seconds
     const heartbeatInterval = setInterval(sendHeartbeat, 30000);
 
-    // Cleanup on unmount
     return () => {
       clearInterval(heartbeatInterval);
       
-      // Send offline status when component unmounts
       fetch('https://api.celeste7.ai/webhook/user-offline', {
         method: 'POST',
         headers: {
@@ -1085,7 +437,6 @@ const ChatInterface = ({ user, onLogout }) => {
       timestamp: Date.now()
     };
 
-    // Add user message immediately
     setActiveConversation(prev => ({
       ...prev,
       messages: [...prev.messages, userMessage],
@@ -1095,7 +446,6 @@ const ChatInterface = ({ user, onLogout }) => {
     const messageToSend = message.trim();
     setMessage('');
 
-    // Send message to webhook
     await sendMessageToWebhook(messageToSend);
   };
 
@@ -1129,10 +479,8 @@ const ChatInterface = ({ user, onLogout }) => {
   };
 
   const fetchConversation = async (conversationId) => {
-    // Show loading state
     const conversation = conversations.find(conv => conv.id === conversationId);
     if (conversation) {
-      // Set conversation as active with loading state
       setActiveConversation({
         ...conversation,
         messages: [
@@ -1174,31 +522,26 @@ const ChatInterface = ({ user, onLogout }) => {
         console.log('Fetch conversation response:', data);
         
         if (data.success || data.output) {
-          // Handle the simple output schema
           let processedMessages = [];
           
           if (data.output) {
-            // Single output response - create a simple AI message
             const aiMessage = {
               id: `history_${Date.now()}`,
               text: data.output.trim(),
               isUser: false,
-              timestamp: Date.now() - 3600000, // 1 hour ago for demo
+              timestamp: Date.now() - 3600000,
               isHistorical: true
             };
             processedMessages = [aiMessage];
             console.log('✅ Processed single output message:', data.output);
           } else if (data.messages && Array.isArray(data.messages)) {
-            // Handle array of messages if provided
             processedMessages = data.messages.map(msg => {
               if (!msg.isUser && (msg.userResponse || msg.output)) {
-                // Format AI messages with response schema or simple output
                 let formattedText = '';
                 
                 if (msg.output) {
                   formattedText = msg.output.trim();
                 } else if (msg.userResponse) {
-                  // Handle userResponse format
                   if (msg.userResponse.message) formattedText += msg.userResponse.message;
                   if (msg.userResponse.action) {
                     if (formattedText) formattedText += '\n';
@@ -1221,7 +564,6 @@ const ChatInterface = ({ user, onLogout }) => {
               };
             });
           } else {
-            // No messages in this conversation yet
             processedMessages = [];
           }
           
@@ -1234,7 +576,6 @@ const ChatInterface = ({ user, onLogout }) => {
             
             setActiveConversation(updatedConversation);
             
-            // Update the conversation in the list with latest info
             setConversations(prev => prev.map(conv => 
               conv.id === conversationId 
                 ? updatedConversation
@@ -1250,7 +591,6 @@ const ChatInterface = ({ user, onLogout }) => {
     } catch (error) {
       console.error('Fetch conversation error:', error);
       
-      // Show error message if webhook fails
       if (conversation) {
         setActiveConversation({
           ...conversation,
@@ -1270,7 +610,7 @@ const ChatInterface = ({ user, onLogout }) => {
 
   return (
     <div className={`flex h-screen ${isDarkMode ? 'bg-[#0f0f0f]' : 'bg-white'} transition-all duration-300 overflow-hidden`}>
-      {/* Premium Sidebar */}
+      {/* Sidebar */}
       <AnimatePresence>
         {isSidebarOpen && (
           <motion.div
@@ -1280,7 +620,7 @@ const ChatInterface = ({ user, onLogout }) => {
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className={`w-80 ${isDarkMode ? 'bg-[#171717]' : 'bg-[#f7f7f8]'} border-r ${isDarkMode ? 'border-[#2a2a2a]' : 'border-gray-200'} flex flex-col shadow-2xl backdrop-blur-xl`}
           >
-            {/* Enhanced Sidebar Header */}
+            {/* Sidebar Header */}
             <div className={`p-6 border-b ${isDarkMode ? 'border-[#2a2a2a]' : 'border-gray-200'}`}>
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
@@ -1315,7 +655,7 @@ const ChatInterface = ({ user, onLogout }) => {
                 </motion.button>
               </div>
 
-              {/* Premium Online Users Display */}
+              {/* Online Users Display */}
               <div className={`mb-6 p-4 rounded-xl ${isDarkMode ? 'bg-[#2a2a2a]/50' : 'bg-white'} border ${isDarkMode ? 'border-[#373737]' : 'border-gray-200'} backdrop-blur-sm`}>
                 <div className="flex items-center space-x-3">
                   <div className="relative">
@@ -1342,7 +682,7 @@ const ChatInterface = ({ user, onLogout }) => {
               </motion.button>
             </div>
 
-            {/* Premium Conversations List */}
+            {/* Conversations List */}
             <div className="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar">
               {conversations.map((conversation, index) => (
                 <motion.button
@@ -1378,7 +718,7 @@ const ChatInterface = ({ user, onLogout }) => {
               ))}
             </div>
 
-            {/* Enhanced Sidebar Footer */}
+            {/* Sidebar Footer */}
             <div className={`p-4 border-t ${isDarkMode ? 'border-[#2a2a2a]' : 'border-gray-200'} backdrop-blur-sm`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
@@ -1407,9 +747,9 @@ const ChatInterface = ({ user, onLogout }) => {
         )}
       </AnimatePresence>
 
-      {/* Main Chat Area - ChatGPT Style */}
+      {/* Main Chat Area */}
       <div className="flex-1 flex flex-col min-h-0">
-        {/* Premium Header */}
+        {/* Header */}
         <div className={`flex-shrink-0 ${isDarkMode ? 'bg-[#171717]/80' : 'bg-white/80'} backdrop-blur-xl border-b ${isDarkMode ? 'border-[#2a2a2a]' : 'border-gray-200'} p-4 flex items-center justify-between sticky top-0 z-10`}>
           <div className="flex items-center space-x-4">
             <motion.button
@@ -1432,7 +772,6 @@ const ChatInterface = ({ user, onLogout }) => {
             </div>
           </div>
           
-          {/* Conversation Actions */}
           {activeConversation && (
             <div className="flex items-center space-x-2">
               <motion.button
@@ -1448,11 +787,10 @@ const ChatInterface = ({ user, onLogout }) => {
           )}
         </div>
 
-        {/* ChatGPT-Style Messages Area */}
-        <div className="flex-1 flex flex-col w-full min-h-0">
-          <div className="flex-1 overflow-y-auto px-4 py-6 chat-scrollbar">
-            <div className="max-w-4xl mx-auto">
-              {activeConversation?.messages?.length === 0 ? (
+        {/* Messages Area - FIXED */}
+        <div className="flex-1 overflow-y-auto px-4 py-6">
+          <div className="max-w-4xl mx-auto">
+            {activeConversation?.messages?.length === 0 ? (
               <div className="flex-1 flex items-center justify-center min-h-[60vh]">
                 <motion.div 
                   className="text-center max-w-md"
@@ -1460,7 +798,7 @@ const ChatInterface = ({ user, onLogout }) => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6 }}
                 >
-                  <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-3xl flex items-center justify-center shadow-2xl glow-effect float-animation">
+                  <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-3xl flex items-center justify-center shadow-2xl">
                     <MessageSquare className="text-white" size={32} />
                   </div>
                   <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-3`}>
@@ -1498,7 +836,6 @@ const ChatInterface = ({ user, onLogout }) => {
                     className={`group ${msg.isUser ? 'flex justify-end' : 'flex justify-start'}`}
                   >
                     <div className={`relative max-w-3xl w-full ${msg.isUser ? 'flex justify-end' : 'flex justify-start'}`}>
-                      {/* AI Avatar */}
                       {!msg.isUser && (
                         <div className="flex-shrink-0 mr-4">
                           <div className="w-8 h-8 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-full flex items-center justify-center shadow-lg">
@@ -1512,33 +849,30 @@ const ChatInterface = ({ user, onLogout }) => {
                       )}
                       
                       <div className={`flex-1 ${msg.isUser ? 'flex justify-end' : ''}`}>
-                        {/* Message Content */}
                         <div className={`relative group/message ${
                           msg.isUser 
-                            ? 'bg-[#181818] text-white rounded-3xl rounded-br-lg px-6 py-4 border-2 border-transparent bg-clip-padding relative max-w-2xl message-animation-user' 
+                            ? 'bg-[#181818] text-white rounded-3xl rounded-br-lg px-6 py-4 border-2 border-transparent bg-clip-padding relative max-w-2xl' 
                             : msg.isLoading
                               ? `${isDarkMode ? 'text-gray-300' : 'text-gray-700'} rounded-3xl rounded-bl-lg px-0 py-2 max-w-full`
                               : msg.isError
                                 ? `${isDarkMode ? 'text-red-300' : 'text-red-700'} rounded-3xl rounded-bl-lg px-0 py-2 max-w-full`
                                 : msg.isEnhanced
                                   ? `${isDarkMode ? 'text-purple-300' : 'text-purple-700'} rounded-3xl rounded-bl-lg px-0 py-2 max-w-full`
-                                  : `${isDarkMode ? 'text-gray-100' : 'text-gray-900'} rounded-3xl rounded-bl-lg px-0 py-2 max-w-full message-animation-ai`
+                                  : `${isDarkMode ? 'text-gray-100' : 'text-gray-900'} rounded-3xl rounded-bl-lg px-0 py-2 max-w-full`
                         }`}>
                           
-                          {/* Gradient Border for User Messages */}
                           {msg.isUser && (
                             <div className="absolute inset-0 rounded-3xl rounded-br-lg bg-gradient-to-r from-[#73c2e2] to-[#badde9] p-[1px] -z-10">
                               <div className="h-full w-full rounded-3xl rounded-br-lg bg-[#181818]"></div>
                             </div>
                           )}
                           
-                          {/* Edit Mode */}
                           {editingMessageId === msg.id ? (
                             <div className="space-y-3">
                               <textarea
                                 value={editingText}
                                 onChange={(e) => setEditingText(e.target.value)}
-                                className={`w-full bg-transparent border-none outline-none resize-none auto-resize ${
+                                className={`w-full bg-transparent border-none outline-none resize-none ${
                                   isDarkMode ? 'text-white' : 'text-gray-900'
                                 } placeholder-gray-400`}
                                 placeholder="Edit your message..."
@@ -1561,22 +895,20 @@ const ChatInterface = ({ user, onLogout }) => {
                             </div>
                           ) : (
                             <>
-                              {/* Message Text */}
                               <div className={`whitespace-pre-wrap leading-relaxed ${
                                 msg.isUser ? 'text-white' : isDarkMode ? 'text-gray-100' : 'text-gray-900'
                               }`}>
                                 {msg.isLoading ? (
                                   <div className="flex items-center space-x-3">
                                     <div className="flex space-x-1">
-                                      <div className="w-3 h-3 bg-[#73c2e2] rounded-full typing-dot"></div>
-                                      <div className="w-3 h-3 bg-[#73c2e2] rounded-full typing-dot"></div>
-                                      <div className="w-3 h-3 bg-[#73c2e2] rounded-full typing-dot"></div>
+                                      <div className="w-3 h-3 bg-[#73c2e2] rounded-full animate-pulse"></div>
+                                      <div className="w-3 h-3 bg-[#73c2e2] rounded-full animate-pulse animation-delay-200"></div>
+                                      <div className="w-3 h-3 bg-[#73c2e2] rounded-full animate-pulse animation-delay-400"></div>
                                     </div>
                                     <span className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>CelesteOS is thinking...</span>
                                   </div>
                                 ) : (
                                   msg.text.split('\n').map((line, index) => {
-                                    // Handle bold text formatting
                                     if (line.includes('**')) {
                                       const parts = line.split('**');
                                       return (
@@ -1596,7 +928,6 @@ const ChatInterface = ({ user, onLogout }) => {
                                 )}
                               </div>
                               
-                              {/* Message Metadata */}
                               {!msg.isLoading && (
                                 <div className="flex items-center justify-between mt-4">
                                   <div className="flex items-center space-x-2">
@@ -1635,7 +966,6 @@ const ChatInterface = ({ user, onLogout }) => {
                             </>
                           )}
                           
-                          {/* Message Actions */}
                           {msg.isUser && editingMessageId !== msg.id && (
                             <div className="absolute -right-2 top-2 opacity-0 group-hover/message:opacity-100 transition-opacity">
                               <button
@@ -1652,7 +982,6 @@ const ChatInterface = ({ user, onLogout }) => {
                         </div>
                       </div>
                       
-                      {/* User Avatar */}
                       {msg.isUser && (
                         <div className="flex-shrink-0 ml-4">
                           <div className="w-8 h-8 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-full flex items-center justify-center shadow-lg">
@@ -1664,7 +993,6 @@ const ChatInterface = ({ user, onLogout }) => {
                   </motion.div>
                 ))}
                 
-                {/* Typing Indicator */}
                 {isTyping && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -1682,9 +1010,9 @@ const ChatInterface = ({ user, onLogout }) => {
                       <div className={`${isDarkMode ? 'bg-[#2a2a2a]' : 'bg-gray-100'} rounded-3xl rounded-bl-lg px-6 py-4 shadow-sm`}>
                         <div className="flex items-center space-x-3">
                           <div className="flex space-x-1">
-                            <div className="w-3 h-3 bg-[#73c2e2] rounded-full typing-dot"></div>
-                            <div className="w-3 h-3 bg-[#73c2e2] rounded-full typing-dot"></div>
-                            <div className="w-3 h-3 bg-[#73c2e2] rounded-full typing-dot"></div>
+                            <div className="w-3 h-3 bg-[#73c2e2] rounded-full animate-pulse"></div>
+                            <div className="w-3 h-3 bg-[#73c2e2] rounded-full animate-pulse animation-delay-200"></div>
+                            <div className="w-3 h-3 bg-[#73c2e2] rounded-full animate-pulse animation-delay-400"></div>
                           </div>
                           <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>CelesteOS is thinking...</span>
                         </div>
@@ -1695,111 +1023,67 @@ const ChatInterface = ({ user, onLogout }) => {
                 
                 <div ref={messagesEndRef} />
               </div>
-            </div>
+            )}
+          </div>
+        </div>
 
-          {/* ChatGPT-Style Input Area */}
-          {activeConversation             {activeConversation &&            {activeConversation && (
-              <div className="flex-shrink-0 border-t border-transparent px-4 pb-6">
-                <div className="max-w-4xl mx-auto">
-                  <div className={`relative ${isDarkMode ? 'bg-[#181818]' : 'bg-white'} rounded-3xl border-2 border-transparent bg-clip-padding shadow-2xl backdrop-blur-xl transition-all duration-300`}>
-                    <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-[#73c2e2] to-[#badde9] p-[1px] -z-10">
-                      <div className={`h-full w-full rounded-3xl ${isDarkMode ? 'bg-[#181818]' : 'bg-white'}`}></div>
-                    </div>
-                    
-                    <div className="flex items-end p-4">
-                      <div className="flex-1 relative">
-                        <textarea
-                          value={message}
-                          onChange={(e) => setMessage(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              handleSendMessage();
-                            }
-                          }}
-                          placeholder="Message CelesteOS..."
-                          className={`w-full bg-transparent border-none outline-none resize-none auto-resize ${
-                            isDarkMode ? 'text-white' : 'text-gray-900'
-                          } placeholder-gray-400 text-base leading-relaxed`}
-                          style={{ minHeight: '24px', maxHeight: '200px' }}
-                        />
-                      </div>
-                      
-                      <button
-                        onClick={handleSendMessage}
-                        disabled={!message.trim() || isTyping}
-                        className={`relative ml-4 p-3 rounded-2xl transition-all duration-200 ${
-                          message.trim() && !isTyping
-                            ? 'bg-[#181818] text-white shadow-lg hover:shadow-xl border-2 border-transparent bg-clip-padding'
-                            : isDarkMode 
-                              ? 'bg-[#373737] text-gray-500' 
-                              : 'bg-gray-200 text-gray-400'
-                        } disabled:cursor-not-allowed`}
-                      >
-                        {message.trim() && !isTyping && (
-                          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#73c2e2] to-[#badde9] p-[1px] -z-10">
-                            <div className="h-full w-full rounded-2xl bg-[#181818]"></div>
-                          </div>
-                        )}
-                        
-                        {isTyping ? (
-                          <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <Send size={20} />
-                        )}
-                      </button>
-                    </div>
+        {/* Input Area - FIXED: Now only appears once */}
+        {activeConversation && (
+          <div className="flex-shrink-0 border-t border-transparent px-4 pb-6">
+            <div className="max-w-4xl mx-auto">
+              <div className={`relative ${isDarkMode ? 'bg-[#181818]' : 'bg-white'} rounded-3xl border-2 border-transparent bg-clip-padding shadow-2xl backdrop-blur-xl transition-all duration-300`}>
+                <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-[#73c2e2] to-[#badde9] p-[1px] -z-10">
+                  <div className={`h-full w-full rounded-3xl ${isDarkMode ? 'bg-[#181818]' : 'bg-white'}`}></div>
+                </div>
+                <div className="flex items-end p-4">
+                  <div className="flex-1 relative">
+                    <textarea
+                      ref={textareaRef}
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }
+                      }}
+                      placeholder="Message CelesteOS..."
+                      className={`w-full bg-transparent border-none outline-none resize-none ${
+                        isDarkMode ? 'text-white' : 'text-gray-900'
+                      } placeholder-gray-400 text-base leading-relaxed`}
+                      style={{ minHeight: '24px', maxHeight: '200px' }}
+                    />
                   </div>
+                  <button
+                    onClick={handleSendMessage}
+                    disabled={!message.trim() || isTyping}
+                    className={`relative ml-4 p-3 rounded-2xl transition-all duration-200 ${
+                      message.trim() && !isTyping
+                        ? 'bg-[#181818] text-white shadow-lg hover:shadow-xl border-2 border-transparent bg-clip-padding'
+                        : isDarkMode
+                          ? 'bg-[#373737] text-gray-500'
+                          : 'bg-gray-200 text-gray-400'
+                    } disabled:cursor-not-allowed`}
+                  >
+                    {message.trim() && !isTyping && (
+                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#73c2e2] to-[#badde9] p-[1px] -z-10">
+                        <div className="h-full w-full rounded-2xl bg-[#181818]" />
+                      </div>
+                    )}
+                    {isTyping ? (
+                      <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Send size={20} />
+                    )}
+                  </button>
                 </div>
               </div>
-            )}
+            </div>
           </div>
-        </div>
-              <div className="flex-shrink-0 border-t border-transparent px-4 pb-6">
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              handleSendMessage();
-                            }
-                          }}
-                          placeholder="Message CelesteOS..."
-                          className={`w-full bg-transparent border-none outline-none resize-none auto-resize ${
-                            isDarkMode ? 'text-white' : 'text-gray-900'
-                          } placeholder-gray-400 text-base leading-relaxed`}
-                          style={{ minHeight: '24px', maxHeight: '200px' }}
-                        />
-                      </div>
-                      
-                      <button
-                        onClick={handleSendMessage}
-                        disabled={!message.trim() || isTyping}
-                        className={`relative ml-4 p-3 rounded-2xl transition-all duration-200 ${
-                          message.trim() && !isTyping
-                            ? 'bg-[#181818] text-white shadow-lg hover:shadow-xl border-2 border-transparent bg-clip-padding'
-                            : isDarkMode 
-                              ? 'bg-[#373737] text-gray-500' 
-                              : 'bg-gray-200 text-gray-400'
-                        } disabled:cursor-not-allowed`}
-                      >
-                        {message.trim() && !isTyping && (
-                          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#73c2e2] to-[#badde9] p-[1px] -z-10">
-                            <div className="h-full w-full rounded-2xl bg-[#181818]"></div>
-                          </div>
-                        )}
-                        
-                        {isTyping ? (
-                          <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <Send size={20} />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        )}
+      </div>
+
+      {/* Delete Modal */}
       <AnimatePresence>
         {showDeleteModal && (
           <motion.div
@@ -1822,7 +1106,6 @@ const ChatInterface = ({ user, onLogout }) => {
               <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
                 You have reached the maximum of 10 conversations. Please delete one or more conversations to create a new one.
               </p>
-              
               <div className="space-y-2 mb-6 max-h-40 overflow-y-auto">
                 {conversations.map((conversation) => (
                   <div key={conversation.id} className="flex items-center justify-between p-2 rounded-lg border border-gray-600">
@@ -1836,7 +1119,6 @@ const ChatInterface = ({ user, onLogout }) => {
                   </div>
                 ))}
               </div>
-              
               <button
                 onClick={() => setShowDeleteModal(false)}
                 className="w-full bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white py-3 rounded-lg font-medium hover:shadow-lg transition-all"
@@ -1851,12 +1133,5 @@ const ChatInterface = ({ user, onLogout }) => {
   );
 };
 
-// Export all components
-const Components = {
-  LoadingScreen,
-  AuthScreen,
-  OnboardingScreen,
-  ChatInterface
-};
-
-export default Components;
+// Export the component
+export default ChatInterface;
