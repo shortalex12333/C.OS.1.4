@@ -1609,6 +1609,12 @@ const ChatInterface = ({ user, onLogout }) => {
                                       msg.isUser ? 'text-white/70' : isDarkMode ? 'text-gray-500' : 'text-gray-400'
                                     }`}>
                                       {new Date(msg.timestamp).toLocaleTimeString()}
+                                      {/* Enhanced: Show response time for AI messages */}
+                                      {!msg.isUser && msg.metadata?.responseTimeMs && (
+                                        <span className="ml-2">
+                                          ({(msg.metadata.responseTimeMs / 1000).toFixed(1)}s)
+                                        </span>
+                                      )}
                                     </p>
                                     {msg.isEdited && (
                                       <span className={`text-xs px-2 py-1 rounded-full ${
