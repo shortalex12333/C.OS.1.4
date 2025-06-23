@@ -48,7 +48,7 @@ const TypewriterEffect = ({ text, speed = 30, onComplete }) => {
     <span>
       {displayedText}
       {!isComplete && currentIndex < text.length && (
-        <span className="animate-pulse text-[#73c2e2]">|</span>
+        <span className="typing-indicator animate-pulse text-[#73c2e2]">|</span>
       )}
     </span>
   );
