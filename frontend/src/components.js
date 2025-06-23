@@ -28,7 +28,642 @@ const useInterventionsWithEvents = (userId) => {
   };
 };
 
-// Main Chat Interface Component with FIXED JSX
+// Loading Screen Component
+const LoadingScreen = () => {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#73c2e2] via-[#badde9] to-[#73c2e2] flex items-center justify-center">
+      <motion.div 
+        className="text-center"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.8 }}
+      >
+        <motion.div
+          className="w-20 h-20 mx-auto mb-6 bg-white rounded-2xl shadow-lg flex items-center justify-center"
+          animate={{ 
+            rotateY: [0, 360],
+            scale: [1, 1.1, 1]
+          }}
+          transition={{ 
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        >
+          <img 
+            src="https://images.unsplash.com/photo-1633412802994-5c058f151b66?w=100&h=100&fit=crop&crop=center"
+            alt="CelesteOS"
+            className="w-12 h-12 rounded-lg object-cover"
+          />
+        </motion.div>
+        <motion.h1 
+          className="text-4xl font-bold text-white mb-2"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.6 }}
+          style={{ fontFamily: 'Eloquia-Text, sans-serif' }}
+        >
+          Celeste<span className="bg-gradient-to-r from-[#badde9] to-white bg-clip-text text-transparent">OS</span>
+        </motion.h1>
+        <motion.p 
+          className="text-[#f8f8ff] text-lg opacity-90"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.5, duration: 0.6 }}
+        >
+          Your proactive AI assistant
+        </motion.p>
+      </motion.div>
+    </div>
+  );
+};
+
+// Onboarding Screen Component
+const OnboardingScreen = ({ user, onComplete }) => {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [answers, setAnswers] = useState({
+    age_range: '',
+    primary_goal: '',
+    work_style: '',
+    biggest_challenge: ''
+  });
+
+  const steps = [
+    {
+      id: 1,
+      question: "What's your age range?",
+      field: 'age_range',
+      options: [
+        "18-22",
+        "23-26", 
+        "27-30",
+        "31+"
+      ]
+    },
+    {
+      id: 2,
+      question: "What's your main focus right now?",
+      field: 'primary_goal',
+      options: [
+        { label: "Growing my business", value: "business_growth" },
+        { label: "Career advancement", value: "career_advancement" },
+        { label: "Fitness & health", value: "fitness_health" },
+        { label: "Being more productive", value: "productivity" },
+        { label: "Work-life balance", value: "work_life_balance" }
+      ]
+    },
+    {
+      id: 3,
+      question: "How do you typically work?",
+      field: 'work_style',
+      options: [
+        { label: "Entrepreneur/Self-employed", value: "entrepreneur" },
+        { label: "Remote employee", value: "remote_employee" },
+        { label: "Office-based", value: "office_based" },
+        { label: "Student", value: "student" },
+        { label: "Freelancer/Contractor", value: "freelancer" }
+      ]
+    },
+    {
+      id: 4,
+      question: "What's your biggest challenge?",
+      field: 'biggest_challenge',
+      options: [
+        { label: "Procrastination", value: "procrastination" },
+        { label: "Staying focused", value: "staying_focused" },
+        { label: "Following through on plans", value: "following_through" },
+        { label: "Time management", value: "time_management" },
+        { label: "Being consistent", value: "being_consistent" }
+      ]
+    }
+  ];
+
+  const currentStepData = steps.find(step => step.id === currentStep);
+  const progressPercentage = (currentStep / steps.length) * 100;
+
+  const handleOptionSelect = (option) => {
+    const value = typeof option === 'object' ? option.value : option;
+    setAnswers(prev => ({
+      ...prev,
+      [currentStepData.field]: value
+    }));
+  };
+
+  const sendStageData = async (stage, stageData) => {
+    try {
+      console.log(`Sending stage ${stage} data:`, stageData);
+      
+      const response = await fetch('https://api.celeste7.ai/webhook/profile-building', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        mode: 'cors',
+        credentials: 'omit',
+        body: JSON.stringify({
+          userId: user.id,
+          stage: stage,
+          data: stageData
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`Stage ${stage} response:`, data);
+        return data;
+      }
+    } catch (error) {
+      console.error(`Stage ${stage} error:`, error);
+    }
+  };
+
+  const handleNext = async () => {
+    const currentValue = answers[currentStepData.field];
+    
+    // Send current stage data
+    const stageData = {
+      [currentStepData.field]: currentValue
+    };
+    
+    await sendStageData(currentStep, stageData);
+    
+    if (currentStep < steps.length) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      handleSubmit();
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+
+    // Send final stage (4) with complete profile data
+    const completeProfileData = {
+      age_range: answers.age_range,
+      primary_goal: answers.primary_goal,
+      work_style: answers.work_style,
+      biggest_challenge: answers.biggest_challenge
+    };
+
+    try {
+      const finalResponse = await sendStageData(4, completeProfileData);
+      
+      // Store the complete profile data locally
+      const profileData = {
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+        ...completeProfileData,
+        timestamp: Date.now(),
+        finalResponse: finalResponse
+      };
+
+      onComplete(profileData);
+    } catch (error) {
+      console.error('Final submission error:', error);
+      // Complete onboarding even if final submission fails
+      onComplete({
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+        ...completeProfileData,
+        timestamp: Date.now()
+      });
+    }
+
+    setIsSubmitting(false);
+  };
+
+  const isStepComplete = answers[currentStepData.field] !== '';
+  const canProceed = isStepComplete;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#73c2e2] via-[#badde9] to-[#73c2e2] flex items-center justify-center p-4">
+      <motion.div 
+        className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        {/* Enhanced Header with Better Branding */}
+        <div className="bg-gradient-to-r from-[#73c2e2] to-[#badde9] p-8 text-white">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                <img 
+                  src="https://images.unsplash.com/photo-1633412802994-5c058f151b66?w=100&h=100&fit=crop&crop=center"
+                  alt="CelesteOS"
+                  className="w-8 h-8 rounded-lg object-cover"
+                />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold" style={{ fontFamily: 'Eloquia-Text, sans-serif' }}>
+                  Welcome to Celeste<span className="text-white/90">OS</span>
+                </h1>
+                <p className="text-white/80 text-sm">Your proactive AI assistant</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-sm text-white/70">Step</div>
+              <div className="text-2xl font-bold">{currentStep}</div>
+              <div className="text-sm text-white/70">of {steps.length}</div>
+            </div>
+          </div>
+          
+          {/* Enhanced Progress Bar */}
+          <div className="relative">
+            <div className="w-full bg-white/20 rounded-full h-3">
+              <motion.div 
+                className="bg-white h-3 rounded-full shadow-lg"
+                initial={{ width: '25%' }}
+                animate={{ width: `${progressPercentage}%` }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
+              />
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-xs font-medium text-white/90">
+                {Math.round(progressPercentage)}% Complete
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Enhanced Question Section */}
+        <div className="p-8">
+          <motion.div
+            key={currentStep}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4 }}
+            className="mb-8"
+          >
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="w-10 h-10 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-full flex items-center justify-center text-white font-bold">
+                {currentStep}
+              </div>
+              <h2 className="text-2xl font-semibold text-[#181818]">
+                {currentStepData.question}
+              </h2>
+            </div>
+            
+            <p className="text-gray-600 mb-6">
+              {currentStep === 1 && "This helps us understand your stage of life and tailor recommendations accordingly."}
+              {currentStep === 2 && "Let us know what you're focusing on so we can provide relevant guidance."}
+              {currentStep === 3 && "Understanding your work environment helps us suggest better productivity strategies."}
+              {currentStep === 4 && "Knowing your main challenge allows us to provide targeted support and interventions."}
+            </p>
+          </motion.div>
+
+          {/* Enhanced Options Grid */}
+          <motion.div 
+            className="grid gap-4 mb-8"
+            key={currentStep}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+          >
+            {currentStepData.options.map((option, index) => {
+              const isObject = typeof option === 'object';
+              const displayText = isObject ? option.label : option;
+              const optionValue = isObject ? option.value : option;
+              const isSelected = answers[currentStepData.field] === optionValue;
+              
+              return (
+                <motion.button
+                  key={optionValue}
+                  onClick={() => handleOptionSelect(option)}
+                  className={`relative p-6 rounded-2xl border-2 text-left font-medium transition-all duration-300 ${
+                    isSelected
+                      ? 'border-[#73c2e2] bg-gradient-to-r from-[#73c2e2]/10 to-[#badde9]/10 text-[#181818] shadow-lg transform scale-[1.02]'
+                      : 'border-gray-200 hover:border-[#73c2e2]/50 hover:bg-gray-50 text-gray-700 hover:shadow-md hover:transform hover:scale-[1.01]'
+                  }`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  whileHover={{ scale: isSelected ? 1.02 : 1.01 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {isSelected && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute top-4 right-4 w-6 h-6 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-full flex items-center justify-center"
+                    >
+                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </motion.div>
+                  )}
+                  <div className="pr-8">
+                    <span className="text-lg">{displayText}</span>
+                  </div>
+                </motion.button>
+              );
+            })}
+          </motion.div>
+
+          {/* Enhanced Navigation */}
+          <div className="flex items-center justify-between pt-6 border-t border-gray-100">
+            <button
+              onClick={handleBack}
+              disabled={currentStep === 1}
+              className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all ${
+                currentStep === 1 
+                  ? 'text-gray-400 cursor-not-allowed' 
+                  : 'text-gray-600 hover:text-[#73c2e2] hover:bg-gray-100 border border-gray-200 hover:border-[#73c2e2]/30'
+              }`}
+            >
+              <ChevronLeft size={18} />
+              <span>Back</span>
+            </button>
+
+            <motion.button
+              onClick={handleNext}
+              disabled={!canProceed || isSubmitting}
+              className={`flex items-center space-x-3 px-8 py-4 rounded-xl font-medium transition-all shadow-lg ${
+                canProceed && !isSubmitting
+                  ? 'bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white hover:shadow-xl transform hover:scale-[1.02]'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+              whileHover={canProceed ? { scale: 1.02 } : {}}
+              whileTap={canProceed ? { scale: 0.98 } : {}}
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Setting up your AI...</span>
+                </>
+              ) : currentStep === steps.length ? (
+                <>
+                  <span>Complete Setup</span>
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </>
+              ) : (
+                <>
+                  <span>Continue</span>
+                  <ChevronRight size={18} />
+                </>
+              )}
+            </motion.button>
+          </div>
+
+          {/* Enhanced Footer */}
+          <div className="mt-8 text-center">
+            <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
+              <div className="flex items-center space-x-1">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                </svg>
+                <span>Secure & Private</span>
+              </div>
+              <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
+              <span>Powered by Celeste7</span>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+// Authentication Screen Component
+const AuthScreen = ({ onLogin }) => {
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    name: ''
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    if (isSignUp && formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const endpoint = isSignUp ? 'signup' : 'login'; // Changed from 'signin' to 'login'
+      const response = await fetch(`https://api.celeste7.ai/webhook/auth/${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        mode: 'cors',
+        credentials: 'omit',
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          name: isSignUp ? formData.name : undefined
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          onLogin(data.user, data.token);
+        } else {
+          setError(data.message || 'Authentication failed');
+        }
+      } else {
+        console.error('❌ Auth failed with status:', response.status);
+        console.error('❌ Response headers:', [...response.headers.entries()]);
+        
+        // Check if it's a CORS preflight issue
+        if (response.status === 0) {
+          setError('Network connection issue. Please check your internet connection.');
+        } else {
+          setError(`Authentication failed (${response.status}). Please try again.`);
+        }
+      }
+    } catch (error) {
+      console.error('Auth error:', error);
+      
+      // Show the actual error instead of immediately falling back to demo mode
+      if (error.message.includes('CORS') || error.message.includes('NetworkError')) {
+        setError(`Network connection issue: ${error.message}. Please check the n8n webhook endpoint.`);
+      } else if (error.message.includes('Failed to fetch')) {
+        setError(`Connection failed: Cannot reach authentication service at your n8n endpoint. Please verify the webhook is running.`);
+      } else {
+        setError(`Authentication error: ${error.message}`);
+      }
+      
+      // Only fall back to demo mode after showing the real error for a few seconds
+      setTimeout(() => {
+        if (formData.email.includes('demo') || formData.email.includes('test')) {
+          console.log('Demo mode activated for testing...');
+          const mockUser = {
+            id: 'demo_user_123',
+            email: formData.email,
+            name: formData.name || 'Demo User',
+            displayName: formData.name || 'Demo User'
+          };
+          console.log('✅ Mock login successful with user:', mockUser);
+          onLogin(mockUser, 'demo_token_123');
+        }
+      }, 3000); // Show error for 3 seconds before demo mode
+    }
+
+    setIsLoading(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#73c2e2] via-[#badde9] to-[#73c2e2] flex items-center justify-center p-4">
+      <motion.div 
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <motion.div
+            className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-xl flex items-center justify-center"
+            whileHover={{ scale: 1.05 }}
+          >
+            <img 
+              src="https://images.unsplash.com/photo-1633412802994-5c058f151b66?w=100&h=100&fit=crop&crop=center"
+              alt="CelesteOS"
+              className="w-10 h-10 rounded-lg object-cover"
+            />
+          </motion.div>
+          <h1 className="text-3xl font-bold text-[#181818] mb-2" style={{ fontFamily: 'Eloquia-Text, sans-serif' }}>
+            Celeste<span className="bg-gradient-to-r from-[#73c2e2] to-[#badde9] bg-clip-text text-transparent">OS</span>
+          </h1>
+          <p className="text-gray-600">
+            {isSignUp ? 'Create your account' : 'Welcome back'}
+          </p>
+          <p className="text-sm text-gray-500 mt-1">
+            Your proactive AI assistant
+          </p>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {isSignUp && (
+            <div>
+              <input
+                type="text"
+                placeholder="Full Name"
+                value={formData.name}
+                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#73c2e2] focus:border-transparent transition-all"
+                required
+              />
+            </div>
+          )}
+          
+          <div>
+            <input
+              type="email"
+              placeholder="Email address"
+              value={formData.email}
+              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#73c2e2] focus:border-transparent transition-all"
+              required
+            />
+          </div>
+          
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={formData.password}
+              onChange={(e) => setFormData({...formData, password: e.target.value})}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#73c2e2] focus:border-transparent transition-all pr-12"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-[#73c2e2] transition-colors"
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
+
+          {isSignUp && (
+            <div>
+              <input
+                type="password"
+                placeholder="Confirm Password"
+                value={formData.confirmPassword}
+                onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#73c2e2] focus:border-transparent transition-all"
+                required
+              />
+            </div>
+          )}
+
+          {error && (
+            <motion.div 
+              className="text-red-500 text-sm text-center bg-red-50 p-3 rounded-lg"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              {error}
+            </motion.div>
+          )}
+
+          <motion.button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white py-3 rounded-lg font-medium hover:shadow-lg transform hover:scale-[1.02] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center">
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                {isSignUp ? 'Creating Account...' : 'Signing In...'}
+              </div>
+            ) : (
+              isSignUp ? 'Create Account' : 'Sign In'
+            )}
+          </motion.button>
+        </form>
+
+        {/* Toggle Form */}
+        <div className="text-center mt-6">
+          <p className="text-gray-600">
+            {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+            <button
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setError('');
+                setFormData({ email: '', password: '', confirmPassword: '', name: '' });
+              }}
+              className="text-[#73c2e2] hover:underline ml-1 font-medium"
+            >
+              {isSignUp ? 'Sign In' : 'Sign Up'}
+            </button>
+          </p>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+// Main Chat Interface Component
 const ChatInterface = ({ user, onLogout }) => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -1133,5 +1768,12 @@ const ChatInterface = ({ user, onLogout }) => {
   );
 };
 
-// Export the component
-export default ChatInterface;
+// CRITICAL: Export all components as a single object (matching your original export)
+const Components = {
+  LoadingScreen,
+  AuthScreen,
+  OnboardingScreen,
+  ChatInterface
+};
+
+export default Components;
