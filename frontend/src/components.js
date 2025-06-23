@@ -1696,7 +1696,7 @@ const ChatInterface = ({ user, onLogout }) => {
                 <div ref={messagesEndRef} />
               </div>
             {/* ChatGPT-Style Input Area */}
-            {activeConversation               {activeConversation &&              {activeConversation && (
+            {activeConversation && (
                 <div className="border-t border-transparent px-4 pb-6">
                   <div className="max-w-4xl mx-auto">
               {/* Pending Intervention Indicator */}
