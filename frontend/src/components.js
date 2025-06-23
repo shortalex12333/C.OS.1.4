@@ -1424,7 +1424,7 @@ const ChatInterface = ({ user, onLogout }) => {
               <h2 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                 {activeConversation?.title || 'Select a conversation'}
               </h2>
-              {activeConversation && (
+            {activeConversation               {activeConversation &&              {activeConversation && (
                 <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                   CelesteOS is ready to assist
                 </p>
@@ -1696,7 +1696,7 @@ const ChatInterface = ({ user, onLogout }) => {
                 <div ref={messagesEndRef} />
               </div>
             {/* ChatGPT-Style Input Area */}
-              {activeConversation && (
+            {activeConversation               {activeConversation &&              {activeConversation && (
                 <div className="border-t border-transparent px-4 pb-6">
                   <div className="max-w-4xl mx-auto">
               {/* Pending Intervention Indicator */}
