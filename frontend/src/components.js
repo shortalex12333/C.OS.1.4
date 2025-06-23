@@ -715,6 +715,7 @@ const ChatInterface = ({ user, onLogout }) => {
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editingText, setEditingText] = useState('');
   const [streamingMessages, setStreamingMessages] = useState(new Set());
+  const [error, setError] = useState(null);
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
   
