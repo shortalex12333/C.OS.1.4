@@ -1590,6 +1590,7 @@ const ChatInterface = ({ user, onLogout }) => {
                                       <TypewriterEffect 
                                         text={msg.text} 
                                         speed={msg.responseTimeMs ? Math.max(20, Math.min(60, 3000 / msg.text.length)) : 30}
+                                        onComplete={() => handleStreamingComplete(msg.id)}
                                       />
                                     </div>
                                   )
