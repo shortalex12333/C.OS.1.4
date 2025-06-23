@@ -961,6 +961,9 @@ const ChatInterface = ({ user, onLogout }) => {
           responseTimeMs: responseTimeMs
         };
 
+        // Track this message as streaming
+        setStreamingMessages(prev => new Set(prev).add(aiMessage.id));
+
         setActiveConversation(prev => ({
           ...prev,
           messages: [...prev.messages, aiMessage],
