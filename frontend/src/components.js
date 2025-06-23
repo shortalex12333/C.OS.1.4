@@ -846,21 +846,14 @@ const ChatInterface = ({ user, onLogout }) => {
     setSessionMessageCount(newMessageCount);
     setLastMessageTime(Date.now());
     
+    // NEW: Updated ChatRequest format
     const requestPayload = {
       userId: user.id,
-      chatId: activeConversation.id,
+      userName: user.name || user.displayName || 'Unknown User',
       message: messageText,
-      timestamp: Date.now(),
+      chatId: activeConversation.id.toString(), // Conversation index (1-10)
       sessionId: sessionId,
-      user: {
-        email: user.email,
-        displayName: user.name || user.displayName || 'Unknown User'
-      },
-      context: {
-        businessType: detectBusinessType(user, messageText),
-        messageCount: newMessageCount,
-        lastMessageTime: lastMessageTime
-      }
+      streamResponse: true // Enable streaming by default
     };
 
     if (interventionId) {
