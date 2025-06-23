@@ -904,9 +904,7 @@ const ChatInterface = ({ user, onLogout }) => {
           timestamp: data.timestamp || Date.now(),
           rawData: data,
           interventionId: interventionId,
-          patternDetected: patternDetected,
           confidence: confidence,
-          interventionType: interventionType,
           isEnhanced: data.metadata?.enhanced || false
         };
 
