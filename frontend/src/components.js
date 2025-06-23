@@ -939,6 +939,7 @@ const ChatInterface = ({ user, onLogout }) => {
           isUser: false,
           timestamp: data.timestamp || Date.now(),
           rawData: data,
+          isStreaming: true, // NEW: Flag for typewriter effect
           // NEW: Add ChatResponse metadata
           summary: summary,
           category: category,
