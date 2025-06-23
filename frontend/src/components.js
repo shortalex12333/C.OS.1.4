@@ -1696,8 +1696,10 @@ const ChatInterface = ({ user, onLogout }) => {
                 <div ref={messagesEndRef} />
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* ChatGPT-Style Input Area */}
+      {/* Delete Conversation Modal */}
             {activeConversation && (
               <div className="flex-shrink-0 border-t border-transparent px-4 pb-6">
                 <div className="max-w-4xl mx-auto">
