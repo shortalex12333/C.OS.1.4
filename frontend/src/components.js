@@ -713,8 +713,18 @@ const ChatInterface = ({ user, onLogout }) => {
   const [lastMessageTime, setLastMessageTime] = useState(Date.now());
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editingText, setEditingText] = useState('');
+  const [streamingMessages, setStreamingMessages] = useState(new Set());
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
+  
+  // Handle typewriter effect completion
+  const handleStreamingComplete = (messageId) => {
+    setStreamingMessages(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(messageId);
+      return newSet;
+    });
+  };
   
   // Use intervention hooks
   const {
