@@ -1696,6 +1696,63 @@ const ChatInterface = ({ user, onLogout }) => {
                 <div ref={messagesEndRef} />
               </div>
             </div>
+
+            {/* ChatGPT-Style Input Area */}
+            {activeConversation && (
+              <div className="flex-shrink-0 border-t border-transparent px-4 pb-6">
+                <div className="max-w-4xl mx-auto">
+                  <div className={`relative ${isDarkMode ? 'bg-[#181818]' : 'bg-white'} rounded-3xl border-2 border-transparent bg-clip-padding shadow-2xl backdrop-blur-xl transition-all duration-300`}>
+                    <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-[#73c2e2] to-[#badde9] p-[1px] -z-10">
+                      <div className={`h-full w-full rounded-3xl ${isDarkMode ? 'bg-[#181818]' : 'bg-white'}`}></div>
+                    </div>
+                    
+                    <div className="flex items-end p-4">
+                      <div className="flex-1 relative">
+                        <textarea
+                          value={message}
+                          onChange={(e) => setMessage(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              handleSendMessage();
+                            }
+                          }}
+                          placeholder="Message CelesteOS..."
+                          className={`w-full bg-transparent border-none outline-none resize-none auto-resize ${
+                            isDarkMode ? 'text-white' : 'text-gray-900'
+                          } placeholder-gray-400 text-base leading-relaxed`}
+                          style={{ minHeight: '24px', maxHeight: '200px' }}
+                        />
+                      </div>
+                      
+                      <button
+                        onClick={handleSendMessage}
+                        disabled={!message.trim() || isTyping}
+                        className={`relative ml-4 p-3 rounded-2xl transition-all duration-200 ${
+                          message.trim() && !isTyping
+                            ? 'bg-[#181818] text-white shadow-lg hover:shadow-xl border-2 border-transparent bg-clip-padding'
+                            : isDarkMode 
+                              ? 'bg-[#373737] text-gray-500' 
+                              : 'bg-gray-200 text-gray-400'
+                        } disabled:cursor-not-allowed`}
+                      >
+                        {message.trim() && !isTyping && (
+                          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#73c2e2] to-[#badde9] p-[1px] -z-10">
+                            <div className="h-full w-full rounded-2xl bg-[#181818]"></div>
+                          </div>
+                        )}
+                        
+                        {isTyping ? (
+                          <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Send size={20} />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
