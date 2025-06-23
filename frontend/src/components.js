@@ -18,9 +18,10 @@ import {
 } from 'lucide-react';
 
 // TypewriterEffect Component for streaming-like experience
-const TypewriterEffect = ({ text, speed = 30 }) => {
+const TypewriterEffect = ({ text, speed = 30, onComplete }) => {
   const [displayedText, setDisplayedText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
 
   useEffect(() => {
     if (currentIndex < text.length) {
@@ -29,16 +30,27 @@ const TypewriterEffect = ({ text, speed = 30 }) => {
         setCurrentIndex(prev => prev + 1);
       }, speed);
       return () => clearTimeout(timer);
+    } else if (!isComplete && currentIndex === text.length) {
+      setIsComplete(true);
+      if (onComplete) onComplete();
     }
-  }, [currentIndex, text, speed]);
+  }, [currentIndex, text, speed, isComplete, onComplete]);
 
   // Reset when text changes
   useEffect(() => {
     setDisplayedText('');
     setCurrentIndex(0);
+    setIsComplete(false);
   }, [text]);
 
-  return <span>{displayedText}</span>;
+  return (
+    <span>
+      {displayedText}
+      {!isComplete && currentIndex < text.length && (
+        <span className="animate-pulse text-[#73c2e2]">|</span>
+      )}
+    </span>
+  );
 };
 
 // CRITICAL FIX: Add the missing hook or create a stub
