@@ -1755,6 +1755,33 @@ const ChatInterface = ({ user, onLogout }) => {
           </div>
         )}
 
+        {/* Error Display */}
+        {error && (
+          <div className="max-w-4xl mx-auto px-4 pb-4">
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-center justify-between"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                  <X size={16} className="text-white" />
+                </div>
+                <div>
+                  <p className="text-red-400 font-semibold">Connection Error</p>
+                  <p className="text-red-300 text-sm">{error}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setError(null)}
+                className="text-red-400 hover:text-red-300 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </motion.div>
+          </div>
+        )}
+
         {/* Input Area - FIXED: Now only appears once */}
         {activeConversation && (
           <div className="flex-shrink-0 border-t border-transparent px-4 pb-6">
