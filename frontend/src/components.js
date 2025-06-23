@@ -903,9 +903,15 @@ const ChatInterface = ({ user, onLogout }) => {
           isUser: false,
           timestamp: data.timestamp || Date.now(),
           rawData: data,
-          interventionId: interventionId,
+          // NEW: Add ChatResponse metadata
+          summary: summary,
+          category: category,
           confidence: confidence,
-          isEnhanced: data.metadata?.enhanced || false
+          contextUsed: contextUsed,
+          crossChatUsed: crossChatUsed,
+          stage: stage,
+          tokensUsed: tokensUsed,
+          responseTimeMs: responseTimeMs
         };
 
         setActiveConversation(prev => ({
