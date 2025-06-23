@@ -875,49 +875,27 @@ const ChatInterface = ({ user, onLogout }) => {
       if (response.ok) {
         const data = await response.json();
         
-        let aiResponseText = '';
-        let patternDetected = null;
-        let confidence = null;
-        let interventionType = null;
+        // NEW: Handle updated ChatResponse format
+        const aiResponseText = data.response || "No response received from AI service.";
+        const summary = data.summary || "";
+        const category = data.category || "general";
+        const confidence = data.confidence || 0;
+        const contextUsed = data.contextUsed || false;
+        const crossChatUsed = data.crossChatUsed || false;
+        const stage = data.stage || "new";
+        const tokensUsed = data.tokensUsed || 0;
+        const responseTimeMs = data.responseTimeMs || 0;
         
-        if (data.metadata && data.metadata.enhanced) {
-          patternDetected = data.metadata.pattern_detected;
-          confidence = data.metadata.confidence;
-          interventionType = data.metadata.intervention_type;
-          aiResponseText = data.message || data.Ai_reply || '';
-        } else if (data.Ai_reply) {
-          aiResponseText = data.Ai_reply.trim();
-        } else if (data.userResponse) {
-          const messageText = data.userResponse.message;
-          const actionText = data.userResponse.action;
-          const questionText = data.userResponse.question;
-          
-          if (messageText) aiResponseText += messageText;
-          if (actionText) {
-            if (aiResponseText.trim()) aiResponseText += '\n';
-            aiResponseText += actionText;
-          }
-          if (questionText) {
-            if (aiResponseText.trim()) aiResponseText += '\n';
-            aiResponseText += questionText;
-          }
-        } else {
-          aiResponseText = data.output || data.content || data.message || data.text || data.response || '';
-        }
-        
-        if (data.strategic_question) {
-          if (aiResponseText.trim()) aiResponseText += '\n\n';
-          aiResponseText += '💡 ' + data.strategic_question;
-        }
-        
-        if (interventionId) {
-          if (aiResponseText.trim()) aiResponseText += '\n\n';
-          aiResponseText += '🎯 Response enhanced with behavioral insights';
-        }
-        
-        if (!aiResponseText.trim()) {
-          aiResponseText = "No response received from AI service.";
-        }
+        console.log('📊 Chat Response Metadata:', {
+          summary,
+          category,
+          confidence,
+          contextUsed,
+          crossChatUsed,
+          stage,
+          tokensUsed,
+          responseTimeMs: `${responseTimeMs}ms`
+        });
         
         const aiMessage = {
           id: Date.now() + 1,
