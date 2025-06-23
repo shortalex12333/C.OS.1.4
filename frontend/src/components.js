@@ -1536,7 +1536,7 @@ const ChatInterface = ({ user, onLogout }) => {
                             </div>
                           ) : (
                             <>
-                              <div className={`whitespace-pre-wrap leading-relaxed ${
+                              <div className={`message-content whitespace-pre-wrap leading-relaxed ${
                                 msg.isUser ? 'text-white' : isDarkMode ? 'text-gray-100' : 'text-gray-900'
                               }`}>
                                 {msg.isLoading ? (
