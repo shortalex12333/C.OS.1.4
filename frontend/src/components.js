@@ -1542,23 +1542,34 @@ const ChatInterface = ({ user, onLogout }) => {
                                     <span className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>CelesteOS is thinking...</span>
                                   </div>
                                 ) : (
-                                  msg.text.split('\n').map((line, index) => {
-                                    if (line.includes('**')) {
-                                      const parts = line.split('**');
-                                      return (
-                                        <p key={index} className={index > 0 ? 'mt-3' : ''}>
-                                          {parts.map((part, partIndex) => 
-                                            partIndex % 2 === 1 ? (
-                                              <strong key={partIndex} className="font-semibold">{part}</strong>
-                                            ) : (
-                                              part
-                                            )
-                                          )}
-                                        </p>
-                                      );
-                                    }
-                                    return line ? <p key={index} className={index > 0 ? 'mt-3' : ''}>{line}</p> : <br key={index} />;
-                                  })
+                                  // Use TypewriterEffect for AI messages, normal rendering for user messages
+                                  msg.isUser ? (
+                                    msg.text.split('\n').map((line, index) => {
+                                      if (line.includes('**')) {
+                                        const parts = line.split('**');
+                                        return (
+                                          <p key={index} className={index > 0 ? 'mt-3' : ''}>
+                                            {parts.map((part, partIndex) => 
+                                              partIndex % 2 === 1 ? (
+                                                <strong key={partIndex} className="font-semibold">{part}</strong>
+                                              ) : (
+                                                part
+                                              )
+                                            )}
+                                          </p>
+                                        );
+                                      }
+                                      return line ? <p key={index} className={index > 0 ? 'mt-3' : ''}>{line}</p> : <br key={index} />;
+                                    })
+                                  ) : (
+                                    // AI messages with TypewriterEffect
+                                    <div className="whitespace-pre-wrap">
+                                      <TypewriterEffect 
+                                        text={msg.text} 
+                                        speed={msg.responseTimeMs ? Math.max(20, Math.min(60, 3000 / msg.text.length)) : 30}
+                                      />
+                                    </div>
+                                  )
                                 )}
                               </div>
                               
