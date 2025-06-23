@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Send, 
@@ -14,9 +14,127 @@ import {
   Eye,
   EyeOff,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Clock,
+  Hash,
+  AlertTriangle,
+  RefreshCw,
+  Wifi,
+  WifiOff
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+
+// CRITICAL: API Configuration with retry logic
+const API_CONFIG = {
+  baseUrl: 'https://api.celeste7.ai/webhook',
+  endpoints: {
+    chat: '/text-chat-fast',
+    stream: '/text-chat-stream', // For future SSE implementation
+    fetchChat: '/fetch-chat',
+    fetchConversations: '/fetch-conversations',
+    auth: '/auth',
+    heartbeat: '/user-heartbeat',
+    offline: '/user-offline',
+    profile: '/profile-building'
+  },
+  timeout: 10000,
+  maxRetries: 3,
+  retryDelay: 1000 // Base delay in ms
+};
+
+// CRITICAL: Enhanced retry logic with performance tracking
+const sendRequestWithRetry = async (endpoint, payload, options = {}) => {
+  const { maxRetries = API_CONFIG.maxRetries, timeout = API_CONFIG.timeout } = options;
+  const url = `${API_CONFIG.baseUrl}${endpoint}`;
+  let lastError;
+  const startTime = Date.now();
+  
+  // Initialize metrics if not exists
+  if (!window.chatMetrics) {
+    window.chatMetrics = {
+      responses: [],
+      errors: 0,
+      total: 0,
+      pending: 0,
+      startTime: Date.now()
+    };
+  }
+  
+  // Track pending request
+  window.chatMetrics.pending++;
+  window.chatMetrics.total++;
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      console.log(`🔄 API Request attempt ${attempt + 1}/${maxRetries} to ${endpoint}`);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        mode: 'cors',
+        credentials: 'omit',
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        const data = await response.json();
+        const responseTime = Date.now() - startTime;
+        
+        // Track successful response
+        window.chatMetrics.pending--;
+        window.chatMetrics.responses.push(responseTime);
+        
+        // Keep only last 100 response times for memory efficiency
+        if (window.chatMetrics.responses.length > 100) {
+          window.chatMetrics.responses = window.chatMetrics.responses.slice(-100);
+        }
+        
+        console.log(`✅ API Success on attempt ${attempt + 1} to ${endpoint} (${responseTime}ms)`);
+        return { success: true, data, attempt: attempt + 1, responseTime };
+      }
+      
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      
+    } catch (error) {
+      lastError = error;
+      console.error(`❌ API Attempt ${attempt + 1} failed:`, error.message);
+      
+      // Don't retry on certain errors
+      if (error.name === 'AbortError') {
+        window.chatMetrics.pending--;
+        window.chatMetrics.errors++;
+        throw new Error(`Request timeout after ${timeout}ms`);
+      }
+      
+      if (error.message.includes('401') || error.message.includes('403')) {
+        window.chatMetrics.pending--;
+        window.chatMetrics.errors++;
+        throw new Error('Authentication failed');
+      }
+      
+      // Exponential backoff for retries
+      if (attempt < maxRetries - 1) {
+        const delay = API_CONFIG.retryDelay * Math.pow(2, attempt);
+        console.log(`⏳ Retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  
+  // All attempts failed
+  window.chatMetrics.pending--;
+  window.chatMetrics.errors++;
+  throw new Error(`All ${maxRetries} attempts failed. Last error: ${lastError.message}`);
+};
 
 // TypewriterEffect Component for streaming-like experience
 const TypewriterEffect = ({ text, speed = 30, onComplete }) => {
@@ -48,7 +166,7 @@ const TypewriterEffect = ({ text, speed = 30, onComplete }) => {
     <span>
       {displayedText}
       {!isComplete && currentIndex < text.length && (
-        <span className="typing-indicator animate-pulse text-[#73c2e2]">|</span>
+        <span className="animate-pulse text-[#73c2e2]">|</span>
       )}
     </span>
   );
@@ -63,6 +181,133 @@ const useInterventionsWithEvents = (userId) => {
     markInterventionUsed: (id) => {},
     clearInterventions: () => {}
   };
+};
+
+// NEW: ConversationSwitcher Component
+const ConversationSwitcher = ({ userId, currentChatId, onSwitch, conversations, isDarkMode }) => {
+  const formatTime = (timestamp) => {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffHours = diffMs / (1000 * 60 * 60);
+    
+    if (diffHours < 1) return 'Just now';
+    if (diffHours < 24) return `${Math.floor(diffHours)}h ago`;
+    if (diffHours < 168) return `${Math.floor(diffHours / 24)}d ago`;
+    return date.toLocaleDateString();
+  };
+
+  // Ensure we always have 10 conversation slots
+  const conversationSlots = Array.from({ length: 10 }, (_, i) => {
+    const chatId = String(i + 1);
+    const existingConv = conversations.find(conv => conv.id === chatId);
+    
+    return existingConv || {
+      id: chatId,
+      title: `Conversation ${i + 1}`,
+      lastMessage: null,
+      timestamp: null,
+      messages: [],
+      isEmpty: true
+    };
+  });
+
+  return (
+    <div className="space-y-2">
+      {conversationSlots.map((conv, index) => {
+        const isActive = conv.id === currentChatId;
+        const isEmpty = conv.isEmpty || !conv.lastMessage;
+        
+        return (
+          <motion.button
+            key={conv.id}
+            onClick={() => onSwitch(conv.id)}
+            className={`w-full p-4 rounded-xl text-left transition-all duration-200 group relative ${
+              isActive 
+                ? 'bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white shadow-lg' 
+                : isEmpty
+                  ? isDarkMode 
+                    ? 'hover:bg-[#2a2a2a] text-gray-500 border-2 border-dashed border-gray-600 hover:border-[#73c2e2]/50' 
+                    : 'hover:bg-gray-50 text-gray-400 border-2 border-dashed border-gray-300 hover:border-[#73c2e2]/50'
+                  : isDarkMode 
+                    ? 'hover:bg-[#2a2a2a] text-gray-300 hover:shadow-md border border-[#373737]' 
+                    : 'hover:bg-white text-gray-700 hover:shadow-md border border-gray-200 hover:border-[#73c2e2]/30'
+            }`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: index * 0.05 }}
+            whileHover={{ scale: 1.02, x: 4 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <div className="flex items-start space-x-3">
+              {/* Chat ID Indicator */}
+              <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${
+                isActive 
+                  ? 'bg-white/20 text-white' 
+                  : isEmpty
+                    ? isDarkMode ? 'bg-gray-700 text-gray-500' : 'bg-gray-200 text-gray-400'
+                    : 'bg-[#73c2e2]/10 text-[#73c2e2]'
+              }`}>
+                <Hash size={14} />
+                {conv.id}
+              </div>
+              
+              <div className="flex-1 min-w-0">
+                {/* Conversation Title */}
+                <div className={`font-semibold truncate text-sm mb-1 ${
+                  isEmpty ? 'opacity-60' : ''
+                }`}>
+                  {conv.title}
+                </div>
+                
+                {/* Last Message Preview */}
+                <div className={`text-xs truncate ${
+                  isActive 
+                    ? 'text-white/80' 
+                    : isEmpty 
+                      ? isDarkMode ? 'text-gray-600' : 'text-gray-400'
+                      : isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                }`}>
+                  {isEmpty ? 'Click to start conversation...' : conv.lastMessage}
+                </div>
+                
+                {/* Timestamp */}
+                {conv.timestamp && !isEmpty && (
+                  <div className={`flex items-center space-x-1 mt-1 text-xs ${
+                    isActive ? 'text-white/60' : isDarkMode ? 'text-gray-500' : 'text-gray-400'
+                  }`}>
+                    <Clock size={10} />
+                    <span>{formatTime(conv.timestamp)}</span>
+                  </div>
+                )}
+              </div>
+              
+              {/* Active Indicator */}
+              {isActive && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="flex-shrink-0 w-3 h-3 bg-white rounded-full shadow-lg"
+                />
+              )}
+              
+              {/* Empty Slot Plus Icon */}
+              {isEmpty && !isActive && (
+                <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
+                  isDarkMode ? 'bg-gray-700' : 'bg-gray-200'
+                } group-hover:bg-[#73c2e2] transition-colors`}>
+                  <Plus size={12} className={`${
+                    isDarkMode ? 'text-gray-500' : 'text-gray-400'
+                  } group-hover:text-white transition-colors`} />
+                </div>
+              )}
+            </div>
+          </motion.button>
+        );
+      })}
+    </div>
+  );
 };
 
 // Loading Screen Component
@@ -191,28 +436,21 @@ const OnboardingScreen = ({ user, onComplete }) => {
     try {
       console.log(`Sending stage ${stage} data:`, stageData);
       
-      const response = await fetch('https://api.celeste7.ai/webhook/profile-building', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        mode: 'cors',
-        credentials: 'omit',
-        body: JSON.stringify({
-          userId: user.id,
-          stage: stage,
-          data: stageData
-        })
-      });
+      // CRITICAL: Use enhanced retry logic for profile building
+      const result = await sendRequestWithRetry(API_CONFIG.endpoints.profile, {
+        userId: user.id,
+        stage: stage,
+        data: stageData
+      }, { maxRetries: 2, timeout: 8000 });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log(`Stage ${stage} response:`, data);
-        return data;
+      if (result.success) {
+        console.log(`Stage ${stage} response after ${result.attempt} attempts:`, result.data);
+        return result.data;
       }
     } catch (error) {
       console.error(`Stage ${stage} error:`, error);
+      // Don't block onboarding for profile data failures
+      return { success: false, error: error.message };
     }
   };
 
@@ -498,66 +736,49 @@ const AuthScreen = ({ onLogin }) => {
     }
 
     try {
-      const endpoint = isSignUp ? 'signup' : 'login'; // Changed from 'signin' to 'login'
-      const response = await fetch(`https://api.celeste7.ai/webhook/auth/${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        mode: 'cors',
-        credentials: 'omit',
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          name: isSignUp ? formData.name : undefined
-        })
-      });
+      const endpoint = isSignUp ? `${API_CONFIG.endpoints.auth}/signup` : `${API_CONFIG.endpoints.auth}/login`;
+      
+      // CRITICAL: Use enhanced retry logic for authentication
+      const result = await sendRequestWithRetry(endpoint, {
+        email: formData.email,
+        password: formData.password,
+        name: isSignUp ? formData.name : undefined
+      }, { maxRetries: 2, timeout: 8000 }); // Shorter timeout for auth
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          onLogin(data.user, data.token);
-        } else {
-          setError(data.message || 'Authentication failed');
-        }
+      if (result.success && result.data.success) {
+        console.log(`✅ Authentication successful after ${result.attempt} attempts`);
+        onLogin(result.data.user, result.data.token);
       } else {
-        console.error('❌ Auth failed with status:', response.status);
-        console.error('❌ Response headers:', [...response.headers.entries()]);
-        
-        // Check if it's a CORS preflight issue
-        if (response.status === 0) {
-          setError('Network connection issue. Please check your internet connection.');
-        } else {
-          setError(`Authentication failed (${response.status}). Please try again.`);
-        }
+        setError(result.data.message || 'Authentication failed');
       }
+      
     } catch (error) {
       console.error('Auth error:', error);
       
-      // Show the actual error instead of immediately falling back to demo mode
-      if (error.message.includes('CORS') || error.message.includes('NetworkError')) {
-        setError(`Network connection issue: ${error.message}. Please check the n8n webhook endpoint.`);
-      } else if (error.message.includes('Failed to fetch')) {
-        setError(`Connection failed: Cannot reach authentication service at your n8n endpoint. Please verify the webhook is running.`);
+      if (error.message.includes('timeout')) {
+        setError('Authentication timeout. Please check your connection and try again.');
+      } else if (error.message.includes('Authentication failed') || error.message.includes('401')) {
+        setError('Invalid email or password. Please try again.');
+      } else if (error.message.includes('All') && error.message.includes('attempts failed')) {
+        setError('Unable to connect to authentication service. Please try again later.');
+        
+        // Fallback to demo mode for testing
+        setTimeout(() => {
+          if (formData.email.includes('demo') || formData.email.includes('test')) {
+            console.log('Demo mode activated for testing...');
+            const mockUser = {
+              id: 'demo_user_123',
+              email: formData.email,
+              name: formData.name || 'Demo User',
+              displayName: formData.name || 'Demo User'
+            };
+            console.log('✅ Mock login successful with user:', mockUser);
+            onLogin(mockUser, 'demo_token_123');
+          }
+        }, 3000);
       } else {
-        setError(`Authentication error: ${error.message}`);
+        setError(`Connection error: ${error.message}`);
       }
-      
-      // Only fall back to demo mode after showing the real error for a few seconds
-      setTimeout(() => {
-        if (formData.email.includes('demo') || formData.email.includes('test')) {
-          console.log('Demo mode activated for testing...');
-          const mockUser = {
-            id: 'demo_user_123',
-            email: formData.email,
-            name: formData.name || 'Demo User',
-            displayName: formData.name || 'Demo User'
-          };
-          console.log('✅ Mock login successful with user:', mockUser);
-          onLogin(mockUser, 'demo_token_123');
-        }
-      }, 3000); // Show error for 3 seconds before demo mode
     }
 
     setIsLoading(false);
@@ -700,6 +921,206 @@ const AuthScreen = ({ onLogin }) => {
   );
 };
 
+// CRITICAL: Performance Monitor Component (Development Only)
+const PerformanceMonitor = () => {
+  const [metrics, setMetrics] = useState({
+    avgResponseTime: 0,
+    totalMessages: 0,
+    errorRate: 0,
+    pendingRequests: 0,
+    lastUpdateTime: Date.now()
+  });
+
+  useEffect(() => {
+    // Initialize global metrics tracker
+    if (!window.chatMetrics) {
+      window.chatMetrics = {
+        responses: [],
+        errors: 0,
+        total: 0,
+        pending: 0,
+        startTime: Date.now()
+      };
+    }
+
+    // Update metrics every 3 seconds
+    const interval = setInterval(() => {
+      const metrics = window.chatMetrics;
+      const recent = metrics.responses.slice(-50); // Last 50 responses
+      const uptime = (Date.now() - metrics.startTime) / 1000;
+      
+      setMetrics({
+        avgResponseTime: recent.length > 0 ? recent.reduce((a, b) => a + b, 0) / recent.length : 0,
+        totalMessages: metrics.total,
+        errorRate: metrics.total > 0 ? (metrics.errors / metrics.total * 100) : 0,
+        pendingRequests: metrics.pending,
+        lastUpdateTime: Date.now(),
+        uptime: uptime,
+        throughput: metrics.total / (uptime / 60) // messages per minute
+      });
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Only show in development
+  if (process.env.NODE_ENV !== 'development') return null;
+
+  return (
+    <motion.div 
+      className="fixed bottom-4 right-4 bg-black/90 text-white p-4 rounded-xl text-xs font-mono z-50 backdrop-blur-sm border border-gray-600"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+    >
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <div className="text-green-400">Avg Response:</div>
+          <div className={`font-bold ${metrics.avgResponseTime > 3000 ? 'text-red-400' : 'text-green-400'}`}>
+            {(metrics.avgResponseTime / 1000).toFixed(1)}s
+          </div>
+        </div>
+        <div>
+          <div className="text-blue-400">Total Msgs:</div>
+          <div className="font-bold text-blue-400">{metrics.totalMessages}</div>
+        </div>
+        <div>
+          <div className="text-yellow-400">Error Rate:</div>
+          <div className={`font-bold ${metrics.errorRate > 10 ? 'text-red-400' : 'text-yellow-400'}`}>
+            {metrics.errorRate.toFixed(1)}%
+          </div>
+        </div>
+        <div>
+          <div className="text-purple-400">Pending:</div>
+          <div className={`font-bold ${metrics.pendingRequests > 3 ? 'text-red-400' : 'text-purple-400'}`}>
+            {metrics.pendingRequests}
+          </div>
+        </div>
+        <div className="col-span-2 pt-2 border-t border-gray-600">
+          <div className="text-gray-400">
+            Throughput: {metrics.throughput?.toFixed(1) || 0} msg/min
+          </div>
+          <div className="text-gray-400">
+            Uptime: {metrics.uptime ? Math.floor(metrics.uptime / 60) : 0}m {metrics.uptime ? Math.floor(metrics.uptime % 60) : 0}s
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// CRITICAL: Frontend Rate Limiter Hook
+const useRateLimit = (maxRequests = 10, windowMs = 60000) => {
+  const requestTimesRef = useRef([]);
+  
+  const checkRateLimit = useCallback(() => {
+    const now = Date.now();
+    const windowStart = now - windowMs;
+    
+    // Remove old requests
+    requestTimesRef.current = requestTimesRef.current.filter(time => time > windowStart);
+    
+    if (requestTimesRef.current.length >= maxRequests) {
+      const oldestRequest = requestTimesRef.current[0];
+      const timeUntilReset = oldestRequest + windowMs - now;
+      return {
+        allowed: false,
+        timeUntilReset: Math.ceil(timeUntilReset / 1000),
+        requestsRemaining: 0
+      };
+    }
+    
+    // Add current request
+    requestTimesRef.current.push(now);
+    
+    return {
+      allowed: true,
+      timeUntilReset: 0,
+      requestsRemaining: maxRequests - requestTimesRef.current.length
+    };
+  }, [maxRequests, windowMs]);
+  
+  return checkRateLimit;
+};  
+const ConnectionStatus = ({ isOnline, isReconnecting, onReconnect, isDarkMode }) => {
+  if (isOnline) {
+    return (
+      <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-xs ${
+        isDarkMode ? 'bg-green-900/30 text-green-300' : 'bg-green-100 text-green-700'
+      }`}>
+        <Wifi size={12} />
+        <span>Connected</span>
+      </div>
+    );
+  }
+  
+  return (
+    <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-xs ${
+      isDarkMode ? 'bg-red-900/30 text-red-300' : 'bg-red-100 text-red-700'
+    }`}>
+      <WifiOff size={12} />
+      <span>Disconnected</span>
+      {isReconnecting ? (
+        <RefreshCw size={12} className="animate-spin" />
+      ) : (
+        <button 
+          onClick={onReconnect}
+          className="ml-1 underline hover:no-underline"
+        >
+          Retry
+        </button>
+      )}
+    </div>
+  );
+};
+
+// CRITICAL: Enhanced Error Display Component
+const ErrorDisplay = ({ error, onRetry, onDismiss, isDarkMode }) => {
+  if (!error) return null;
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className={`${
+        isDarkMode ? 'bg-red-900/20 border-red-500/30' : 'bg-red-50 border-red-200'
+      } border rounded-xl p-4 flex items-center justify-between`}
+    >
+      <div className="flex items-center space-x-3">
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+          isDarkMode ? 'bg-red-500/20' : 'bg-red-100'
+        }`}>
+          <AlertTriangle size={16} className="text-red-500" />
+        </div>
+        <div>
+          <p className={`font-semibold ${isDarkMode ? 'text-red-300' : 'text-red-700'}`}>
+            {error.type || 'Connection Error'}
+          </p>
+          <p className={`text-sm ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
+            {error.message}
+          </p>
+          {error.canRetry && (
+            <button
+              onClick={onRetry}
+              className={`text-xs underline mt-1 ${
+                isDarkMode ? 'text-red-300 hover:text-red-200' : 'text-red-600 hover:text-red-500'
+              }`}
+            >
+              Try again
+            </button>
+          )}
+        </div>
+      </div>
+      <button
+        onClick={onDismiss}
+        className={`${isDarkMode ? 'text-red-400 hover:text-red-300' : 'text-red-500 hover:text-red-400'} transition-colors`}
+      >
+        <X size={20} />
+      </button>
+    </motion.div>
+  );
+};
+
 // Main Chat Interface Component
 const ChatInterface = ({ user, onLogout }) => {
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -716,8 +1137,20 @@ const ChatInterface = ({ user, onLogout }) => {
   const [editingText, setEditingText] = useState('');
   const [streamingMessages, setStreamingMessages] = useState(new Set());
   const [error, setError] = useState(null);
+  
+  // CRITICAL: Enhanced error and connection state
+  const [connectionStatus, setConnectionStatus] = useState({
+    isOnline: true,
+    isReconnecting: false,
+    lastSeen: Date.now()
+  });
+  const [retryQueue, setRetryQueue] = useState([]);
+  const [apiErrors, setApiErrors] = useState([]);
+  
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
+  const heartbeatRef = useRef(null);
+  const reconnectTimeoutRef = useRef(null);
   
   // Handle typewriter effect completion
   const handleStreamingComplete = (messageId) => {
@@ -737,30 +1170,7 @@ const ChatInterface = ({ user, onLogout }) => {
     clearInterventions
   } = useInterventionsWithEvents(user?.id);
 
-  // Helper function to detect business type from user profile and message content
-  const detectBusinessType = (user, message) => {
-    const lowerMessage = message.toLowerCase();
-    const userProfile = JSON.parse(localStorage.getItem('celesteos_profile') || '{}');
-    
-    if (userProfile.primary_goal === 'business_growth' || userProfile.work_style === 'entrepreneur') {
-      if (lowerMessage.includes('saas') || lowerMessage.includes('software') || lowerMessage.includes('subscription')) {
-        return 'saas';
-      }
-      if (lowerMessage.includes('agency') || lowerMessage.includes('client') || lowerMessage.includes('marketing')) {
-        return 'agency';
-      }
-      if (lowerMessage.includes('ecommerce') || lowerMessage.includes('product') || lowerMessage.includes('store')) {
-        return 'ecommerce';
-      }
-      if (lowerMessage.includes('consultant') || lowerMessage.includes('consulting') || lowerMessage.includes('advice')) {
-        return 'consultant';
-      }
-    }
-    
-    return 'unknown';
-  };
-
-  // Initialize conversations
+  // FIXED: Initialize conversations with proper 10-slot structure
   useEffect(() => {
     const initializeConversations = async () => {
       try {
@@ -780,7 +1190,32 @@ const ChatInterface = ({ user, onLogout }) => {
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.conversations) {
-            setConversations(data.conversations);
+            // Ensure 10 conversation slots exist
+            const conversationSlots = Array.from({ length: 10 }, (_, i) => {
+              const chatId = String(i + 1);
+              const existingConv = data.conversations.find(conv => conv.chat_id === chatId || conv.id === chatId);
+              
+              return existingConv ? {
+                id: chatId,
+                title: existingConv.title || `Conversation ${i + 1}`,
+                lastMessage: existingConv.last_message || existingConv.lastMessage || '',
+                timestamp: existingConv.updated_at || existingConv.timestamp || null,
+                messages: []
+              } : {
+                id: chatId,
+                title: `Conversation ${i + 1}`,
+                lastMessage: null,
+                timestamp: null,
+                messages: [],
+                isEmpty: true
+              };
+            });
+            
+            setConversations(conversationSlots);
+            // Set first conversation as active if none selected
+            if (!activeConversation) {
+              setActiveConversation(conversationSlots[0]);
+            }
             return;
           }
         }
@@ -788,32 +1223,18 @@ const ChatInterface = ({ user, onLogout }) => {
         console.error('Failed to fetch conversations list:', error);
       }
 
-      // Fallback to mock conversations
-      const mockConversations = [
-        {
-          id: 1,
-          title: "Getting Started with AI",
-          lastMessage: "Click to load conversation...",
-          timestamp: Date.now() - 86400000,
-          messages: []
-        },
-        {
-          id: 2,
-          title: "Python Programming Help",
-          lastMessage: "Click to load conversation...",
-          timestamp: Date.now() - 172800000,
-          messages: []
-        },
-        {
-          id: 3,
-          title: "Creative Writing Ideas",
-          lastMessage: "Click to load conversation...",
-          timestamp: Date.now() - 259200000,
-          messages: []
-        }
-      ];
+      // Fallback: Create 10 empty conversation slots
+      const conversationSlots = Array.from({ length: 10 }, (_, i) => ({
+        id: String(i + 1),
+        title: `Conversation ${i + 1}`,
+        lastMessage: null,
+        timestamp: null,
+        messages: [],
+        isEmpty: true
+      }));
       
-      setConversations(mockConversations);
+      setConversations(conversationSlots);
+      setActiveConversation(conversationSlots[0]);
     };
 
     if (user?.id) {
@@ -839,6 +1260,44 @@ const ChatInterface = ({ user, onLogout }) => {
       textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
     }
   }, [message]);
+
+  // FIXED: Conversation switching function
+  const handleConversationSwitch = (chatId) => {
+    console.log(`🔄 Switching to conversation ${chatId}`);
+    
+    // Find conversation in current list
+    const conversation = conversations.find(conv => conv.id === chatId);
+    if (conversation) {
+      setActiveConversation(conversation);
+      
+      // If it's an empty conversation, don't fetch - user will start fresh
+      if (conversation.isEmpty || !conversation.lastMessage) {
+        console.log(`📝 Opening empty conversation slot ${chatId}`);
+        return;
+      }
+      
+      // Fetch conversation messages if it has content
+      fetchConversation(chatId);
+    }
+  };
+
+  // FIXED: Enhanced new conversation handler
+  const handleNewConversation = () => {
+    // Find first empty conversation slot
+    const emptySlot = conversations.find(conv => conv.isEmpty || !conv.lastMessage);
+    
+    if (emptySlot) {
+      console.log(`🆕 Starting new conversation in slot ${emptySlot.id}`);
+      setActiveConversation({
+        ...emptySlot,
+        messages: [],
+        isEmpty: false
+      });
+    } else {
+      // All slots full - show user they need to clear one
+      setShowDeleteModal(true);
+    }
+  };
 
   // Handle message editing
   const handleEditMessage = (messageId) => {
@@ -880,6 +1339,74 @@ const ChatInterface = ({ user, onLogout }) => {
     await sendMessageToWebhook(editedMessage.text);
   };
 
+  // CRITICAL: Enhanced error handling functions
+  const addApiError = useCallback((error) => {
+    const errorObj = {
+      id: Date.now(),
+      type: error.type || 'API Error',
+      message: error.message,
+      timestamp: new Date(),
+      canRetry: !error.message.includes('Authentication') && !error.message.includes('401'),
+      retryAction: error.retryAction
+    };
+    
+    setApiErrors(prev => [errorObj, ...prev.slice(0, 4)]); // Keep last 5 errors
+    setConnectionStatus(prev => ({ ...prev, isOnline: false }));
+  }, []);
+
+  const dismissError = useCallback((errorId) => {
+    setApiErrors(prev => prev.filter(err => err.id !== errorId));
+  }, []);
+
+  const retryErrorAction = useCallback(async (errorId) => {
+    const error = apiErrors.find(err => err.id === errorId);
+    if (error?.retryAction) {
+      dismissError(errorId);
+      await error.retryAction();
+    }
+  }, [apiErrors, dismissError]);
+
+  // CRITICAL: Enhanced connection monitoring
+  const checkConnection = useCallback(async () => {
+    try {
+      setConnectionStatus(prev => ({ ...prev, isReconnecting: true }));
+      
+      const result = await sendRequestWithRetry(API_CONFIG.endpoints.heartbeat, {
+        userId: user.id,
+        sessionId: sessionStorage.getItem('celesteos_session_id'),
+        timestamp: Date.now(),
+        user: {
+          email: user.email,
+          displayName: user.name || user.displayName || 'Unknown User'
+        }
+      }, { maxRetries: 1, timeout: 5000 });
+
+      if (result.success) {
+        setConnectionStatus({
+          isOnline: true,
+          isReconnecting: false,
+          lastSeen: Date.now()
+        });
+        
+        // Clear connection-related errors
+        setApiErrors(prev => prev.filter(err => !err.type.includes('Connection')));
+        
+        if (result.data.onlineUsers || result.data.activeUsers || result.data.userCount) {
+          const count = result.data.onlineUsers || result.data.activeUsers || result.data.userCount;
+          setOnlineUserCount(count);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Connection check failed:', error);
+      addApiError({
+        type: 'Connection Error',
+        message: 'Unable to reach server',
+        retryAction: checkConnection
+      });
+      setConnectionStatus(prev => ({ ...prev, isReconnecting: false }));
+    }
+  }, [user, addApiError]);
+
   const sendMessageToWebhook = async (messageText) => {
     setIsTyping(true);
     setError(null);
@@ -890,12 +1417,12 @@ const ChatInterface = ({ user, onLogout }) => {
       sessionStorage.setItem('celesteos_session_id', sessionId);
     }
 
-    // NEW: Enhanced ChatRequest format for fast endpoint
+    // Enhanced ChatRequest format with proper chatId
     const requestPayload = {
       userId: user.id,
       userName: user.name || user.displayName || 'Unknown User',
       message: messageText,
-      chatId: activeConversation.id.toString(),
+      chatId: activeConversation.id,
       sessionId: sessionId,
       streamResponse: true
     };
@@ -913,83 +1440,84 @@ const ChatInterface = ({ user, onLogout }) => {
     // Add AI message placeholder immediately
     setActiveConversation(prev => ({
       ...prev,
-      messages: [...prev.messages, aiMessage]
+      messages: [...prev.messages, aiMessage],
+      isEmpty: false
     }));
 
     // Track as streaming
     setStreamingMessages(prev => new Set(prev).add(aiMessage.id));
 
     try {
-      // NEW: Use enhanced webhook endpoint
-      const response = await fetch('https://api.celeste7.ai/webhook/text-chat-fast', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        mode: 'cors',
-        credentials: 'omit',
-        body: JSON.stringify(requestPayload)
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      // CRITICAL: Use enhanced retry logic
+      const result = await sendRequestWithRetry(API_CONFIG.endpoints.chat, requestPayload);
       
-      // NEW: Enhanced ChatResponse handling
-      const aiResponseText = data.response || "No response received from AI service.";
-      
-      console.log('📊 Enhanced Chat Response:', {
-        summary: data.summary,
-        category: data.category,
-        confidence: data.confidence,
-        responseTime: `${data.responseTimeMs}ms`,
-        crossChatUsed: data.crossChatUsed,
-        stage: data.stage,
-        tokensUsed: data.tokensUsed
-      });
+      if (result.success) {
+        const data = result.data;
+        const aiResponseText = data.response || "No response received from AI service.";
+        
+        console.log('📊 Enhanced Chat Response:', {
+          summary: data.summary,
+          category: data.category,
+          confidence: data.confidence,
+          responseTime: `${data.responseTimeMs}ms`,
+          crossChatUsed: data.crossChatUsed,
+          stage: data.stage,
+          tokensUsed: data.tokensUsed,
+          attempts: result.attempt
+        });
 
-      // Update the AI message with full response and metadata
-      setActiveConversation(prev => ({
-        ...prev,
-        messages: prev.messages.map(msg => 
-          msg.id === aiMessage.id 
-            ? {
-                ...msg,
-                text: aiResponseText,
-                isStreaming: false,
-                metadata: {
-                  summary: data.summary,
-                  category: data.category,
-                  confidence: data.confidence,
-                  responseTimeMs: data.responseTimeMs,
-                  contextUsed: data.contextUsed,
-                  crossChatUsed: data.crossChatUsed,
-                  stage: data.stage,
-                  tokensUsed: data.tokensUsed
+        // Update the AI message with full response and metadata
+        setActiveConversation(prev => ({
+          ...prev,
+          messages: prev.messages.map(msg => 
+            msg.id === aiMessage.id 
+              ? {
+                  ...msg,
+                  text: aiResponseText,
+                  isStreaming: false,
+                  metadata: {
+                    summary: data.summary,
+                    category: data.category,
+                    confidence: data.confidence,
+                    responseTimeMs: data.responseTimeMs,
+                    contextUsed: data.contextUsed,
+                    crossChatUsed: data.crossChatUsed,
+                    stage: data.stage,
+                    tokensUsed: data.tokensUsed,
+                    attempts: result.attempt
+                  }
                 }
+              : msg
+          ),
+          lastMessage: aiResponseText.substring(0, 100) + '...',
+          timestamp: data.timestamp || Date.now()
+        }));
+
+        // Update conversation in list
+        setConversations(prev => prev.map(conv => 
+          conv.id === activeConversation.id 
+            ? { 
+                ...conv, 
+                lastMessage: aiResponseText.substring(0, 100) + '...', 
+                timestamp: data.timestamp || Date.now(),
+                isEmpty: false
               }
-            : msg
-        ),
-        lastMessage: aiResponseText.substring(0, 100) + '...'
-      }));
+            : conv
+        ));
 
-      // Update conversation in list
-      setConversations(prev => prev.map(conv => 
-        conv.id === activeConversation.id 
-          ? { 
-              ...conv, 
-              lastMessage: aiResponseText.substring(0, 100) + '...', 
-              timestamp: data.timestamp || Date.now() 
-            }
-          : conv
-      ));
+        // Update connection status on success
+        setConnectionStatus(prev => ({ ...prev, isOnline: true, lastSeen: Date.now() }));
 
+      }
     } catch (error) {
       console.error('❌ Enhanced message send error:', error);
-      setError(error.message);
+      
+      // Add structured error with retry capability
+      addApiError({
+        type: 'Message Send Failed',
+        message: error.message,
+        retryAction: () => sendMessageToWebhook(messageText)
+      });
       
       // Remove the failed AI message
       setActiveConversation(prev => ({
@@ -1068,8 +1596,25 @@ const ChatInterface = ({ user, onLogout }) => {
     };
   }, [user?.id]);
 
+  // CRITICAL: Frontend rate limiting
+  const checkRateLimit = useRateLimit(15, 60000); // 15 messages per minute
+  const [rateLimitError, setRateLimitError] = useState(null);
+  
   const handleSendMessage = async () => {
     if (!message.trim() || !activeConversation) return;
+
+    // CRITICAL: Check rate limit before sending
+    const rateLimitResult = checkRateLimit();
+    if (!rateLimitResult.allowed) {
+      setRateLimitError({
+        message: `Rate limit exceeded. Please wait ${rateLimitResult.timeUntilReset} seconds before sending another message.`,
+        timeUntilReset: rateLimitResult.timeUntilReset
+      });
+      
+      // Auto-clear rate limit error
+      setTimeout(() => setRateLimitError(null), rateLimitResult.timeUntilReset * 1000);
+      return;
+    }
 
     const userMessage = {
       id: Date.now(),
@@ -1081,39 +1626,36 @@ const ChatInterface = ({ user, onLogout }) => {
     setActiveConversation(prev => ({
       ...prev,
       messages: [...prev.messages, userMessage],
-      lastMessage: message.trim()
+      lastMessage: message.trim(),
+      isEmpty: false
     }));
 
     const messageToSend = message.trim();
     setMessage('');
+    setRateLimitError(null); // Clear any existing rate limit errors
 
     await sendMessageToWebhook(messageToSend);
   };
 
-  const handleNewConversation = () => {
-    if (conversations.length >= 10) {
-      setShowDeleteModal(true);
-      return;
-    }
-
-    const newConversation = {
-      id: conversations.length + 1,
-      title: `New Conversation ${conversations.length + 1}`,
-      lastMessage: "",
-      timestamp: Date.now(),
-      messages: []
+  const handleDeleteConversation = (conversationId) => {
+    // Reset the conversation slot instead of deleting it
+    const resetConversation = {
+      id: conversationId,
+      title: `Conversation ${conversationId}`,
+      lastMessage: null,
+      timestamp: null,
+      messages: [],
+      isEmpty: true
     };
 
-    setConversations([newConversation, ...conversations]);
-    setActiveConversation(newConversation);
-  };
-
-  const handleDeleteConversation = (conversationId) => {
-    const updatedConversations = conversations.filter(conv => conv.id !== conversationId);
+    const updatedConversations = conversations.map(conv => 
+      conv.id === conversationId ? resetConversation : conv
+    );
+    
     setConversations(updatedConversations);
     
     if (activeConversation?.id === conversationId) {
-      setActiveConversation(updatedConversations[0] || null);
+      setActiveConversation(resetConversation);
     }
     
     setShowDeleteModal(false);
@@ -1212,7 +1754,8 @@ const ChatInterface = ({ user, onLogout }) => {
             const updatedConversation = {
               ...conversation,
               messages: processedMessages,
-              lastMessage: data.output ? data.output.substring(0, 100) + '...' : (processedMessages.length > 0 ? processedMessages[processedMessages.length - 1].text.substring(0, 100) + '...' : 'No messages yet')
+              lastMessage: data.output ? data.output.substring(0, 100) + '...' : (processedMessages.length > 0 ? processedMessages[processedMessages.length - 1].text.substring(0, 100) + '...' : 'No messages yet'),
+              isEmpty: processedMessages.length === 0
             };
             
             setActiveConversation(updatedConversation);
@@ -1296,20 +1839,77 @@ const ChatInterface = ({ user, onLogout }) => {
                 </motion.button>
               </div>
 
-              {/* Online Users Display */}
+              {/* CRITICAL: Enhanced Online Users Display with Connection Status */}
               <div className={`mb-6 p-4 rounded-xl ${isDarkMode ? 'bg-[#2a2a2a]/50' : 'bg-white'} border ${isDarkMode ? 'border-[#373737]' : 'border-gray-200'} backdrop-blur-sm`}>
-                <div className="flex items-center space-x-3">
-                  <div className="relative">
-                    <div className="w-3 h-3 bg-gradient-to-r from-green-400 to-green-500 rounded-full"></div>
-                    <div className="absolute inset-0 w-3 h-3 bg-gradient-to-r from-green-400 to-green-500 rounded-full animate-ping opacity-75"></div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="relative">
+                      <div className={`w-3 h-3 rounded-full ${
+                        connectionStatus.isOnline ? 'bg-gradient-to-r from-green-400 to-green-500' : 'bg-red-500'
+                      }`}></div>
+                      {connectionStatus.isOnline && (
+                        <div className="absolute inset-0 w-3 h-3 bg-gradient-to-r from-green-400 to-green-500 rounded-full animate-ping opacity-75"></div>
+                      )}
+                    </div>
+                    <div>
+                      <span className={`text-sm font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {onlineUserCount} {onlineUserCount === 1 ? 'user' : 'users'} online
+                      </span>
+                      <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {connectionStatus.isOnline ? 'Active now' : 'Disconnected'}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <span className={`text-sm font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {onlineUserCount} {onlineUserCount === 1 ? 'user' : 'users'} online
-                    </span>
-                    <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Active now</p>
-                  </div>
+                  <ConnectionStatus 
+                    isOnline={connectionStatus.isOnline}
+                    isReconnecting={connectionStatus.isReconnecting}
+                    onReconnect={checkConnection}
+                    isDarkMode={isDarkMode}
+                  />
                 </div>
+                
+                {/* CRITICAL: API Error Queue Display */}
+                <AnimatePresence>
+                  {apiErrors.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="space-y-2 mt-3 pt-3 border-t border-gray-600"
+                    >
+                      {apiErrors.slice(0, 2).map((error) => (
+                        <div key={error.id} className={`text-xs p-2 rounded-lg ${
+                          isDarkMode ? 'bg-red-900/20 text-red-300' : 'bg-red-50 text-red-600'
+                        }`}>
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium">{error.type}</span>
+                            <button
+                              onClick={() => dismissError(error.id)}
+                              className="text-red-400 hover:text-red-300"
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                          <p className="mt-1 truncate">{error.message}</p>
+                          {error.canRetry && (
+                            <button
+                              onClick={() => retryErrorAction(error.id)}
+                              className="mt-1 text-xs underline hover:no-underline flex items-center space-x-1"
+                            >
+                              <RefreshCw size={10} />
+                              <span>Retry</span>
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      {apiErrors.length > 2 && (
+                        <div className={`text-xs text-center ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                          +{apiErrors.length - 2} more errors
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
               
               <motion.button
@@ -1323,40 +1923,15 @@ const ChatInterface = ({ user, onLogout }) => {
               </motion.button>
             </div>
 
-            {/* Conversations List */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar">
-              {conversations.map((conversation, index) => (
-                <motion.button
-                  key={conversation.id}
-                  onClick={() => fetchConversation(conversation.id)}
-                  className={`w-full p-4 rounded-xl text-left transition-all duration-200 group ${
-                    activeConversation?.id === conversation.id 
-                      ? 'bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white shadow-lg' 
-                      : isDarkMode 
-                        ? 'hover:bg-[#2a2a2a] text-gray-300 hover:shadow-md' 
-                        : 'hover:bg-white text-gray-700 hover:shadow-md border border-transparent hover:border-gray-200'
-                  }`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                  whileHover={{ scale: 1.02, x: 4 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-2 h-2 rounded-full ${
-                      activeConversation?.id === conversation.id ? 'bg-white' : 'bg-[#73c2e2]'
-                    } group-hover:scale-150 transition-transform duration-200`}></div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold truncate text-sm">{conversation.title}</p>
-                      <p className={`text-xs truncate mt-1 ${
-                        activeConversation?.id === conversation.id ? 'text-white/80' : isDarkMode ? 'text-gray-400' : 'text-gray-500'
-                      }`}>
-                        {conversation.lastMessage || 'Start a conversation...'}
-                      </p>
-                    </div>
-                  </div>
-                </motion.button>
-              ))}
+            {/* FIXED: Use ConversationSwitcher */}
+            <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
+              <ConversationSwitcher
+                userId={user.id}
+                currentChatId={activeConversation?.id}
+                onSwitch={handleConversationSwitch}
+                conversations={conversations}
+                isDarkMode={isDarkMode}
+              />
             </div>
 
             {/* Sidebar Footer */}
@@ -1407,7 +1982,7 @@ const ChatInterface = ({ user, onLogout }) => {
               </h2>
               {activeConversation && (
                 <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  CelesteOS is ready to assist
+                  Chat #{activeConversation.id} • CelesteOS is ready to assist
                 </p>
               )}
             </div>
@@ -1415,23 +1990,19 @@ const ChatInterface = ({ user, onLogout }) => {
           
           {activeConversation && (
             <div className="flex items-center space-x-2">
-              <motion.button
-                className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-100'} transition-colors`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <svg className={`w-5 h-5 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
-                </svg>
-              </motion.button>
+              <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                isDarkMode ? 'bg-[#2a2a2a] text-gray-300' : 'bg-gray-100 text-gray-600'
+              }`}>
+                #{activeConversation.id}
+              </div>
             </div>
           )}
         </div>
 
-        {/* Messages Area - FIXED */}
+        {/* Messages Area */}
         <div className="flex-1 overflow-y-auto px-4 py-6">
           <div className="max-w-4xl mx-auto">
-            {activeConversation?.messages?.length === 0 ? (
+            {activeConversation?.messages?.length === 0 || activeConversation?.isEmpty ? (
               <div className="flex-1 flex items-center justify-center min-h-[60vh]">
                 <motion.div 
                   className="text-center max-w-md"
@@ -1440,13 +2011,16 @@ const ChatInterface = ({ user, onLogout }) => {
                   transition={{ duration: 0.6 }}
                 >
                   <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-[#73c2e2] to-[#badde9] rounded-3xl flex items-center justify-center shadow-2xl">
-                    <MessageSquare className="text-white" size={32} />
+                    <div className="flex items-center space-x-1">
+                      <Hash className="text-white" size={16} />
+                      <span className="text-white font-bold text-lg">{activeConversation?.id}</span>
+                    </div>
                   </div>
                   <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-3`}>
-                    Welcome to CelesteOS
+                    {activeConversation?.title}
                   </h3>
                   <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'} text-lg leading-relaxed`}>
-                    Your proactive AI assistant is ready to help. Start a conversation to begin.
+                    Your conversation slot #{activeConversation?.id} is ready. Start chatting with CelesteOS!
                   </p>
                   <div className="mt-6 flex flex-wrap gap-2 justify-center">
                     {['Ask me anything', 'Get creative help', 'Solve problems', 'Learn something new'].map((suggestion, index) => (
@@ -1474,7 +2048,7 @@ const ChatInterface = ({ user, onLogout }) => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: index * 0.1 }}
-                    className={`group ${msg.isUser ? 'flex justify-end' : 'flex justify-start'} message ${msg.isUser ? 'user' : 'assistant'} ${msg.isStreaming ? 'streaming' : ''}`}
+                    className={`group ${msg.isUser ? 'flex justify-end' : 'flex justify-start'}`}
                   >
                     <div className={`relative max-w-3xl w-full ${msg.isUser ? 'flex justify-end' : 'flex justify-start'}`}>
                       {!msg.isUser && (
@@ -1497,9 +2071,7 @@ const ChatInterface = ({ user, onLogout }) => {
                               ? `${isDarkMode ? 'text-gray-300' : 'text-gray-700'} rounded-3xl rounded-bl-lg px-0 py-2 max-w-full`
                               : msg.isError
                                 ? `${isDarkMode ? 'text-red-300' : 'text-red-700'} rounded-3xl rounded-bl-lg px-0 py-2 max-w-full`
-                                : msg.isEnhanced
-                                  ? `${isDarkMode ? 'text-purple-300' : 'text-purple-700'} rounded-3xl rounded-bl-lg px-0 py-2 max-w-full`
-                                  : `${isDarkMode ? 'text-gray-100' : 'text-gray-900'} rounded-3xl rounded-bl-lg px-0 py-2 max-w-full`
+                                : `${isDarkMode ? 'text-gray-100' : 'text-gray-900'} rounded-3xl rounded-bl-lg px-0 py-2 max-w-full`
                         }`}>
                           
                           {msg.isUser && (
@@ -1536,7 +2108,7 @@ const ChatInterface = ({ user, onLogout }) => {
                             </div>
                           ) : (
                             <>
-                              <div className={`message-content whitespace-pre-wrap leading-relaxed ${
+                              <div className={`whitespace-pre-wrap leading-relaxed ${
                                 msg.isUser ? 'text-white' : isDarkMode ? 'text-gray-100' : 'text-gray-900'
                               }`}>
                                 {msg.isLoading ? (
@@ -1548,54 +2120,33 @@ const ChatInterface = ({ user, onLogout }) => {
                                     </div>
                                     <span className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>CelesteOS is thinking...</span>
                                   </div>
+                                ) : msg.isUser ? (
+                                  // FIXED: Proper rendering for user messages
+                                  <ReactMarkdown>{msg.text}</ReactMarkdown>
                                 ) : (
-                                  // Use TypewriterEffect for AI messages, normal rendering for user messages
-                                  msg.isUser ? (
-                                    msg.text.split('\n').map((line, index) => {
-                                      if (line.includes('**')) {
-                                        const parts = line.split('**');
-                                        return (
-                                          <p key={index} className={index > 0 ? 'mt-3' : ''}>
-                                            {parts.map((part, partIndex) => 
-                                              partIndex % 2 === 1 ? (
-                                                <strong key={partIndex} className="font-semibold">{part}</strong>
-                                              ) : (
-                                                part
-                                              )
-                                            )}
-                                          </p>
-                                        );
-                                      }
-                                      return line ? <p key={index} className={index > 0 ? 'mt-3' : ''}>{line}</p> : <br key={index} />;
-                                    })
-                                  ) : (
-                                    // AI messages with TypewriterEffect and ReactMarkdown
-                                    <div className="whitespace-pre-wrap">
-                                      {msg.isStreaming ? (
-                                        <TypewriterEffect 
-                                          text={msg.text} 
-                                          speed={msg.metadata?.responseTimeMs ? Math.max(20, Math.min(60, 3000 / msg.text.length)) : 30}
-                                          onComplete={() => handleStreamingComplete(msg.id)}
-                                        />
-                                      ) : (
-                                        <ReactMarkdown>{msg.text}</ReactMarkdown>
-                                      )}
-                                      
-                                      {/* Cross-chat indicator */}
-                                      {msg.metadata?.crossChatUsed && (
-                                        <div className="cross-chat-indicator">
+                                  // FIXED: AI messages with TypewriterEffect and ReactMarkdown  
+                                  <div className="whitespace-pre-wrap">
+                                    {msg.isStreaming ? (
+                                      <TypewriterEffect 
+                                        text={msg.text} 
+                                        speed={msg.metadata?.responseTimeMs ? Math.max(20, Math.min(60, 3000 / msg.text.length)) : 30}
+                                        onComplete={() => handleStreamingComplete(msg.id)}
+                                      />
+                                    ) : (
+                                      <ReactMarkdown>{msg.text}</ReactMarkdown>
+                                    )}
+                                    
+                                    {/* Cross-chat indicator */}
+                                    {msg.metadata?.crossChatUsed && (
+                                      <div className="mt-3 p-3 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-lg">
+                                        <div className="flex items-center space-x-2">
                                           <span className="text-purple-400">💡</span>
                                           <span className={`text-sm ${isDarkMode ? 'text-purple-300' : 'text-purple-700'}`}>
                                             Used insights from your other conversations
                                           </span>
                                         </div>
-                                      )}
-                                    </div>
-                                  )
-                                ) : (
-                                  // User messages with ReactMarkdown
-                                  <div className="whitespace-pre-wrap">
-                                    <ReactMarkdown>{msg.text}</ReactMarkdown>
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                               </div>
@@ -1607,10 +2158,16 @@ const ChatInterface = ({ user, onLogout }) => {
                                       msg.isUser ? 'text-white/70' : isDarkMode ? 'text-gray-500' : 'text-gray-400'
                                     }`}>
                                       {new Date(msg.timestamp).toLocaleTimeString()}
-                                      {/* Enhanced: Show response time for AI messages */}
+                                      {/* CRITICAL: Enhanced metadata display with retry info */}
                                       {!msg.isUser && msg.metadata?.responseTimeMs && (
-                                        <span className="response-time">
-                                          ({(msg.metadata.responseTimeMs / 1000).toFixed(1)}s)
+                                        <span className="ml-2 text-xs">
+                                          ({(msg.metadata.responseTimeMs / 1000).toFixed(1)}s
+                                          {msg.metadata.attempts > 1 && (
+                                            <span className="text-yellow-400 ml-1" title={`Required ${msg.metadata.attempts} attempts`}>
+                                              ⚡{msg.metadata.attempts}
+                                            </span>
+                                          )}
+                                          )
                                         </span>
                                       )}
                                     </p>
@@ -1624,18 +2181,11 @@ const ChatInterface = ({ user, onLogout }) => {
                                   </div>
                                   
                                   <div className="flex items-center space-x-2">
-                                    {msg.isEnhanced && (
+                                    {msg.metadata?.crossChatUsed && (
                                       <span className={`text-xs px-2 py-1 rounded-full ${
                                         isDarkMode ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-200 text-purple-700'
                                       }`}>
-                                        🧠 Enhanced
-                                      </span>
-                                    )}
-                                    {msg.patternDetected && (
-                                      <span className={`text-xs px-2 py-1 rounded-full ${
-                                        isDarkMode ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-200 text-blue-700'
-                                      }`} title={`Pattern: ${msg.patternDetected} (${Math.round(msg.confidence * 100)}% confidence)`}>
-                                        🔍 {msg.patternDetected}
+                                        💡 Cross-chat
                                       </span>
                                     )}
                                   </div>
@@ -1705,63 +2255,55 @@ const ChatInterface = ({ user, onLogout }) => {
           </div>
         </div>
 
-        {/* Error Display */}
-        {error && (
-          <div className="max-w-4xl mx-auto px-4 pb-4">
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-center justify-between"
-            >
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-                  <X size={16} className="text-white" />
-                </div>
-                <div>
-                  <p className="text-red-400 font-semibold">Connection Error</p>
-                  <p className="text-red-300 text-sm">{error}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setError(null)}
-                className="text-red-400 hover:text-red-300 transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </motion.div>
-          </div>
-        )}
+        {/* CRITICAL: Enhanced Error Display */}
+        <AnimatePresence>
+          {apiErrors.length > 0 && (
+            <div className="max-w-4xl mx-auto px-4 pb-4 space-y-3">
+              {apiErrors.slice(0, 3).map((error) => (
+                <ErrorDisplay
+                  key={error.id}
+                  error={error}
+                  onRetry={() => retryErrorAction(error.id)}
+                  onDismiss={() => dismissError(error.id)}
+                  isDarkMode={isDarkMode}
+                />
+              ))}
+              {apiErrors.length > 3 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className={`text-center text-sm ${
+                    isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                  }`}
+                >
+                  +{apiErrors.length - 3} more errors (check sidebar for details)
+                </motion.div>
+              )}
+            </div>
+          )}
+        </AnimatePresence>
 
-        {error && (
-          <div className="max-w-4xl mx-auto px-4 pb-4">
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-center justify-between"
-            >
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-                  <X size={16} className="text-white" />
-                </div>
-                <div>
-                  <p className="text-red-400 font-semibold">Connection Error</p>
-                  <p className="text-red-300 text-sm">{error}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setError(null)}
-                className="text-red-400 hover:text-red-300 transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </motion.div>
-          </div>
-        )}
-
-        {/* Input Area - FIXED: Now only appears once */}
+        {/* Input Area */}
         {activeConversation && (
           <div className="flex-shrink-0 border-t border-transparent px-4 pb-6">
             <div className="max-w-4xl mx-auto">
+              {/* CRITICAL: Rate Limit Error Display */}
+              <AnimatePresence>
+                {rateLimitError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className={`mb-4 p-3 rounded-xl ${
+                      isDarkMode ? 'bg-yellow-900/20 border-yellow-500/30 text-yellow-300' : 'bg-yellow-50 border-yellow-200 text-yellow-700'
+                    } border text-sm flex items-center space-x-2`}
+                  >
+                    <AlertTriangle size={16} />
+                    <span>{rateLimitError.message}</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              
               <div className={`relative ${isDarkMode ? 'bg-[#181818]' : 'bg-white'} rounded-3xl border-2 border-transparent bg-clip-padding shadow-2xl backdrop-blur-xl transition-all duration-300`}>
                 <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-[#73c2e2] to-[#badde9] p-[1px] -z-10">
                   <div className={`h-full w-full rounded-3xl ${isDarkMode ? 'bg-[#181818]' : 'bg-white'}`}></div>
@@ -1778,31 +2320,34 @@ const ChatInterface = ({ user, onLogout }) => {
                           handleSendMessage();
                         }
                       }}
-                      placeholder="Message CelesteOS..."
+                      placeholder={`Message CelesteOS (Chat #${activeConversation.id})...`}
                       className={`w-full bg-transparent border-none outline-none resize-none ${
                         isDarkMode ? 'text-white' : 'text-gray-900'
                       } placeholder-gray-400 text-base leading-relaxed`}
                       style={{ minHeight: '24px', maxHeight: '200px' }}
+                      disabled={!!rateLimitError}
                     />
                   </div>
                   <button
                     onClick={handleSendMessage}
-                    disabled={!message.trim() || isTyping}
+                    disabled={!message.trim() || isTyping || !!rateLimitError}
                     className={`relative ml-4 p-3 rounded-2xl transition-all duration-200 ${
-                      message.trim() && !isTyping
+                      message.trim() && !isTyping && !rateLimitError
                         ? 'bg-[#181818] text-white shadow-lg hover:shadow-xl border-2 border-transparent bg-clip-padding'
                         : isDarkMode
                           ? 'bg-[#373737] text-gray-500'
                           : 'bg-gray-200 text-gray-400'
                     } disabled:cursor-not-allowed`}
                   >
-                    {message.trim() && !isTyping && (
+                    {message.trim() && !isTyping && !rateLimitError && (
                       <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#73c2e2] to-[#badde9] p-[1px] -z-10">
                         <div className="h-full w-full rounded-2xl bg-[#181818]" />
                       </div>
                     )}
                     {isTyping ? (
                       <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    ) : rateLimitError ? (
+                      <Clock size={20} />
                     ) : (
                       <Send size={20} />
                     )}
@@ -1814,7 +2359,10 @@ const ChatInterface = ({ user, onLogout }) => {
         )}
       </div>
 
-      {/* Delete Modal */}
+      {/* CRITICAL: Performance Monitor (Development Only) */}
+      <PerformanceMonitor />
+
+      {/* FIXED: Enhanced Delete Modal */}
       <AnimatePresence>
         {showDeleteModal && (
           <motion.div
@@ -1832,18 +2380,28 @@ const ChatInterface = ({ user, onLogout }) => {
               onClick={(e) => e.stopPropagation()}
             >
               <h3 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-[#181818]'} mb-4`}>
-                Conversation Limit Reached
+                All Conversation Slots Full
               </h3>
               <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
-                You have reached the maximum of 10 conversations. Please delete one or more conversations to create a new one.
+                You have 10 conversation slots. Clear one to start a new conversation.
               </p>
               <div className="space-y-2 mb-6 max-h-40 overflow-y-auto">
-                {conversations.map((conversation) => (
-                  <div key={conversation.id} className="flex items-center justify-between p-2 rounded-lg border border-gray-600">
-                    <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'} truncate`}>{conversation.title}</span>
+                {conversations.filter(conv => !conv.isEmpty).map((conversation) => (
+                  <div key={conversation.id} className={`flex items-center justify-between p-3 rounded-lg border ${
+                    isDarkMode ? 'border-gray-600 bg-[#373737]' : 'border-gray-200 bg-gray-50'
+                  }`}>
+                    <div>
+                      <div className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                        #{conversation.id} {conversation.title}
+                      </div>
+                      <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} truncate max-w-48`}>
+                        {conversation.lastMessage || 'No messages'}
+                      </div>
+                    </div>
                     <button
                       onClick={() => handleDeleteConversation(conversation.id)}
-                      className="text-red-500 hover:text-red-400 transition-colors"
+                      className="text-red-500 hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-red-500/10"
+                      title="Clear this conversation"
                     >
                       <Trash2 size={16} />
                     </button>
