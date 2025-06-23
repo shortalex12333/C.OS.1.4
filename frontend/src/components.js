@@ -1569,15 +1569,36 @@ const ChatInterface = ({ user, onLogout }) => {
                                       return line ? <p key={index} className={index > 0 ? 'mt-3' : ''}>{line}</p> : <br key={index} />;
                                     })
                                   ) : (
-                                    // AI messages with TypewriterEffect
+                                    // AI messages with TypewriterEffect and ReactMarkdown
                                     <div className="whitespace-pre-wrap">
-                                      <TypewriterEffect 
-                                        text={msg.text} 
-                                        speed={msg.responseTimeMs ? Math.max(20, Math.min(60, 3000 / msg.text.length)) : 30}
-                                        onComplete={() => handleStreamingComplete(msg.id)}
-                                      />
+                                      {msg.isStreaming ? (
+                                        <TypewriterEffect 
+                                          text={msg.text} 
+                                          speed={msg.metadata?.responseTimeMs ? Math.max(20, Math.min(60, 3000 / msg.text.length)) : 30}
+                                          onComplete={() => handleStreamingComplete(msg.id)}
+                                        />
+                                      ) : (
+                                        <ReactMarkdown>{msg.text}</ReactMarkdown>
+                                      )}
+                                      
+                                      {/* Cross-chat indicator */}
+                                      {msg.metadata?.crossChatUsed && (
+                                        <div className="mt-3 p-3 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-lg">
+                                          <div className="flex items-center space-x-2">
+                                            <span className="text-purple-400">💡</span>
+                                            <span className={`text-sm ${isDarkMode ? 'text-purple-300' : 'text-purple-700'}`}>
+                                              Used insights from your other conversations
+                                            </span>
+                                          </div>
+                                        </div>
+                                      )}
                                     </div>
                                   )
+                                ) : (
+                                  // User messages with ReactMarkdown
+                                  <div className="whitespace-pre-wrap">
+                                    <ReactMarkdown>{msg.text}</ReactMarkdown>
+                                  </div>
                                 )}
                               </div>
                               
