@@ -1698,7 +1698,7 @@ const ChatInterface = ({ user, onLogout }) => {
             </div>
 
           {/* ChatGPT-Style Input Area */}
-            {activeConversation && (
+          {activeConversation             {activeConversation &&            {activeConversation && (
               <div className="flex-shrink-0 border-t border-transparent px-4 pb-6">
                 <div className="max-w-4xl mx-auto">
                   <div className={`relative ${isDarkMode ? 'bg-[#181818]' : 'bg-white'} rounded-3xl border-2 border-transparent bg-clip-padding shadow-2xl backdrop-blur-xl transition-all duration-300`}>
