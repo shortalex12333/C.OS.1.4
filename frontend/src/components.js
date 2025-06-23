@@ -1474,7 +1474,7 @@ const ChatInterface = ({ user, onLogout }) => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: index * 0.1 }}
-                    className={`group ${msg.isUser ? 'flex justify-end' : 'flex justify-start'}`}
+                    className={`group ${msg.isUser ? 'flex justify-end' : 'flex justify-start'} message ${msg.isUser ? 'user' : 'assistant'} ${msg.isStreaming ? 'streaming' : ''}`}
                   >
                     <div className={`relative max-w-3xl w-full ${msg.isUser ? 'flex justify-end' : 'flex justify-start'}`}>
                       {!msg.isUser && (
