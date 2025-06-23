@@ -1583,13 +1583,11 @@ const ChatInterface = ({ user, onLogout }) => {
                                       
                                       {/* Cross-chat indicator */}
                                       {msg.metadata?.crossChatUsed && (
-                                        <div className="mt-3 p-3 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-lg">
-                                          <div className="flex items-center space-x-2">
-                                            <span className="text-purple-400">💡</span>
-                                            <span className={`text-sm ${isDarkMode ? 'text-purple-300' : 'text-purple-700'}`}>
-                                              Used insights from your other conversations
-                                            </span>
-                                          </div>
+                                        <div className="cross-chat-indicator">
+                                          <span className="text-purple-400">💡</span>
+                                          <span className={`text-sm ${isDarkMode ? 'text-purple-300' : 'text-purple-700'}`}>
+                                            Used insights from your other conversations
+                                          </span>
                                         </div>
                                       )}
                                     </div>
