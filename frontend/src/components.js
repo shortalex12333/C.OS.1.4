@@ -1269,7 +1269,7 @@ const ChatInterface = ({ user, onLogout }) => {
   };
 
   return (
-    <div className={`flex h-screen ${isDarkMode ? 'bg-[#0f0f0f]' : 'bg-white'} transition-all duration-300`}>
+    <div className={`flex h-screen ${isDarkMode ? 'bg-[#0f0f0f]' : 'bg-white'} transition-all duration-300 overflow-hidden`}>
       {/* Premium Sidebar */}
       <AnimatePresence>
         {isSidebarOpen && (
