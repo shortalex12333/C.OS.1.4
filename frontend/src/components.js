@@ -1848,6 +1848,7 @@ const ChatInterface = ({ user, onLogout }) => {
             </div>
           </div>
         )}
+          </div>
       </div>
 
       {/* Delete Conversation Modal */}
