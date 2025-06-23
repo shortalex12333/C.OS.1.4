@@ -1695,7 +1695,6 @@ const ChatInterface = ({ user, onLogout }) => {
                 
                 <div ref={messagesEndRef} />
               </div>
-            </div>
 
             {/* ChatGPT-Style Input Area */}
             {activeConversation && (
