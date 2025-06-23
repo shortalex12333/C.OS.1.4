@@ -881,34 +881,46 @@ const ChatInterface = ({ user, onLogout }) => {
 
   const sendMessageToWebhook = async (messageText) => {
     setIsTyping(true);
+    setError(null);
 
-    const interventionId = getPendingInterventionId();
     const sessionId = sessionStorage.getItem('celesteos_session_id') || `session_${user.id}_${Date.now()}`;
     
     if (!sessionStorage.getItem('celesteos_session_id')) {
       sessionStorage.setItem('celesteos_session_id', sessionId);
     }
 
-    const newMessageCount = sessionMessageCount + 1;
-    setSessionMessageCount(newMessageCount);
-    setLastMessageTime(Date.now());
-    
-    // NEW: Updated ChatRequest format
+    // NEW: Enhanced ChatRequest format for fast endpoint
     const requestPayload = {
       userId: user.id,
       userName: user.name || user.displayName || 'Unknown User',
       message: messageText,
-      chatId: activeConversation.id.toString(), // Conversation index (1-10)
+      chatId: activeConversation.id.toString(),
       sessionId: sessionId,
-      streamResponse: true // Enable streaming by default
+      streamResponse: true
     };
 
-    if (interventionId) {
-      requestPayload.intervention_id = interventionId;
-    }
+    // Create temporary AI message for streaming
+    const aiMessage = {
+      id: Date.now() + 1,
+      text: '',
+      isUser: false,
+      role: 'assistant',
+      isStreaming: true,
+      timestamp: new Date().toISOString()
+    };
+
+    // Add AI message placeholder immediately
+    setActiveConversation(prev => ({
+      ...prev,
+      messages: [...prev.messages, aiMessage]
+    }));
+
+    // Track as streaming
+    setStreamingMessages(prev => new Set(prev).add(aiMessage.id));
 
     try {
-      const response = await fetch('https://api.celeste7.ai/webhook/text-chat', {
+      // NEW: Use enhanced webhook endpoint
+      const response = await fetch('https://api.celeste7.ai/webhook/text-chat-fast', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -919,110 +931,77 @@ const ChatInterface = ({ user, onLogout }) => {
         body: JSON.stringify(requestPayload)
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        
-        // NEW: Handle updated ChatResponse format
-        const aiResponseText = data.response || "No response received from AI service.";
-        const summary = data.summary || "";
-        const category = data.category || "general";
-        const confidence = data.confidence || 0;
-        const contextUsed = data.contextUsed || false;
-        const crossChatUsed = data.crossChatUsed || false;
-        const stage = data.stage || "new";
-        const tokensUsed = data.tokensUsed || 0;
-        const responseTimeMs = data.responseTimeMs || 0;
-        
-        console.log('📊 Chat Response Metadata:', {
-          summary,
-          category,
-          confidence,
-          contextUsed,
-          crossChatUsed,
-          stage,
-          tokensUsed,
-          responseTimeMs: `${responseTimeMs}ms`
-        });
-        
-        const aiMessage = {
-          id: Date.now() + 1,
-          text: aiResponseText,
-          isUser: false,
-          timestamp: data.timestamp || Date.now(),
-          rawData: data,
-          isStreaming: true, // NEW: Flag for typewriter effect
-          // NEW: Add ChatResponse metadata
-          summary: summary,
-          category: category,
-          confidence: confidence,
-          contextUsed: contextUsed,
-          crossChatUsed: crossChatUsed,
-          stage: stage,
-          tokensUsed: tokensUsed,
-          responseTimeMs: responseTimeMs
-        };
-
-        // Track this message as streaming
-        setStreamingMessages(prev => new Set(prev).add(aiMessage.id));
-
-        setActiveConversation(prev => ({
-          ...prev,
-          messages: [...prev.messages, aiMessage],
-          lastMessage: aiResponseText.substring(0, 100) + '...'
-        }));
-
-        setConversations(prev => prev.map(conv => 
-          conv.id === activeConversation.id 
-            ? { 
-                ...conv, 
-                lastMessage: aiResponseText.substring(0, 100) + '...', 
-                timestamp: data.timestamp || Date.now() 
-              }
-            : conv
-        ));
-
-        if (interventionId) {
-          markInterventionUsed(interventionId);
-        }
-      } else {
+      if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-    } catch (error) {
-      console.error('Message send error:', error);
+
+      const data = await response.json();
       
-      setTimeout(() => {
-        const responses = [
-          "I understand your question. As an AI assistant, I'm here to help with a wide variety of tasks including answering questions, providing explanations, helping with creative projects, and more. How can I assist you further?",
-          "That's a great question! Let me help you with that. I can provide detailed explanations, code examples, creative writing assistance, and much more.",
-          "I'm happy to help! Based on your message, I can offer insights and assistance. What specific aspect would you like me to focus on?",
-          "Thanks for your message! I'm designed to be helpful, harmless, and honest. I can assist with analysis, creative tasks, problem-solving, and general questions.",
-          "I appreciate you reaching out. As your AI assistant, I can help break down complex topics, provide step-by-step guidance, or explore creative solutions together."
-        ];
-        
-        let aiResponseText = responses[Math.floor(Math.random() * responses.length)];
-        
-        if (interventionId) {
-          aiResponseText += '\n\n🎯 **Intervention Applied:** Response tailored based on detected patterns (Demo Mode)';
-        }
-        
-        const aiResponse = {
-          id: Date.now() + 1,
-          text: aiResponseText,
-          isUser: false,
-          timestamp: Date.now(),
-          interventionId: interventionId
-        };
+      // NEW: Enhanced ChatResponse handling
+      const aiResponseText = data.response || "No response received from AI service.";
+      
+      console.log('📊 Enhanced Chat Response:', {
+        summary: data.summary,
+        category: data.category,
+        confidence: data.confidence,
+        responseTime: `${data.responseTimeMs}ms`,
+        crossChatUsed: data.crossChatUsed,
+        stage: data.stage,
+        tokensUsed: data.tokensUsed
+      });
 
-        setActiveConversation(prev => ({
-          ...prev,
-          messages: [...prev.messages, aiResponse],
-          lastMessage: aiResponse.text
-        }));
+      // Update the AI message with full response and metadata
+      setActiveConversation(prev => ({
+        ...prev,
+        messages: prev.messages.map(msg => 
+          msg.id === aiMessage.id 
+            ? {
+                ...msg,
+                text: aiResponseText,
+                isStreaming: false,
+                metadata: {
+                  summary: data.summary,
+                  category: data.category,
+                  confidence: data.confidence,
+                  responseTimeMs: data.responseTimeMs,
+                  contextUsed: data.contextUsed,
+                  crossChatUsed: data.crossChatUsed,
+                  stage: data.stage,
+                  tokensUsed: data.tokensUsed
+                }
+              }
+            : msg
+        ),
+        lastMessage: aiResponseText.substring(0, 100) + '...'
+      }));
 
-        if (interventionId) {
-          markInterventionUsed(interventionId);
-        }
-      }, 1500);
+      // Update conversation in list
+      setConversations(prev => prev.map(conv => 
+        conv.id === activeConversation.id 
+          ? { 
+              ...conv, 
+              lastMessage: aiResponseText.substring(0, 100) + '...', 
+              timestamp: data.timestamp || Date.now() 
+            }
+          : conv
+      ));
+
+    } catch (error) {
+      console.error('❌ Enhanced message send error:', error);
+      setError(error.message);
+      
+      // Remove the failed AI message
+      setActiveConversation(prev => ({
+        ...prev,
+        messages: prev.messages.filter(msg => msg.id !== aiMessage.id)
+      }));
+      
+      // Remove from streaming
+      setStreamingMessages(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(aiMessage.id);
+        return newSet;
+      });
     }
 
     setIsTyping(false);
