@@ -1593,7 +1593,7 @@ const ChatInterface = ({ user, onLogout }) => {
                                         </div>
                                       )}
                                     </div>
-                                  )
+                                  ))
                                 ) : (
                                   // User messages with ReactMarkdown
                                   <div className="whitespace-pre-wrap">
