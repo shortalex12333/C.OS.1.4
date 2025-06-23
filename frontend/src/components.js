@@ -1408,9 +1408,9 @@ const ChatInterface = ({ user, onLogout }) => {
       </AnimatePresence>
 
       {/* Main Chat Area - ChatGPT Style */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         {/* Premium Header */}
-        <div className={`${isDarkMode ? 'bg-[#171717]/80' : 'bg-white/80'} backdrop-blur-xl border-b ${isDarkMode ? 'border-[#2a2a2a]' : 'border-gray-200'} p-4 flex items-center justify-between sticky top-0 z-10`}>
+        <div className={`flex-shrink-0 ${isDarkMode ? 'bg-[#171717]/80' : 'bg-white/80'} backdrop-blur-xl border-b ${isDarkMode ? 'border-[#2a2a2a]' : 'border-gray-200'} p-4 flex items-center justify-between sticky top-0 z-10`}>
           <div className="flex items-center space-x-4">
             <motion.button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
