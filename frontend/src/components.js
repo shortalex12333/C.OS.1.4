@@ -16,6 +16,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 // TypewriterEffect Component for streaming-like experience
 const TypewriterEffect = ({ text, speed = 30, onComplete }) => {
