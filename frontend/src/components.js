@@ -32,7 +32,12 @@ const API_CONFIG = {
     stream: '/text-chat-stream', // For future SSE implementation
     fetchChat: '/fetch-chat',
     fetchConversations: '/fetch-conversations',
-    auth: '/auth',
+    // UPDATED: New secure authentication endpoints
+    login: '/secure-login',
+    signup: '/secure-signup',
+    logout: '/secure-logout',
+    verifyToken: '/secure-token-verify',
+    refreshToken: '/secure-refresh',
     heartbeat: '/user-heartbeat',
     offline: '/user-offline',
     profile: '/profile-building'
