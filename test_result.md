@@ -195,7 +195,7 @@ frontend:
 
   - task: "Webhook URL Updates"
     implemented: true
-    working: "NA"
+    working: "pending_testing"
     file: "components.js, App.js"
     stuck_count: 0
     priority: "high" 
@@ -204,6 +204,9 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: "Updated all webhook URLs from ventruk.app.n8n.cloud to 46.62.139.129:5678"
+      - working: "pending_testing"
+        agent: "main"
+        comment: "Updated all webhook URLs to use localhost:5678 endpoints. Fixed App.js auth URLs, updated API_CONFIG base URL, and enhanced AuthScreen to handle new webhook response format with array structure. Ready for testing."
 
   - task: "Onboarding UX Enhancement"
     implemented: true
