@@ -938,7 +938,7 @@ const AuthScreen = ({ onLogin }) => {
     }
 
     try {
-      const endpoint = isSignUp ? `${API_CONFIG.endpoints.auth}/signup` : `${API_CONFIG.endpoints.auth}/login`;
+      const endpoint = isSignUp ? `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.auth}/signup` : `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.login}`;
       
       // CRITICAL: Use enhanced retry logic for authentication
       const result = await sendRequestWithRetry(endpoint, {
@@ -947,11 +947,34 @@ const AuthScreen = ({ onLogin }) => {
         name: isSignUp ? formData.name : undefined
       }, { maxRetries: 2, timeout: 8000 }); // Shorter timeout for auth
 
-      if (result.success && result.data.success) {
-        console.log(`✅ Authentication successful after ${result.attempt} attempts`);
-        onLogin(result.data.user, result.data.token);
+      if (result.success) {
+        // Handle array response format from new webhook
+        const authData = Array.isArray(result.data) ? result.data[0] : result.data;
+        
+        if (authData && authData.user && authData.access_token) {
+          console.log(`✅ Authentication successful after ${result.attempt} attempts`);
+          
+          // Extract user data from the new format
+          const userData = {
+            id: authData.user.id,
+            email: authData.user.email,
+            name: authData.user.email.split('@')[0], // Use email prefix as name if no name provided
+            displayName: authData.user.email.split('@')[0],
+            role: authData.user.role || 'authenticated',
+            confirmed_at: authData.user.confirmed_at,
+            last_sign_in_at: authData.user.last_sign_in_at
+          };
+          
+          console.log('🔐 User authenticated:', userData);
+          console.log('🔑 Access token received:', authData.access_token ? 'Yes' : 'No');
+          console.log('👥 Active users:', authData['active:users'] || 'Unknown');
+          
+          onLogin(userData, authData.access_token);
+        } else {
+          setError('Invalid response from authentication service');
+        }
       } else {
-        setError(result.data.message || 'Authentication failed');
+        setError('Authentication failed');
       }
       
     } catch (error) {
