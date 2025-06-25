@@ -268,3 +268,5 @@ agent_communication:
     message: "Completed comprehensive backend testing. All backend components are working correctly: API health check, MongoDB connection, CORS configuration, environment variables loading, and API endpoints functionality. Created backend_test.py script that verifies all required functionality."
   - agent: "main"
     message: "Updated all webhook URLs to use localhost:5678 endpoints. Fixed authentication URLs in App.js, updated API_CONFIG base URL in components.js, and enhanced AuthScreen to handle new webhook response format (array structure). Login endpoint now points to http://localhost:5678/webhook/auth/login and can handle the provided response data structure with access_token, user data, and active users count."
+  - agent: "main"
+    message: "Changed base URL back to https://api.celeste7.ai/webhook as requested. All endpoints remain the same. Login endpoint is now https://api.celeste7.ai/webhook/auth/login and maintains the enhanced response handling for the webhook data structure with access_token, user object, and active users count."
