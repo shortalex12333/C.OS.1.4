@@ -938,7 +938,7 @@ const AuthScreen = ({ onLogin }) => {
     }
 
     try {
-      const endpoint = isSignUp ? `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.auth}/signup` : `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.login}`;
+      const endpoint = isSignUp ? `${API_CONFIG.endpoints.auth}/signup` : API_CONFIG.endpoints.login;
       
       // CRITICAL: Use enhanced retry logic for authentication
       const result = await sendRequestWithRetry(endpoint, {
