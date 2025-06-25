@@ -1822,6 +1822,14 @@ const ChatInterface = ({ user, onLogout }) => {
   const checkRateLimit = useRateLimit(15, 60000); // 15 messages per minute
   const [rateLimitError, setRateLimitError] = useState(null);
   
+  // CRITICAL: Debounced typing indicator
+  const stopTyping = useCallback(
+    debounce(() => {
+      setIsTyping(false);
+    }, 2000), // Stop typing indicator after 2 seconds of inactivity
+    []
+  );
+  
   // CRITICAL: Enhanced input handling with debouncing
   const handleInputChange = useCallback((e) => {
     setMessage(e.target.value);
