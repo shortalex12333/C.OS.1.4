@@ -156,13 +156,16 @@ const MessageQueue = {
 
 // CRITICAL: API Configuration with retry logic
 const API_CONFIG = {
-  baseUrl: 'https://api.celeste7.ai/webhook',
+  baseUrl: 'http://localhost:5678/webhook',
   endpoints: {
     chat: '/text-chat-fast',
     stream: '/text-chat-stream', // For future SSE implementation
     fetchChat: '/fetch-chat',
     fetchConversations: '/fetch-conversations',
     auth: '/auth',
+    login: '/auth/login',
+    logout: '/auth/logout',
+    verifyToken: '/auth/verify-token',
     heartbeat: '/user-heartbeat',
     offline: '/user-offline',
     profile: '/profile-building'
