@@ -263,3 +263,5 @@ agent_communication:
     message: "Successfully completed branding updates from Celeste7 to CelesteOS, updated all webhook URLs to new n8n endpoints, integrated JWT secret, enhanced onboarding UX, and updated session storage keys. Ready for testing."
   - agent: "testing"
     message: "Completed comprehensive backend testing. All backend components are working correctly: API health check, MongoDB connection, CORS configuration, environment variables loading, and API endpoints functionality. Created backend_test.py script that verifies all required functionality."
+  - agent: "main"
+    message: "Updated all webhook URLs to use localhost:5678 endpoints. Fixed authentication URLs in App.js, updated API_CONFIG base URL in components.js, and enhanced AuthScreen to handle new webhook response format (array structure). Login endpoint now points to http://localhost:5678/webhook/auth/login and can handle the provided response data structure with access_token, user data, and active users count."
