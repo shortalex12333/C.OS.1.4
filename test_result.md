@@ -207,6 +207,9 @@ frontend:
       - working: "pending_testing"
         agent: "main"
         comment: "Updated all webhook URLs to use localhost:5678 endpoints. Fixed App.js auth URLs, updated API_CONFIG base URL, and enhanced AuthScreen to handle new webhook response format with array structure. Ready for testing."
+      - working: "pending_testing"
+        agent: "main"
+        comment: "Changed base URL back to https://api.celeste7.ai/webhook while keeping all the same endpoints. All authentication URLs now point to the correct API endpoints. Login endpoint: https://api.celeste7.ai/webhook/auth/login"
 
   - task: "Onboarding UX Enhancement"
     implemented: true
