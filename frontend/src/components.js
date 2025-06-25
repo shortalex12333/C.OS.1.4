@@ -1376,7 +1376,7 @@ const ChatInterface = ({ user, onLogout }) => {
   useEffect(() => {
     const initializeConversations = async () => {
       try {
-        const response = await fetch('https://api.celeste7.ai/webhook/fetch-conversations', {
+        const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.fetchConversations}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
