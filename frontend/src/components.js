@@ -1740,7 +1740,7 @@ const ChatInterface = ({ user, onLogout }) => {
     const sendHeartbeat = async () => {
       try {
         const sessionId = sessionStorage.getItem('celesteos_session_id');
-        const response = await fetch('https://api.celeste7.ai/webhook/user-heartbeat', {
+        const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.heartbeat}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
