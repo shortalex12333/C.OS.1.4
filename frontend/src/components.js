@@ -1779,7 +1779,7 @@ const ChatInterface = ({ user, onLogout }) => {
     return () => {
       clearInterval(heartbeatInterval);
       
-      fetch('https://api.celeste7.ai/webhook/user-offline', {
+      fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.offline}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
