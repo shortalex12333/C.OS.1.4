@@ -25,7 +25,7 @@ function App() {
       if (token && userData) {
         try {
           // Verify token with webhook
-          const response = await fetch('http://localhost:5678/webhook/auth/verify-token', {
+          const response = await fetch('https://api.celeste7.ai/webhook/auth/verify-token', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
