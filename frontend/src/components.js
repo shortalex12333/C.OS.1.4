@@ -156,7 +156,7 @@ const MessageQueue = {
 
 // CRITICAL: API Configuration with retry logic
 const API_CONFIG = {
-  baseUrl: 'http://localhost:5678/webhook',
+  baseUrl: 'https://api.celeste7.ai/webhook',
   endpoints: {
     chat: '/text-chat-fast',
     stream: '/text-chat-stream', // For future SSE implementation
