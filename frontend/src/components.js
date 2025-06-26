@@ -233,7 +233,7 @@ const ConversationSwitcher = ({ userId, currentChatId, onSwitch, conversations, 
                 <div className="flex-shrink-0 w-3 h-3 bg-white rounded-full shadow-lg" />
               )}
             </div>
-          </button>
+          </motion.button>
         );
       })}
     </div>
