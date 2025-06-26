@@ -26,7 +26,10 @@ import ReactMarkdown from 'react-markdown';
 
 // CRITICAL: API Configuration
 const API_CONFIG = {
-  baseUrl: 'https://api.celeste7.ai/webhook',
+  // Switch between local and production
+  baseUrl: 'http://localhost:5678/webhook', // Local n8n for testing
+  // baseUrl: 'https://api.celeste7.ai/webhook', // Production
+  
   endpoints: {
     chat: '/text-chat-fast',
     fetchChat: '/fetch-chat',
@@ -40,7 +43,8 @@ const API_CONFIG = {
     profile: '/profile-building'
   },
   timeout: 10000,
-  maxRetries: 3,
+  maxRetries: 3, // Default retries for most endpoints
+  chatMaxRetries: 1, // No retries for chat messages
   retryDelay: 1000
 };
 
@@ -50,8 +54,11 @@ const sendRequestWithRetry = async (endpoint, payload, options = {}) => {
   const url = `${API_CONFIG.baseUrl}${endpoint}`;
   let lastError;
   
+  // Only retry on network errors, not application errors
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
+      console.log(`📡 Attempt ${attempt + 1}/${maxRetries} to ${endpoint}`);
+      
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
       
@@ -69,30 +76,38 @@ const sendRequestWithRetry = async (endpoint, payload, options = {}) => {
       
       clearTimeout(timeoutId);
       
+      // If we got a response (even error), don't retry
+      const data = await response.json();
+      
       if (response.ok) {
-        const data = await response.json();
+        console.log(`✅ Success on attempt ${attempt + 1}`);
         return { success: true, data, attempt: attempt + 1 };
       }
       
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      // Server responded with error - don't retry these
+      console.log(`❌ Server error ${response.status} - not retrying`);
+      return { success: false, data, error: `HTTP ${response.status}`, attempt: attempt + 1 };
       
     } catch (error) {
       lastError = error;
+      console.error(`❌ Network error on attempt ${attempt + 1}:`, error.message);
       
-      // Don't retry on auth errors
-      if (error.message.includes('401') || error.message.includes('403')) {
-        throw new Error('Authentication failed');
+      // Only retry on network/timeout errors
+      if (error.name === 'AbortError' || error.message.includes('Failed to fetch')) {
+        if (attempt < maxRetries - 1) {
+          const delay = API_CONFIG.retryDelay * Math.pow(2, attempt);
+          console.log(`⏳ Retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
       }
       
-      // Exponential backoff
-      if (attempt < maxRetries - 1) {
-        const delay = API_CONFIG.retryDelay * Math.pow(2, attempt);
-        await new Promise(resolve => setTimeout(resolve, delay));
-      }
+      // Don't retry on other errors
+      break;
     }
   }
   
-  throw new Error(`All ${maxRetries} attempts failed. Last error: ${lastError.message}`);
+  throw new Error(`Request failed: ${lastError.message}`);
 };
 
 // TypewriterEffect Component - Premium feel
@@ -218,7 +233,7 @@ const ConversationSwitcher = ({ userId, currentChatId, onSwitch, conversations, 
                 <div className="flex-shrink-0 w-3 h-3 bg-white rounded-full shadow-lg" />
               )}
             </div>
-          </motion.button>
+          </button>
         );
       })}
     </div>
@@ -363,7 +378,7 @@ const OnboardingScreen = ({ user, onComplete }) => {
         userId: user.id,
         stage: 4,
         data: answers
-      });
+      }, { maxRetries: 1 });
     } catch (error) {
       console.error('Profile submission error:', error);
     }
@@ -562,7 +577,7 @@ const AuthScreen = ({ onLogin }) => {
         email: formData.email,
         password: formData.password,
         name: isSignUp ? formData.name : undefined
-      });
+      }, { maxRetries: 2 }); // Limit auth retries
 
       if (result.success) {
         const authData = Array.isArray(result.data) ? result.data[0] : result.data;
@@ -737,11 +752,11 @@ const ChatInterface = ({ user, onLogout }) => {
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
   const [message, setMessage] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [onlineUserCount, setOnlineUserCount] = useState(1);
   const [streamingMessages, setStreamingMessages] = useState(new Set());
   const [error, setError] = useState(null);
+  const [isSending, setIsSending] = useState(false);
   
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
@@ -758,10 +773,11 @@ const ChatInterface = ({ user, onLogout }) => {
   // Initialize conversations
   useEffect(() => {
     const initializeConversations = async () => {
+      console.log('🏁 Initializing conversations for user:', user?.id);
       try {
         const response = await sendRequestWithRetry(API_CONFIG.endpoints.fetchConversations, {
           userId: user.id
-        });
+        }, { maxRetries: 1 });
 
         if (response.success && response.data.conversations) {
           const conversationSlots = Array.from({ length: 10 }, (_, i) => {
@@ -812,7 +828,7 @@ const ChatInterface = ({ user, onLogout }) => {
     if (user?.id) {
       initializeConversations();
     }
-  }, [user]);
+  }, [user?.id]); // Only run when user ID changes
 
   // Auto scroll
   useEffect(() => {
@@ -831,6 +847,7 @@ const ChatInterface = ({ user, onLogout }) => {
 
   // Conversation switching
   const handleConversationSwitch = (chatId) => {
+    console.log('🔄 Switching to conversation:', chatId);
     const conversation = conversations.find(conv => conv.id === chatId);
     if (conversation) {
       setActiveConversation(conversation);
@@ -857,7 +874,13 @@ const ChatInterface = ({ user, onLogout }) => {
 
   // Send message
   const sendMessageToWebhook = async (messageText) => {
-    setIsTyping(true);
+    if (isSending) {
+      console.warn('⚠️ Already sending, ignoring duplicate request');
+      return;
+    }
+    
+    console.log('📤 Starting send for:', messageText);
+    setIsSending(true);
     setError(null);
 
     const requestPayload = {
@@ -883,9 +906,12 @@ const ChatInterface = ({ user, onLogout }) => {
     }));
 
     try {
-      const result = await sendRequestWithRetry(API_CONFIG.endpoints.chat, requestPayload);
+      const result = await sendRequestWithRetry(API_CONFIG.endpoints.chat, requestPayload, {
+        maxRetries: API_CONFIG.chatMaxRetries // Use specific chat retry limit
+      });
       
-      if (result.success) {
+      if (result.success && result.data) {
+        console.log('✅ Got successful response:', result);
         const data = result.data;
         const aiResponseText = data.response || "No response received.";
 
@@ -924,9 +950,17 @@ const ChatInterface = ({ user, onLogout }) => {
               }
             : conv
         ));
+        
+        console.log('✅ Message sent successfully');
+      } else {
+        // Handle non-success response without retrying
+        console.error('❌ Got non-success response:', result);
+        throw new Error(result.error || 'Failed to get response');
       }
+      
+      setIsSending(false);
     } catch (error) {
-      console.error('Message send error:', error);
+      console.error('❌ Message send failed:', error);
       setError(error.message);
       
       // Remove failed message
@@ -934,13 +968,15 @@ const ChatInterface = ({ user, onLogout }) => {
         ...prev,
         messages: prev.messages.filter(msg => msg.id !== aiMessage.id)
       }));
+      
+      setIsSending(false);
     }
-
-    setIsTyping(false);
   };
 
   const handleSendMessage = async () => {
-    if (!message.trim() || !activeConversation) return;
+    if (!message.trim() || !activeConversation || isSending) return;
+    
+    console.log('🚀 Sending message:', message.trim());
 
     const userMessage = {
       id: Date.now(),
@@ -986,12 +1022,13 @@ const ChatInterface = ({ user, onLogout }) => {
 
   // Fetch conversation
   const fetchConversation = async (conversationId) => {
+    console.log('📥 Fetching conversation:', conversationId);
     try {
       const response = await sendRequestWithRetry(API_CONFIG.endpoints.fetchChat, {
         userId: user.id,
         chatId: conversationId,
         sessionId: sessionStorage.getItem('celesteos_session_id') || `session_${user.id}_${Date.now()}`
-      });
+      }, { maxRetries: 1 });
 
       if (response.success) {
         const conversation = conversations.find(conv => conv.id === conversationId);
@@ -1028,10 +1065,11 @@ const ChatInterface = ({ user, onLogout }) => {
   useEffect(() => {
     const sendHeartbeat = async () => {
       try {
+        console.log('💓 Sending heartbeat');
         const response = await sendRequestWithRetry(API_CONFIG.endpoints.heartbeat, {
           userId: user.id,
           timestamp: Date.now()
-        });
+        }, { maxRetries: 1 }); // Don't retry heartbeat
 
         if (response.success && response.data.onlineUsers) {
           setOnlineUserCount(response.data.onlineUsers);
@@ -1049,7 +1087,7 @@ const ChatInterface = ({ user, onLogout }) => {
       sendRequestWithRetry(API_CONFIG.endpoints.offline, {
         userId: user.id,
         timestamp: Date.now()
-      }).catch(console.error);
+      }, { maxRetries: 1 }).catch(console.error);
     };
   }, [user?.id]);
 
@@ -1287,37 +1325,6 @@ const ChatInterface = ({ user, onLogout }) => {
                   </motion.div>
                 ))}
                 
-                {isTyping && (
-                  <motion.div 
-                    className="flex justify-start"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    <div className={`${isDarkMode ? 'bg-slate-700/80 backdrop-blur-sm' : 'bg-gray-100'} rounded-2xl px-6 py-4 shadow-md`}>
-                      <div className="flex items-center space-x-2">
-                        <div className="flex space-x-1">
-                          <motion.div 
-                            className="w-2 h-2 bg-[#73c2e2] rounded-full"
-                            animate={{ scale: [1, 1.2, 1] }}
-                            transition={{ duration: 0.6, repeat: Infinity, delay: 0 }}
-                          />
-                          <motion.div 
-                            className="w-2 h-2 bg-[#73c2e2] rounded-full"
-                            animate={{ scale: [1, 1.2, 1] }}
-                            transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
-                          />
-                          <motion.div 
-                            className="w-2 h-2 bg-[#73c2e2] rounded-full"
-                            animate={{ scale: [1, 1.2, 1] }}
-                            transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
-                          />
-                        </div>
-                        <span className="text-sm text-gray-500">CelesteOS is typing</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-                
                 <div ref={messagesEndRef} />
               </div>
             )}
@@ -1351,8 +1358,9 @@ const ChatInterface = ({ user, onLogout }) => {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
+                      if (e.key === 'Enter' && !e.shiftKey && !isSending) {
                         e.preventDefault();
+                        e.stopPropagation(); // Prevent event bubbling
                         handleSendMessage();
                       }
                     }}
@@ -1362,16 +1370,24 @@ const ChatInterface = ({ user, onLogout }) => {
                   />
                   <motion.button
                     onClick={handleSendMessage}
-                    disabled={!message.trim() || isTyping}
+                    disabled={!message.trim() || isSending}
                     className={`ml-4 p-3 rounded-xl ${
-                      message.trim() && !isTyping
+                      message.trim() && !isSending
                         ? 'bg-gradient-to-r from-[#73c2e2] to-[#badde9] text-white shadow-lg'
                         : 'bg-gray-300 text-gray-500'
                     } disabled:cursor-not-allowed transition-all duration-200`}
-                    whileHover={message.trim() && !isTyping ? { scale: 1.1 } : {}}
-                    whileTap={message.trim() && !isTyping ? { scale: 0.9 } : {}}
+                    whileHover={message.trim() && !isSending ? { scale: 1.1 } : {}}
+                    whileTap={message.trim() && !isSending ? { scale: 0.9 } : {}}
                   >
-                    <Send size={20} />
+                    {isSending ? (
+                      <motion.div 
+                        className="w-5 h-5 border-2 border-gray-500 border-t-transparent rounded-full"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      />
+                    ) : (
+                      <Send size={20} />
+                    )}
                   </motion.button>
                 </div>
               </motion.div>
