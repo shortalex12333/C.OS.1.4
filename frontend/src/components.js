@@ -35,6 +35,9 @@ const API_CONFIG = {
   retryDelay: 1000
 };
 
+// For local development, change to:
+// baseUrl: 'http://localhost:5678/webhook',
+
 // IMPORTANT: Your n8n shows localhost:5678 in the UI, but you access it via api.celeste7.ai
 // The webhooks are:
 // - https://api.celeste7.ai/webhook/auth/login
@@ -49,6 +52,12 @@ const API_CONFIG = {
 //    - Access-Control-Allow-Origin: *
 //    - Access-Control-Allow-Methods: POST, OPTIONS
 //    - Access-Control-Allow-Headers: Content-Type
+//
+// ALSO: Create a separate webhook for OPTIONS requests with:
+// - HTTP Method: OPTIONS
+// - Path: * (or specific paths)
+// - Response Code: 200
+// - Same CORS headers as above
 
 // Lean retry logic - UNCHANGED
 const sendRequestWithRetry = async (endpoint, payload, options = {}) => {
@@ -149,6 +158,7 @@ const AuthScreen = ({ onLogin }) => {
     setError('');
 
     console.log('🔐 Attempting login to:', `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.login}`);
+    console.log('📦 Payload:', { email, password: '***hidden***' });
 
     try {
       const result = await sendRequestWithRetry(API_CONFIG.endpoints.login, {
@@ -857,4 +867,8 @@ const App = () => {
   return <ChatInterface user={user} onLogout={handleLogout} />;
 };
 
+// Export App as default
 export default App;
+
+// Also export components for backward compatibility
+export { AuthScreen, ChatInterface, App };
