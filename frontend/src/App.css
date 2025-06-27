@@ -641,3 +641,51 @@ h1, h2, .page-headers {
 .session-info {
   font-weight: 200; /* ExtraLight - de-emphasized metadata */
 }
+
+/* ========================================
+   AUTHENTICATION SCREEN TYPOGRAPHY
+   ======================================== */
+
+/* Auth screen title and branding */
+.auth-title,
+.auth-screen h1 {
+  font-weight: 600; /* SemiBold - strong brand presence */
+}
+
+.auth-tagline,
+.auth-screen p {
+  font-weight: 300; /* Light - welcoming and approachable */
+}
+
+/* Form inputs */
+.auth-input,
+.auth-screen input {
+  font-weight: 400; /* Regular - clear, confident user input */
+}
+
+.auth-input::placeholder,
+.auth-screen input::placeholder {
+  font-weight: 300; /* Light - subtle, non-intrusive guidance */
+}
+
+/* Auth buttons */
+.auth-button,
+.auth-primary-button {
+  font-weight: 600; /* SemiBold - commands attention and confidence */
+}
+
+.auth-toggle-button,
+.auth-secondary-button {
+  font-weight: 400; /* Regular - clear but less prominent */
+}
+
+/* Error messages */
+.auth-error,
+.error-message {
+  font-weight: 400; /* Regular - clear and readable for important info */
+}
+
+/* Loading states */
+.auth-loading {
+  font-weight: 300; /* Light - calm during processing */
+}
