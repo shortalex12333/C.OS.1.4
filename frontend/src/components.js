@@ -164,7 +164,10 @@ const AuthScreen = ({ onLogin }) => {
         ? { displayName: displayName.trim() || email.split('@')[0], email: email.toLowerCase().trim(), password }
         : { email: email.toLowerCase().trim(), password };
 
-      const result = await sendRequestWithRetry(endpoint, payload, { maxRetries: 2 });
+      const result = await sendRequestWithRetry(endpoint, payload, { 
+        maxRetries: 2, 
+        timeout: isSignup ? 10000 : 5000 // 10 seconds for signup, 5 seconds for login
+      });
 
       if (result.success) {
         if (isSignup) {
