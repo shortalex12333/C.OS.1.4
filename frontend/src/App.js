@@ -205,12 +205,12 @@ function App() {
     return (
       <div>
         {confirmationMessage && (
-          <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 p-4 rounded-lg shadow-lg max-w-md w-full mx-4 ${
+          <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 p-4 rounded-lg shadow-lg max-w-md w-full mx-4 confirmation-message ${
             confirmationMessage.includes('✅') 
-              ? 'bg-green-50 border border-green-200 text-green-800' 
+              ? 'confirmation-success' 
               : confirmationMessage.includes('❌')
-              ? 'bg-red-50 border border-red-200 text-red-800'
-              : 'bg-blue-50 border border-blue-200 text-blue-800'
+              ? 'confirmation-error'
+              : 'confirmation-loading'
           }`}>
             <p className="text-center font-medium">{confirmationMessage}</p>
           </div>
