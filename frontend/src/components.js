@@ -124,6 +124,7 @@ const sendRequestWithRetry = async (endpoint, payload, options = {}) => {
 // Auth Screen Component
 const AuthScreen = ({ onLogin }) => {
   const [isSignup, setIsSignup] = useState(false);
+  const [signupSuccess, setSignupSuccess] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -136,7 +137,7 @@ const AuthScreen = ({ onLogin }) => {
     
     // Validation
     if (isSignup) {
-      if (!displayName || !email || !password || !confirmPassword) {
+      if (!email || !password || !confirmPassword) {
         setError('Please fill in all fields');
         return;
       }
@@ -144,8 +145,8 @@ const AuthScreen = ({ onLogin }) => {
         setError('Passwords do not match');
         return;
       }
-      if (password.length < 6) {
-        setError('Password must be at least 6 characters');
+      if (password.length < 8) {
+        setError('Password must be at least 8 characters');
         return;
       }
     } else {
@@ -158,28 +159,39 @@ const AuthScreen = ({ onLogin }) => {
     try {
       const endpoint = isSignup ? API_CONFIG.endpoints.signup : API_CONFIG.endpoints.login;
       const payload = isSignup 
-        ? { displayName: displayName.trim(), email: email.toLowerCase().trim(), password }
+        ? { displayName: displayName.trim() || email.split('@')[0], email: email.toLowerCase().trim(), password }
         : { email: email.toLowerCase().trim(), password };
 
       const result = await sendRequestWithRetry(endpoint, payload, { maxRetries: 2 });
 
       if (result.success) {
-        const authData = Array.isArray(result.data) ? result.data[0] : result.data;
-        
-        if (authData?.user?.id && authData?.access_token) {
-          const userData = {
-            id: authData.user.id,
-            email: authData.user.email,
-            name: authData.user.display_name || authData.user.email.split('@')[0],
-            displayName: authData.user.display_name || authData.user.email.split('@')[0]
-          };
-          
-          onLogin(userData, authData.access_token);
+        if (isSignup) {
+          // Show success message for signup
+          setSignupSuccess(true);
         } else {
-          setError('Invalid response format');
+          // Handle login
+          const authData = Array.isArray(result.data) ? result.data[0] : result.data;
+          
+          if (authData?.user?.id && authData?.access_token) {
+            const userData = {
+              id: authData.user.id,
+              email: authData.user.email,
+              name: authData.user.display_name || authData.user.email.split('@')[0],
+              displayName: authData.user.display_name || authData.user.email.split('@')[0]
+            };
+            
+            onLogin(userData, authData.access_token);
+          } else {
+            setError('Invalid response format');
+          }
         }
       } else {
-        setError(isSignup ? 'Email already exists' : 'Invalid email or password');
+        const errorData = result.data;
+        if (errorData?.error?.includes('already registered')) {
+          setError('This email is already registered. Try logging in.');
+        } else {
+          setError(isSignup ? 'Signup failed. Please try again.' : 'Invalid email or password');
+        }
       }
     } catch (error) {
       console.error('Auth error:', error);
@@ -192,10 +204,51 @@ const AuthScreen = ({ onLogin }) => {
   const toggleMode = () => {
     setIsSignup(!isSignup);
     setError('');
+    setSignupSuccess(false);
     setDisplayName('');
     setPassword('');
     setConfirmPassword('');
   };
+
+  // Show success message after signup
+  if (signupSuccess) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center p-4">
+        <div className="w-full max-w-sm">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-semibold text-[#202123]">
+              Celeste<span className="bg-gradient-to-r from-[#60A5FA] to-[#2563EB] bg-clip-text text-transparent">OS</span>
+            </h1>
+          </div>
+          
+          <div className="bg-green-50 border border-green-200 rounded-md p-6 text-center">
+            <div className="mb-4">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+            </div>
+            <h3 className="text-lg font-semibold text-green-900 mb-2">Check your email!</h3>
+            <p className="text-green-700 mb-4">We've sent a confirmation link to <strong>{email}</strong></p>
+            <p className="text-sm text-green-600 mb-6">Click the link to activate your account and begin your transformation journey.</p>
+            
+            <button
+              onClick={() => {
+                setSignupSuccess(false);
+                setIsSignup(false);
+                setEmail('');
+                setPassword('');
+              }}
+              className="text-sm text-[#2563EB] hover:underline"
+            >
+              Back to login
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
@@ -211,7 +264,7 @@ const AuthScreen = ({ onLogin }) => {
           {isSignup && (
             <input
               type="text"
-              placeholder="Display name"
+              placeholder="Display name (optional)"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               onKeyDown={(e) => {
@@ -239,7 +292,7 @@ const AuthScreen = ({ onLogin }) => {
           <input
             id="password-input"
             type="password"
-            placeholder="Password"
+            placeholder={isSignup ? "Password (8+ characters)" : "Password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={(e) => {
@@ -281,7 +334,7 @@ const AuthScreen = ({ onLogin }) => {
 
           <button
             onClick={handleSubmit}
-            disabled={isLoading || !email || !password || (isSignup && (!displayName || !confirmPassword))}
+            disabled={isLoading || !email || !password || (isSignup && !confirmPassword)}
             className="w-full bg-gradient-to-r from-[#60A5FA] to-[#2563EB] text-white py-3 rounded-md font-medium hover:opacity-90 transition-opacity disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Processing...' : (isSignup ? 'Create Account' : 'Begin Your Journey')}
@@ -311,22 +364,6 @@ const ChatInterface = ({ user, onLogout }) => {
   const [isSending, setIsSending] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [connectionError, setConnectionError] = useState(false);
-  const [tokenLimits, setTokenLimits] = useState(null);
-  
-  // Demo token limits for testing (remove when real data is available)
-  useEffect(() => {
-    // Simulate initial token limits
-    const demoLimits = {
-      monthly: {
-        total: 100000,
-        used: 23500,
-        remaining: 76500,
-        percentUsed: 23.5
-      }
-    };
-    // Uncomment the line below to test the token tracker
-    // setTokenLimits(demoLimits);
-  }, []);
   
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
@@ -500,16 +537,6 @@ const ChatInterface = ({ user, onLogout }) => {
           prev.map(c => c.id === currentConversation.id ? finalConv : c)
         );
         
-        // Update token limits if available in response metadata
-        if (responseData.metadata?.limits) {
-          try {
-            setTokenLimits(responseData.metadata.limits);
-            console.log('Token limits updated:', responseData.metadata.limits);
-          } catch (error) {
-            console.warn('Failed to update token limits:', error);
-          }
-        }
-        
         if (isRecovered) {
           console.warn('Recovered from AI error, used fallback response');
         }
@@ -558,7 +585,23 @@ const ChatInterface = ({ user, onLogout }) => {
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         } fixed md:relative md:translate-x-0 z-40 w-[260px] h-full bg-[#f7f7f8] transition-transform duration-200 ease-in-out flex flex-col`}
       >
-        <div className="p-2 mt-14 md:mt-0">
+        {/* Logo and Users Online */}
+        <div className="p-4 border-b border-[#e5e5e5] mt-14 md:mt-0">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 bg-gradient-to-r from-[#60A5FA] to-[#2563EB] rounded-md flex items-center justify-center">
+              <span className="text-white font-bold text-sm">C</span>
+            </div>
+            <h2 className="text-lg font-semibold text-[#202123]">
+              Celeste<span className="bg-gradient-to-r from-[#60A5FA] to-[#2563EB] bg-clip-text text-transparent">OS</span>
+            </h2>
+          </div>
+          <div className="text-sm text-[#6e6e80]">
+            <span className="font-medium">127</span> Users online
+          </div>
+        </div>
+
+        {/* New chat button */}
+        <div className="p-2">
           <button
             onClick={createNewConversation}
             className="flex items-center gap-3 w-full rounded-md border border-[#e5e5e5] px-3 py-3 text-sm text-[#202123] hover:bg-[#e5e5e5] transition-colors"
@@ -709,27 +752,6 @@ const ChatInterface = ({ user, onLogout }) => {
               >
                 <X size={16} />
               </button>
-            </div>
-          </div>
-        )}
-
-        {tokenLimits && (
-          <div className="mx-4 mb-2">
-            <div className="max-w-3xl mx-auto">
-              <div className="token-tracker">
-                <div className="usage-bar">
-                  <div 
-                    className="usage-fill" 
-                    style={{
-                      width: `${tokenLimits.monthly?.percentUsed || 0}%`,
-                      backgroundColor: (tokenLimits.monthly?.percentUsed || 0) > 80 ? '#ef4444' : '#22c55e'
-                    }}
-                  />
-                </div>
-                <p className="text-sm text-gray-500 timestamp">
-                  {(tokenLimits.monthly?.remaining || 0).toLocaleString()} tokens remaining this month
-                </p>
-              </div>
             </div>
           </div>
         )}
