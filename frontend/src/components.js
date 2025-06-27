@@ -8,7 +8,9 @@ import {
   Trash2,
   User,
   LogOut,
-  AlertCircle
+  AlertCircle,
+  Sun,
+  Moon
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
@@ -23,8 +25,7 @@ const API_CONFIG = {
     login: '/auth/login',
     logout: '/auth/logout',
     verifyToken: '/auth/verify-token',
-    signup: '/auth/signup',
-    confirm: '/auth/confirm'
+    signup: '/auth/signup'
   },
   timeout: 30000,
   maxRetries: 2,
@@ -365,6 +366,7 @@ const ChatInterface = ({ user, onLogout }) => {
   const [isSending, setIsSending] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [connectionError, setConnectionError] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
@@ -647,15 +649,30 @@ const ChatInterface = ({ user, onLogout }) => {
           </div>
         </div>
 
-        <div className="border-t border-[#e5e5e5] p-2">
-          <button
-            onClick={onLogout}
-            className="flex items-center gap-3 w-full rounded-md px-3 py-3 text-sm text-[#202123] hover:bg-[#e5e5e5] transition-colors"
-          >
-            <User size={16} />
-            <span className="flex-1 text-left truncate">{user.email}</span>
-            <LogOut size={16} />
-          </button>
+        {/* Bottom section */}
+        <div className="border-t border-[#e5e5e5]">
+          {/* Theme toggle */}
+          <div className="p-2">
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="flex items-center gap-3 w-full rounded-md px-3 py-3 text-sm text-[#202123] hover:bg-[#e5e5e5] transition-colors"
+            >
+              {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+              <span className="flex-1 text-left">{isDarkMode ? 'Light mode' : 'Dark mode'}</span>
+            </button>
+          </div>
+          
+          {/* User section */}
+          <div className="p-2 pt-0">
+            <button
+              onClick={onLogout}
+              className="flex items-center gap-3 w-full rounded-md px-3 py-3 text-sm text-[#202123] hover:bg-[#e5e5e5] transition-colors"
+            >
+              <User size={16} />
+              <span className="flex-1 text-left truncate">{user.email}</span>
+              <LogOut size={16} />
+            </button>
+          </div>
         </div>
       </div>
 
