@@ -93,3 +93,16 @@ Currently using Inter as fallback until Eloquia fonts are added.
 ✅ Authentication form elements properly weighted
 ✅ Error messages and loading states styled
 ✅ Button hierarchy established
+✅ Token tracker component added with proper typography
+
+## Token Tracker Component:
+- **Usage Bar:** Visual progress indicator (green/red based on usage)
+- **Text Display:** 200 ExtraLight weight (de-emphasized metadata)
+- **Auto-updates:** After each message with token metadata
+- **Responsive:** Works in both light and dark modes
+
+## Testing Token Tracker:
+To test the token tracker component, uncomment line 326 in components.js:
+```javascript
+setTokenLimits(demoLimits);
+```
