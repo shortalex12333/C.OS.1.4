@@ -311,6 +311,7 @@ const ChatInterface = ({ user, onLogout }) => {
   const [isSending, setIsSending] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [connectionError, setConnectionError] = useState(false);
+  const [tokenLimits, setTokenLimits] = useState(null);
   
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
