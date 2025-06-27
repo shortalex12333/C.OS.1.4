@@ -782,3 +782,44 @@ h1:has(.bg-gradient-to-r) {
 .dark .token-tracker p {
   color: #9ca3af;
 }
+
+/* ========================================
+   EMAIL CONFIRMATION MESSAGES
+   ======================================== */
+
+.confirmation-message {
+  font-weight: 400; /* Regular - clear and important */
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateX(-50%) translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Success confirmation */
+.confirmation-success {
+  background: #f0f9ff;
+  border-color: #22c55e;
+  color: #15803d;
+}
+
+/* Error confirmation */
+.confirmation-error {
+  background: #fef2f2;
+  border-color: #ef4444;
+  color: #dc2626;
+}
+
+/* Loading confirmation */
+.confirmation-loading {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+}
