@@ -803,7 +803,7 @@ div:has(> img[src*="avatars.githubusercontent.com/in/1201222"]) {
   color: #e2e8f0;
 }
 
-/* Dark mode improvements for better contrast */
+/* Main container and chat areas */
 .dark .bg-white {
   background-color: #1e293b !important;
 }
@@ -814,6 +814,11 @@ div:has(> img[src*="avatars.githubusercontent.com/in/1201222"]) {
 
 .dark .bg-gray-100 {
   background-color: #334155 !important;
+}
+
+/* Text colors - comprehensive fix */
+.dark .text-black {
+  color: #ffffff !important;
 }
 
 .dark .text-gray-900 {
@@ -832,12 +837,88 @@ div:has(> img[src*="avatars.githubusercontent.com/in/1201222"]) {
   color: #64748b !important;
 }
 
+.dark .text-gray-500 {
+  color: #64748b !important;
+}
+
+.dark .text-gray-400 {
+  color: #94a3b8 !important;
+}
+
+/* Specific color overrides */
+.dark .text-\[#202123\] {
+  color: #ffffff !important;
+}
+
+.dark .text-\[#6e6e80\] {
+  color: #94a3b8 !important;
+}
+
+.dark .text-\[#374151\] {
+  color: #cbd5e1 !important;
+}
+
+/* Border colors */
 .dark .border-gray-200 {
   border-color: #334155 !important;
 }
 
 .dark .border-gray-300 {
   border-color: #475569 !important;
+}
+
+.dark .border-\[#e5e5e5\] {
+  border-color: #334155 !important;
+}
+
+/* Background colors */
+.dark .bg-\[#f7f7f8\] {
+  background-color: #1e293b !important;
+}
+
+/* Chat interface specific fixes */
+.dark .prose {
+  color: #e2e8f0 !important;
+}
+
+.dark .prose h1,
+.dark .prose h2,
+.dark .prose h3,
+.dark .prose h4,
+.dark .prose h5,
+.dark .prose h6 {
+  color: #ffffff !important;
+}
+
+.dark .prose p {
+  color: #e2e8f0 !important;
+}
+
+.dark .prose strong {
+  color: #ffffff !important;
+}
+
+/* Placeholder text */
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748b !important;
+}
+
+.dark .placeholder-\[#6e6e80\] {
+  color: #64748b !important;
+}
+
+/* Hover states */
+.dark .hover\:bg-gray-50:hover {
+  background-color: #334155 !important;
+}
+
+.dark .hover\:bg-\[#e5e5e5\]:hover {
+  background-color: #475569 !important;
+}
+
+.dark .hover\:bg-\[#f7f7f8\]:hover {
+  background-color: #334155 !important;
 }
 
 /* ========================================
