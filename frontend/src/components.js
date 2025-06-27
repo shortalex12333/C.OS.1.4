@@ -693,6 +693,27 @@ const ChatInterface = ({ user, onLogout }) => {
           </div>
         )}
 
+        {tokenLimits && (
+          <div className="mx-4 mb-2">
+            <div className="max-w-3xl mx-auto">
+              <div className="token-tracker">
+                <div className="usage-bar">
+                  <div 
+                    className="usage-fill" 
+                    style={{
+                      width: `${tokenLimits.monthly?.percentUsed || 0}%`,
+                      backgroundColor: (tokenLimits.monthly?.percentUsed || 0) > 80 ? '#ef4444' : '#22c55e'
+                    }}
+                  />
+                </div>
+                <p className="text-sm text-gray-500 timestamp">
+                  {(tokenLimits.monthly?.remaining || 0).toLocaleString()} tokens remaining this month
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="border-t border-[#e5e5e5] bg-white p-4">
           <div className="max-w-3xl mx-auto">
             <div className="relative flex items-end gap-2 rounded-md border border-[#e5e5e5] bg-white shadow-sm">
