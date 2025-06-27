@@ -313,6 +313,21 @@ const ChatInterface = ({ user, onLogout }) => {
   const [connectionError, setConnectionError] = useState(false);
   const [tokenLimits, setTokenLimits] = useState(null);
   
+  // Demo token limits for testing (remove when real data is available)
+  useEffect(() => {
+    // Simulate initial token limits
+    const demoLimits = {
+      monthly: {
+        total: 100000,
+        used: 23500,
+        remaining: 76500,
+        percentUsed: 23.5
+      }
+    };
+    // Uncomment the line below to test the token tracker
+    // setTokenLimits(demoLimits);
+  }, []);
+  
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
   const resizeTimeoutRef = useRef(null);
