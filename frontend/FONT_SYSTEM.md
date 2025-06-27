@@ -16,6 +16,37 @@
 }
 ```
 
+### Authentication Screen
+```css
+.auth-title, .auth-screen h1 {
+  font-weight: 600; /* SemiBold - strong brand presence */
+}
+
+.auth-tagline, .auth-screen p {
+  font-weight: 300; /* Light - welcoming and approachable */
+}
+
+.auth-input, .auth-screen input {
+  font-weight: 400; /* Regular - clear, confident user input */
+}
+
+.auth-input::placeholder {
+  font-weight: 300; /* Light - subtle, non-intrusive guidance */
+}
+
+.auth-button, .auth-primary-button {
+  font-weight: 600; /* SemiBold - commands attention */
+}
+
+.auth-toggle-button {
+  font-weight: 400; /* Regular - clear but secondary */
+}
+
+.auth-error {
+  font-weight: 400; /* Regular - clear error communication */
+}
+```
+
 ### Chat Interface
 ```css
 .user-message {
@@ -56,3 +87,9 @@
 3. Restart frontend service
 
 Currently using Inter as fallback until Eloquia fonts are added.
+
+## Recent Updates:
+✅ Sign up screen typography implemented
+✅ Authentication form elements properly weighted
+✅ Error messages and loading states styled
+✅ Button hierarchy established
