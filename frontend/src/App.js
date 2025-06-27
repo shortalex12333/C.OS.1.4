@@ -79,6 +79,48 @@ function App() {
     checkSession();
   }, []);
 
+  // Email confirmation route handling
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const confirmToken = urlParams.get('confirm');
+    
+    if (confirmToken) {
+      handleEmailConfirmation(confirmToken);
+    }
+  }, []);
+
+  const handleEmailConfirmation = async (token) => {
+    try {
+      const response = await fetch('https://api.celeste7.ai/webhook/auth/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        // Handle both array and object responses
+        const confirmData = Array.isArray(data) ? data[0] : data;
+        
+        if (confirmData && confirmData.success) {
+          // Show success message or auto-login
+          alert('Email confirmed! You can now log in.');
+          // Clean up URL by removing the confirm parameter
+          const url = new URL(window.location);
+          url.searchParams.delete('confirm');
+          window.history.replaceState({}, document.title, url.pathname + url.search);
+        } else {
+          alert('Email confirmation failed. Please try again or contact support.');
+        }
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Confirmation failed:', error);
+      alert('Email confirmation failed. Please check your connection and try again.');
+    }
+  };
+
   const handleLogin = (userData, token) => {
     // Generate unique sessionId for this login session
     const sessionId = generateUniqueSessionId(userData.id);
