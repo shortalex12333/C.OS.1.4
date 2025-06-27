@@ -92,6 +92,9 @@ function App() {
 
   const handleEmailConfirmation = async (token) => {
     try {
+      setIsLoading(true);
+      setConfirmationMessage('Confirming your email...');
+      
       const response = await fetch('https://api.celeste7.ai/webhook/auth/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -104,21 +107,25 @@ function App() {
         const confirmData = Array.isArray(data) ? data[0] : data;
         
         if (confirmData && confirmData.success) {
-          // Show success message or auto-login
-          alert('Email confirmed! You can now log in.');
+          setConfirmationMessage('✅ Email confirmed successfully! You can now log in.');
           // Clean up URL by removing the confirm parameter
           const url = new URL(window.location);
           url.searchParams.delete('confirm');
           window.history.replaceState({}, document.title, url.pathname + url.search);
+          
+          // Clear message after 5 seconds
+          setTimeout(() => setConfirmationMessage(''), 5000);
         } else {
-          alert('Email confirmation failed. Please try again or contact support.');
+          setConfirmationMessage('❌ Email confirmation failed. Please try again or contact support.');
         }
       } else {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
       console.error('Confirmation failed:', error);
-      alert('Email confirmation failed. Please check your connection and try again.');
+      setConfirmationMessage('❌ Email confirmation failed. Please check your connection and try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
