@@ -784,6 +784,20 @@ h1:has(.bg-gradient-to-r) {
 }
 
 /* ========================================
+   DARK MODE IMPLEMENTATION
+   ======================================== */
+
+/* Hide Emergent branding */
+div:has(> img[src*="avatars.githubusercontent.com/in/1201222"]) {
+  display: none !important;
+}
+
+/* Dark mode base */
+.dark {
+  color-scheme: dark;
+}
+
+/* ========================================
    EMAIL CONFIRMATION MESSAGES
    ======================================== */
 
