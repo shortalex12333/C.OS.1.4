@@ -618,3 +618,26 @@ small,
 h1, h2, .page-headers {
   font-weight: 600; /* SemiBold - clear hierarchy */
 }
+
+/* CelesteOS specific components */
+.celeste-logo,
+.chat-title {
+  font-weight: 600; /* SemiBold - brand consistency */
+}
+
+.conversation-title {
+  font-weight: 400; /* Regular - readable hierarchy */
+}
+
+.chat-input {
+  font-weight: 400; /* Regular - clear user input */
+}
+
+.chat-input::placeholder {
+  font-weight: 300; /* Light - subtle guidance */
+}
+
+.online-status,
+.session-info {
+  font-weight: 200; /* ExtraLight - de-emphasized metadata */
+}
