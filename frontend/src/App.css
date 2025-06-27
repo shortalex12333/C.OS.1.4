@@ -1,13 +1,13 @@
 /* Import Eloquia custom fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-/* Set Eloquia as primary font with fallbacks */
+/* Set font hierarchy - Eloquia will work when font files are added */
 * {
   font-family: 'Eloquia', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
 }
 
 body {
-  font-family: 'Eloquia', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Eloquia', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .App {
