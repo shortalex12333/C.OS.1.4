@@ -689,3 +689,51 @@ h1, h2, .page-headers {
 .auth-loading {
   font-weight: 300; /* Light - calm during processing */
 }
+
+/* ========================================
+   SPECIFIC AUTH SCREEN SELECTORS
+   ======================================== */
+
+/* CelesteOS title specifically */
+.auth-screen h1,
+h1:has(.bg-gradient-to-r) {
+  font-weight: 600 !important; /* SemiBold - strong brand */
+}
+
+/* Auth tagline */
+.auth-screen p,
+.text-\[#6e6e80\] {
+  font-weight: 300 !important; /* Light - welcoming */
+}
+
+/* All form inputs in auth */
+.auth-screen input[type="text"],
+.auth-screen input[type="email"], 
+.auth-screen input[type="password"] {
+  font-weight: 400 !important; /* Regular - confident input */
+}
+
+/* Input placeholders */
+.auth-screen input::placeholder {
+  font-weight: 300 !important; /* Light - subtle guidance */
+}
+
+/* Primary auth button (gradient) */
+.auth-screen button.bg-gradient-to-r {
+  font-weight: 600 !important; /* SemiBold - strong call to action */
+}
+
+/* Toggle button (sign up/sign in switch) */
+.auth-screen button.text-sm {
+  font-weight: 400 !important; /* Regular - clear but secondary */
+}
+
+/* Error messages with alert icon */
+.auth-screen .text-red-500 {
+  font-weight: 400 !important; /* Regular - clear error communication */
+}
+
+/* Button text states */
+.auth-screen button:disabled {
+  font-weight: 600 !important; /* Maintain button hierarchy even when disabled */
+}
