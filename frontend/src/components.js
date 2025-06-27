@@ -123,22 +123,45 @@ const sendRequestWithRetry = async (endpoint, payload, options = {}) => {
 
 // Auth Screen Component
 const AuthScreen = ({ onLogin }) => {
+  const [isSignup, setIsSignup] = useState(false);
+  const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = useCallback(async () => {
-    if (!email || !password || isLoading) return;
+    if (isLoading) return;
+    
+    // Validation
+    if (isSignup) {
+      if (!displayName || !email || !password || !confirmPassword) {
+        setError('Please fill in all fields');
+        return;
+      }
+      if (password !== confirmPassword) {
+        setError('Passwords do not match');
+        return;
+      }
+      if (password.length < 6) {
+        setError('Password must be at least 6 characters');
+        return;
+      }
+    } else {
+      if (!email || !password) return;
+    }
     
     setIsLoading(true);
     setError('');
 
     try {
-      const result = await sendRequestWithRetry(API_CONFIG.endpoints.login, {
-        email: email.toLowerCase().trim(),
-        password
-      }, { maxRetries: 2 });
+      const endpoint = isSignup ? API_CONFIG.endpoints.signup : API_CONFIG.endpoints.login;
+      const payload = isSignup 
+        ? { displayName: displayName.trim(), email: email.toLowerCase().trim(), password }
+        : { email: email.toLowerCase().trim(), password };
+
+      const result = await sendRequestWithRetry(endpoint, payload, { maxRetries: 2 });
 
       if (result.success) {
         const authData = Array.isArray(result.data) ? result.data[0] : result.data;
@@ -147,8 +170,8 @@ const AuthScreen = ({ onLogin }) => {
           const userData = {
             id: authData.user.id,
             email: authData.user.email,
-            name: authData.user.email.split('@')[0],
-            displayName: authData.user.email.split('@')[0]
+            name: authData.user.display_name || authData.user.email.split('@')[0],
+            displayName: authData.user.display_name || authData.user.email.split('@')[0]
           };
           
           onLogin(userData, authData.access_token);
@@ -156,7 +179,7 @@ const AuthScreen = ({ onLogin }) => {
           setError('Invalid response format');
         }
       } else {
-        setError('Invalid email or password');
+        setError(isSignup ? 'Email already exists' : 'Invalid email or password');
       }
     } catch (error) {
       console.error('Auth error:', error);
@@ -164,7 +187,15 @@ const AuthScreen = ({ onLogin }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [email, password, isLoading, onLogin]);
+  }, [displayName, email, password, confirmPassword, isLoading, isSignup, onLogin]);
+
+  const toggleMode = () => {
+    setIsSignup(!isSignup);
+    setError('');
+    setDisplayName('');
+    setPassword('');
+    setConfirmPassword('');
+  };
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
@@ -177,13 +208,28 @@ const AuthScreen = ({ onLogin }) => {
         </div>
 
         <div className="space-y-4">
+          {isSignup && (
+            <input
+              type="text"
+              placeholder="Display name"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') document.getElementById('email-input')?.focus();
+              }}
+              className="w-full px-3 py-3 bg-white border border-[#e5e5e5] rounded-md text-[#202123] placeholder-[#6e6e80] focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
+              disabled={isLoading}
+            />
+          )}
+          
           <input
+            id="email-input"
             type="email"
             placeholder="Email address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && password) handleSubmit();
+              if (e.key === 'Enter') document.getElementById('password-input')?.focus();
             }}
             className="w-full px-3 py-3 bg-white border border-[#e5e5e5] rounded-md text-[#202123] placeholder-[#6e6e80] focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
             autoComplete="email"
@@ -191,17 +237,40 @@ const AuthScreen = ({ onLogin }) => {
           />
           
           <input
+            id="password-input"
             type="password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && email) handleSubmit();
+              if (e.key === 'Enter') {
+                if (isSignup) {
+                  document.getElementById('confirm-password-input')?.focus();
+                } else {
+                  handleSubmit();
+                }
+              }
             }}
             className="w-full px-3 py-3 bg-white border border-[#e5e5e5] rounded-md text-[#202123] placeholder-[#6e6e80] focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
-            autoComplete="current-password"
+            autoComplete={isSignup ? "new-password" : "current-password"}
             disabled={isLoading}
           />
+
+          {isSignup && (
+            <input
+              id="confirm-password-input"
+              type="password"
+              placeholder="Confirm password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSubmit();
+              }}
+              className="w-full px-3 py-3 bg-white border border-[#e5e5e5] rounded-md text-[#202123] placeholder-[#6e6e80] focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
+              autoComplete="new-password"
+              disabled={isLoading}
+            />
+          )}
 
           {error && (
             <div className="flex items-center gap-2 text-red-500 text-sm">
@@ -212,11 +281,21 @@ const AuthScreen = ({ onLogin }) => {
 
           <button
             onClick={handleSubmit}
-            disabled={isLoading || !email || !password}
+            disabled={isLoading || !email || !password || (isSignup && (!displayName || !confirmPassword))}
             className="w-full bg-gradient-to-r from-[#60A5FA] to-[#2563EB] text-white py-3 rounded-md font-medium hover:opacity-90 transition-opacity disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Transforming...' : 'Begin Your Journey'}
+            {isLoading ? 'Processing...' : (isSignup ? 'Create Account' : 'Begin Your Journey')}
           </button>
+
+          <div className="text-center">
+            <button
+              onClick={toggleMode}
+              className="text-sm text-[#6e6e80] hover:text-[#202123] transition-colors"
+              disabled={isLoading}
+            >
+              {isSignup ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

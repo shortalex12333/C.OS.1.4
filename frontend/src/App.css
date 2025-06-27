@@ -535,3 +535,86 @@ body {
     width: 100%;
   }
 }
+
+/* ========================================
+   ELOQUIA FONT WEIGHT SYSTEM
+   ======================================== */
+
+/* Logo */
+.logo {
+  font-weight: 600; /* SemiBold - you already have this right */
+}
+
+/* Main Chat UI */
+.user-message {
+  font-weight: 400; /* Regular - clear, confident */
+}
+
+.ai-response {
+  font-weight: 300; /* Light - easier on eyes for longer reading */
+}
+
+.ai-response h3, .ai-response strong {
+  font-weight: 600; /* SemiBold - creates hierarchy within responses */
+}
+
+/* UI Elements */
+.page-headers {
+  font-weight: 600; /* SemiBold - clear hierarchy */
+}
+
+.cta-button {
+  font-weight: 600; /* SemiBold - commands attention */
+}
+
+.input-placeholder {
+  font-weight: 300; /* Light - subtle, non-intrusive */
+}
+
+.timestamp, .metadata {
+  font-weight: 200; /* ExtraLight - de-emphasized */
+}
+
+/* Apply font weights to existing message classes */
+.message.user {
+  font-weight: 400; /* Regular - clear, confident */
+}
+
+.message.assistant {
+  font-weight: 300; /* Light - easier on eyes for longer reading */
+}
+
+.message.assistant h1,
+.message.assistant h2, 
+.message.assistant h3,
+.message.assistant strong {
+  font-weight: 600; /* SemiBold - creates hierarchy within responses */
+}
+
+/* Button and CTA styling */
+.premium-button,
+button[type="submit"],
+.cta-button {
+  font-weight: 600; /* SemiBold - commands attention */
+}
+
+/* Input and form elements */
+input::placeholder,
+textarea::placeholder,
+.input-placeholder {
+  font-weight: 300; /* Light - subtle, non-intrusive */
+}
+
+/* Timestamps and metadata */
+.response-time,
+.timestamp,
+.metadata,
+small,
+.text-xs {
+  font-weight: 200; /* ExtraLight - de-emphasized */
+}
+
+/* Page headers and titles */
+h1, h2, .page-headers {
+  font-weight: 600; /* SemiBold - clear hierarchy */
+}
