@@ -111,7 +111,10 @@ const sendRequestWithRetry = async (endpoint, payload, options = {}) => {
         }
         
         if (attempt < actualRetries - 1) {
-          await new Promise(resolve => setTimeout(resolve, API_CONFIG.retryDelay));
+          // Use longer delay for signup operations (10 seconds vs 1 second)
+          const retryDelay = endpoint.includes('signup') ? 10000 : API_CONFIG.retryDelay;
+          console.log(`Retrying in ${retryDelay}ms... (attempt ${attempt + 1}/${actualRetries})`);
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
           continue;
         }
         
