@@ -4,23 +4,19 @@ import Components from './components';
 
 const { 
   AuthScreen, 
-  ChatInterface, 
-  LoadingScreen,
-  OnboardingScreen
+  ChatInterface
 } = Components;
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Check for existing session on app load
   useEffect(() => {
     const checkSession = async () => {
       const token = localStorage.getItem('celesteos_token');
       const userData = localStorage.getItem('celesteos_user');
-      const onboardingCompleted = localStorage.getItem('celesteos_onboarding_completed');
       
       if (token && userData) {
         try {
@@ -43,12 +39,10 @@ function App() {
             if (authData && (authData.success || authData.user)) {
               setUser(JSON.parse(userData));
               setIsAuthenticated(true);
-              setShowOnboarding(!onboardingCompleted);
             } else {
               // Invalid token, clear storage
               localStorage.removeItem('celesteos_token');
               localStorage.removeItem('celesteos_user');
-              localStorage.removeItem('celesteos_onboarding_completed');
             }
           } else {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -73,7 +67,6 @@ function App() {
             
             setUser(JSON.parse(userData));
             setIsAuthenticated(true);
-            setShowOnboarding(!onboardingCompleted);
           }
         }
       }
@@ -81,8 +74,8 @@ function App() {
       setIsLoading(false);
     };
 
-    // Simulate loading time
-    setTimeout(checkSession, 1500);
+    // Quick check, no artificial delay
+    checkSession();
   }, []);
 
   const handleLogin = (userData, token) => {
@@ -91,7 +84,6 @@ function App() {
     
     setUser(userData);
     setIsAuthenticated(true);
-    setShowOnboarding(true); // Always show onboarding for new login
     localStorage.setItem('celesteos_token', token);
     localStorage.setItem('celesteos_user', JSON.stringify(userData));
     
@@ -121,12 +113,6 @@ function App() {
     return `session_${userComponent}_${timestamp}_${randomComponent}_${cryptoComponent}`;
   };
 
-  const handleOnboardingComplete = (profileData) => {
-    setShowOnboarding(false);
-    localStorage.setItem('celesteos_onboarding_completed', 'true');
-    localStorage.setItem('celesteos_profile', JSON.stringify(profileData));
-  };
-
   const handleLogout = async () => {
     try {
       const token = localStorage.getItem('celesteos_token');
@@ -149,8 +135,6 @@ function App() {
     // Clear all session data
     localStorage.removeItem('celesteos_token');
     localStorage.removeItem('celesteos_user');
-    localStorage.removeItem('celesteos_onboarding_completed');
-    localStorage.removeItem('celesteos_profile');
     localStorage.removeItem('celesteos_session_created');
     
     // Clear session-specific data
@@ -160,19 +144,14 @@ function App() {
     
     setUser(null);
     setIsAuthenticated(false);
-    setShowOnboarding(false);
   };
 
   if (isLoading) {
-    return <LoadingScreen />;
+    return null; // Simple loading state, no fancy screen
   }
 
   if (!isAuthenticated) {
     return <AuthScreen onLogin={handleLogin} />;
-  }
-
-  if (showOnboarding) {
-    return <OnboardingScreen user={user} onComplete={handleOnboardingComplete} />;
   }
 
   return <ChatInterface user={user} onLogout={handleLogout} />;

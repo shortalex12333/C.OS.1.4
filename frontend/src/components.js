@@ -1,24 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { 
   Send, 
   Plus, 
-  Sun, 
-  Moon, 
-  LogOut, 
-  User, 
+  Menu,
+  X,
   MessageSquare,
-  Edit3,
   Trash2,
-  MoreHorizontal,
-  X
+  User,
+  LogOut,
+  AlertCircle
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
-// CRITICAL: API Configuration
+// API Configuration
 const API_CONFIG = {
-  // Your n8n is hosted on api.celeste7.ai - use this!
   baseUrl: 'https://api.celeste7.ai/webhook',
-  
   endpoints: {
     chat: '/text-chat-fast',
     fetchChat: '/fetch-chat',
@@ -29,148 +25,127 @@ const API_CONFIG = {
     verifyToken: '/auth/verify-token',
     signup: '/auth/signup'
   },
-  timeout: 10000,
-  maxRetries: 3,
-  chatMaxRetries: 1,
+  timeout: 30000, // Increased for production
+  maxRetries: 2, // Reduced retries
   retryDelay: 1000
 };
 
-// For local development, change to:
-// baseUrl: 'http://localhost:5678/webhook',
+// Request Queue to prevent API hammering
+class RequestQueue {
+  constructor(maxConcurrent = 3) {
+    this.queue = [];
+    this.running = 0;
+    this.maxConcurrent = maxConcurrent;
+  }
 
-// IMPORTANT: Your n8n shows localhost:5678 in the UI, but you access it via api.celeste7.ai
-// The webhooks are:
-// - https://api.celeste7.ai/webhook/auth/login
-// - https://api.celeste7.ai/webhook/auth/signup
-// - https://api.celeste7.ai/webhook/text-chat-fast
-// etc.
-//
-// In n8n, make sure your webhook nodes have:
-// 1. HTTP Method: POST
-// 2. Path: /auth/login (NOT /webhook/auth/login - n8n adds /webhook automatically)
-// 3. Response Headers:
-//    - Access-Control-Allow-Origin: *
-//    - Access-Control-Allow-Methods: POST, OPTIONS
-//    - Access-Control-Allow-Headers: Content-Type
-//
-// ALSO: Create a separate webhook for OPTIONS requests with:
-// - HTTP Method: OPTIONS
-// - Path: * (or specific paths)
-// - Response Code: 200
-// - Same CORS headers as above
+  async add(fn) {
+    return new Promise((resolve, reject) => {
+      this.queue.push({ fn, resolve, reject });
+      this.process();
+    });
+  }
 
-// Lean retry logic - UNCHANGED
-const sendRequestWithRetry = async (endpoint, payload, options = {}) => {
-  const { maxRetries = API_CONFIG.maxRetries, timeout = API_CONFIG.timeout } = options;
-  const url = `${API_CONFIG.baseUrl}${endpoint}`;
-  let lastError;
-  
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
+  async process() {
+    if (this.running >= this.maxConcurrent || this.queue.length === 0) return;
+    
+    this.running++;
+    const { fn, resolve, reject } = this.queue.shift();
+    
     try {
-      console.log(`📡 Attempt ${attempt + 1}/${maxRetries} to ${endpoint}`);
-      
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), timeout);
-      
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        mode: 'cors',
-        credentials: 'omit',
-        body: JSON.stringify(payload),
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        console.log(`✅ Success on attempt ${attempt + 1}`);
-        return { success: true, data, attempt: attempt + 1 };
-      }
-      
-      console.log(`❌ Server error ${response.status} - not retrying`);
-      return { success: false, data, error: `HTTP ${response.status}`, attempt: attempt + 1 };
-      
+      const result = await fn();
+      resolve(result);
     } catch (error) {
-      lastError = error;
-      console.error(`❌ Network error on attempt ${attempt + 1}:`, error.message);
-      
-      if (error.name === 'AbortError' || error.message.includes('Failed to fetch')) {
-        if (attempt < maxRetries - 1) {
-          const delay = API_CONFIG.retryDelay * Math.pow(2, attempt);
-          console.log(`⏳ Retrying in ${delay}ms...`);
-          await new Promise(resolve => setTimeout(resolve, delay));
-          continue;
-        }
-      }
-      
-      break;
+      reject(error);
+    } finally {
+      this.running--;
+      this.process();
     }
   }
-  
-  throw new Error(`Request failed: ${lastError.message}`);
+}
+
+const apiQueue = new RequestQueue(3);
+
+// Optimized retry logic with queue
+const sendRequestWithRetry = async (endpoint, payload, options = {}) => {
+  return apiQueue.add(async () => {
+    const { maxRetries = API_CONFIG.maxRetries, timeout = API_CONFIG.timeout } = options;
+    const url = `${API_CONFIG.baseUrl}${endpoint}`;
+    let lastError;
+    
+    // Reduce retries for chat endpoints
+    const actualRetries = endpoint.includes('chat') ? 1 : maxRetries;
+    
+    for (let attempt = 0; attempt < actualRetries; attempt++) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          mode: 'cors',
+          credentials: 'omit',
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          return { success: true, data, attempt: attempt + 1 };
+        }
+        
+        return { success: false, data, error: `HTTP ${response.status}`, attempt: attempt + 1 };
+        
+      } catch (error) {
+        lastError = error;
+        
+        if (error.name === 'AbortError') {
+          console.error(`Timeout on attempt ${attempt + 1}`);
+        }
+        
+        if (attempt < actualRetries - 1) {
+          await new Promise(resolve => setTimeout(resolve, API_CONFIG.retryDelay));
+          continue;
+        }
+        
+        break;
+      }
+    }
+    
+    throw new Error(`Request failed: ${lastError?.message || 'Unknown error'}`);
+  });
 };
 
-// Minimal Auth Screen - ChatGPT style
+// Auth Screen - Production Ready
 const AuthScreen = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [connectionStatus, setConnectionStatus] = useState('');
 
-  // Test connection on mount
-  useEffect(() => {
-    testConnection();
-  }, []);
-
-  const testConnection = async () => {
-    setConnectionStatus('Testing connection to n8n...');
-    try {
-      const response = await fetch(`${API_CONFIG.baseUrl}/test`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        mode: 'cors'
-      });
-      
-      if (response.ok || response.status === 404) {
-        setConnectionStatus(`✅ Connected to n8n at ${API_CONFIG.baseUrl}`);
-      } else {
-        setConnectionStatus(`⚠️ n8n responded with status ${response.status}`);
-      }
-    } catch (error) {
-      setConnectionStatus(`❌ Cannot reach n8n at ${API_CONFIG.baseUrl} - ${error.message}`);
-      console.error('Connection test failed:', error);
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!email || !password) return;
+  const handleSubmit = useCallback(async () => {
+    if (!email || !password || isLoading) return;
     
     setIsLoading(true);
     setError('');
 
-    console.log('🔐 Attempting login to:', `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.login}`);
-    console.log('📦 Payload:', { email, password: '***hidden***' });
-
     try {
       const result = await sendRequestWithRetry(API_CONFIG.endpoints.login, {
-        email,
+        email: email.toLowerCase().trim(),
         password
       }, { maxRetries: 2 });
 
       if (result.success) {
-        console.log('✅ Login successful:', result.data);
+        // Handle both array and object responses
         const authData = Array.isArray(result.data) ? result.data[0] : result.data;
         
-        if (authData && authData.user && authData.access_token) {
+        if (authData?.user?.id && authData?.access_token) {
           const userData = {
             id: authData.user.id,
             email: authData.user.email,
@@ -178,109 +153,73 @@ const AuthScreen = ({ onLogin }) => {
             displayName: authData.user.email.split('@')[0]
           };
           
+          // Store token in memory only (no localStorage)
           onLogin(userData, authData.access_token);
         } else {
-          console.error('❌ Invalid auth response structure:', authData);
-          setError('Invalid response from authentication service');
+          setError('Invalid response format');
         }
       } else {
-        console.error('❌ Login failed:', result);
-        setError('Invalid credentials');
+        setError('Invalid email or password');
       }
     } catch (error) {
-      console.error('❌ Auth failed:', error);
-      setError('Connection error. Check if n8n webhooks are configured correctly.');
+      console.error('Auth error:', error);
+      setError('Connection failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
-  };
+  }, [email, password, isLoading, onLogin]);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#343541] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
+        {/* Logo with gradient OS */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-semibold text-[#202123] dark:text-white mb-2">
-            Welcome back
+          <h1 className="text-3xl font-semibold text-[#202123]">
+            Celeste<span className="bg-gradient-to-r from-[#60A5FA] to-[#2563EB] bg-clip-text text-transparent">OS</span>
           </h1>
-          <p className="text-[#6e6e80] dark:text-[#c5c5d2]">
-            Log in to continue
-          </p>
+          <p className="text-[#6e6e80] mt-2">Your success inevitability engine</p>
         </div>
 
-        {connectionStatus && (
-          <div className={`text-xs mb-4 p-2 rounded ${
-            connectionStatus.includes('✅') ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400' :
-            connectionStatus.includes('❌') ? 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400' :
-            'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400'
-          }`}>
-            <div>{connectionStatus}</div>
-            {connectionStatus.includes('❌') && (
-              <div className="mt-2 text-xs">
-                <div>Webhook URLs should be:</div>
-                <div className="font-mono">• {API_CONFIG.baseUrl}/auth/login</div>
-                <div className="font-mono">• {API_CONFIG.baseUrl}/auth/signup</div>
-              </div>
-            )}
-          </div>
-        )}
-
         <div className="space-y-4">
-          <div>
-            <input
-              type="email"
-              placeholder="Email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleSubmit();
-                }
-              }}
-              className="w-full px-3 py-3 bg-white dark:bg-[#40414f] border border-[#e5e5e5] dark:border-[#40414f] rounded-md text-[#202123] dark:text-white placeholder-[#6e6e80] dark:placeholder-[#8e8ea0] focus:outline-none focus:ring-2 focus:ring-[#10a37f] focus:border-transparent"
-              required
-            />
-          </div>
+          <input
+            type="email"
+            placeholder="Email address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && password) handleSubmit();
+            }}
+            className="w-full px-3 py-3 bg-white border border-[#e5e5e5] rounded-md text-[#202123] placeholder-[#6e6e80] focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
+            autoComplete="email"
+            disabled={isLoading}
+          />
           
-          <div>
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleSubmit();
-                }
-              }}
-              className="w-full px-3 py-3 bg-white dark:bg-[#40414f] border border-[#e5e5e5] dark:border-[#40414f] rounded-md text-[#202123] dark:text-white placeholder-[#6e6e80] dark:placeholder-[#8e8ea0] focus:outline-none focus:ring-2 focus:ring-[#10a37f] focus:border-transparent"
-              required
-            />
-          </div>
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && email) handleSubmit();
+            }}
+            className="w-full px-3 py-3 bg-white border border-[#e5e5e5] rounded-md text-[#202123] placeholder-[#6e6e80] focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
+            autoComplete="current-password"
+            disabled={isLoading}
+          />
 
           {error && (
-            <div className="text-red-500 text-sm">
-              <div>{error}</div>
-              {error.includes('Connection') && (
-                <div className="text-xs mt-1">
-                  Check console (F12) for detailed debugging info
-                </div>
-              )}
+            <div className="flex items-center gap-2 text-red-500 text-sm">
+              <AlertCircle size={16} />
+              {error}
             </div>
           )}
 
           <button
             onClick={handleSubmit}
-            disabled={isLoading}
-            className="w-full bg-[#10a37f] text-white py-3 rounded-md font-medium hover:bg-[#0d8d6d] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+            disabled={isLoading || !email || !password}
+            className="w-full bg-gradient-to-r from-[#60A5FA] to-[#2563EB] text-white py-3 rounded-md font-medium hover:opacity-90 transition-opacity disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Signing in...' : 'Continue'}
-          </button>
-
-          <button
-            onClick={testConnection}
-            className="w-full text-sm text-[#6e6e80] dark:text-[#8e8ea0] hover:text-[#10a37f] dark:hover:text-[#10a37f] transition-colors"
-          >
-            Test n8n Connection
+            {isLoading ? 'Transforming...' : 'Begin Your Journey'}
           </button>
         </div>
       </div>
@@ -288,284 +227,254 @@ const AuthScreen = ({ onLogin }) => {
   );
 };
 
-// Main Chat Interface - ChatGPT Clone
-const ChatInterface = ({ user, onLogout }) => {
-  const [isDarkMode, setIsDarkMode] = useState(true);
+// Main Chat Interface - Optimized for Scale
+const ChatInterface = ({ user, token, onLogout }) => {
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState(null);
   const [isSending, setIsSending] = useState(false);
-  const [showNewChat, setShowNewChat] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [connectionError, setConnectionError] = useState(false);
   
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
+  const resizeTimeoutRef = useRef(null);
 
-  // Log API configuration on mount
+  // Memoized conversation list for performance
+  const sortedConversations = useMemo(() => 
+    [...conversations].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)),
+    [conversations]
+  );
+
+  // Close sidebar on mobile when clicking outside
   useEffect(() => {
-    console.log('🚀 CelesteOS Chat Interface');
-    console.log(`🌐 API URL: ${API_CONFIG.baseUrl}`);
-    console.log('📍 Auth endpoint:', `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.login}`);
-    console.log('📍 Chat endpoint:', `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.chat}`);
-  }, []);
+    if (!sidebarOpen) return;
 
-  // Apply dark mode to document
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode]);
-
-  // Initialize conversations and test CORS
-  useEffect(() => {
-    const initializeConversations = async () => {
-      console.log('🏁 Initializing conversations for user:', user?.id);
-      console.log('🌐 Using API:', API_CONFIG.baseUrl);
-      
-      // Create 10 fixed slots
-      const conversationSlots = Array.from({ length: 10 }, (_, i) => ({
-        id: String(i + 1),
-        title: `New chat`,
-        lastMessage: null,
-        timestamp: null,
-        messages: [],
-        isEmpty: true
-      }));
-      
-      setConversations(conversationSlots);
-      setActiveConversation(conversationSlots[0]);
-
-      // Try to fetch existing conversations
-      try {
-        const response = await sendRequestWithRetry(API_CONFIG.endpoints.fetchConversations, {
-          userId: user.id
-        }, { maxRetries: 1 });
-
-        if (response.success && response.data.conversations) {
-          const updatedSlots = conversationSlots.map((slot, index) => {
-            const existingConv = response.data.conversations.find(conv => 
-              conv.chat_id === slot.id || conv.id === slot.id
-            );
-            
-            return existingConv ? {
-              ...slot,
-              title: existingConv.title || `New chat`,
-              lastMessage: existingConv.last_message || null,
-              timestamp: existingConv.updated_at || null,
-              isEmpty: !existingConv.last_message
-            } : slot;
-          });
-          
-          setConversations(updatedSlots);
-          setActiveConversation(updatedSlots[0]);
-        }
-      } catch (error) {
-        console.error('❌ CORS/Connection Error:', error);
-        console.error('Failed to reach:', `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.fetchConversations}`);
-        setError(`Cannot connect to n8n at ${API_CONFIG.baseUrl}. Check console for details.`);
+    const handleClickOutside = (e) => {
+      if (window.innerWidth >= 768) return;
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar && !sidebar.contains(e.target)) {
+        setSidebarOpen(false);
       }
     };
 
-    if (user?.id) {
-      initializeConversations();
-    }
-  }, [user?.id]);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [sidebarOpen]);
 
-  // Auto scroll
+  // Auto scroll with performance optimization
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [activeConversation?.messages]);
-
-  // Auto-resize textarea
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = '24px';
-      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
-    }
-  }, [message]);
-
-  // Conversation switching
-  const handleConversationSwitch = async (conversation) => {
-    console.log('🔄 Switching to conversation:', conversation.id);
-    setActiveConversation(conversation);
-    
-    if (!conversation.isEmpty && conversation.lastMessage) {
-      try {
-        const response = await sendRequestWithRetry(API_CONFIG.endpoints.fetchChat, {
-          userId: user.id,
-          chatId: conversation.id,
-          sessionId: `session_${user.id}_${Date.now()}`
-        }, { maxRetries: 1 });
-
-        if (response.success && response.data) {
-          let messages = [];
-          
-          if (response.data.output) {
-            messages = [{
-              id: `history_${Date.now()}`,
-              text: response.data.output.trim(),
-              isUser: false,
-              timestamp: Date.now()
-            }];
-          } else if (response.data.messages) {
-            messages = response.data.messages.map(msg => ({
-              ...msg,
-              text: msg.text || msg.content || msg.message || ''
-            }));
-          }
-          
-          setActiveConversation({
-            ...conversation,
-            messages,
-            isEmpty: messages.length === 0
-          });
-        }
-      } catch (error) {
-        console.error('Fetch conversation error:', error);
-      }
-    }
-  };
-
-  // New conversation
-  const handleNewConversation = () => {
-    const emptySlot = conversations.find(conv => conv.isEmpty);
-    
-    if (emptySlot) {
-      setActiveConversation({
-        ...emptySlot,
-        messages: [],
-        isEmpty: true
+      requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
       });
-      setShowNewChat(false);
     }
-  };
+  }, [activeConversation?.messages?.length]);
 
-  // Send message
-  const handleSendMessage = async () => {
-    if (!message.trim() || !activeConversation || isSending) return;
+  // Debounced textarea resize
+  const handleTextareaResize = useCallback(() => {
+    if (resizeTimeoutRef.current) {
+      clearTimeout(resizeTimeoutRef.current);
+    }
+
+    resizeTimeoutRef.current = setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.style.height = '24px';
+        const scrollHeight = textareaRef.current.scrollHeight;
+        textareaRef.current.style.height = Math.min(scrollHeight, 200) + 'px';
+      }
+    }, 50);
+  }, []);
+
+  useEffect(() => {
+    handleTextareaResize();
+  }, [message, handleTextareaResize]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Create new conversation
+  const createNewConversation = useCallback(() => {
+    const newConv = {
+      id: `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      title: 'New chat',
+      messages: [],
+      timestamp: Date.now()
+    };
     
-    console.log('🚀 Sending message:', message.trim());
+    setConversations(prev => [newConv, ...prev]);
+    setActiveConversation(newConv);
+    setSidebarOpen(false);
+  }, []);
+
+  // Send message with optimizations
+  const handleSendMessage = useCallback(async () => {
+    const trimmedMessage = message.trim();
+    if (!trimmedMessage || isSending) return;
+
+    // Create new conversation if none exists
+    let currentConversation = activeConversation;
+    if (!currentConversation) {
+      const newConv = {
+        id: `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        title: trimmedMessage.substring(0, 30) + (trimmedMessage.length > 30 ? '...' : ''),
+        messages: [],
+        timestamp: Date.now()
+      };
+      setConversations(prev => [newConv, ...prev]);
+      setActiveConversation(newConv);
+      currentConversation = newConv;
+    }
+    
     setIsSending(true);
     setError(null);
+    setConnectionError(false);
 
     const userMessage = {
-      id: Date.now(),
-      text: message.trim(),
+      id: `msg_${Date.now()}_user`,
+      text: trimmedMessage,
       isUser: true,
       timestamp: Date.now()
     };
 
     const aiMessage = {
-      id: Date.now() + 1,
+      id: `msg_${Date.now()}_ai`,
       text: '',
       isUser: false,
       isThinking: true,
-      timestamp: new Date().toISOString()
+      timestamp: Date.now()
     };
 
-    setActiveConversation(prev => ({
-      ...prev,
-      messages: [...prev.messages, userMessage, aiMessage],
-      lastMessage: message.trim(),
-      isEmpty: false,
-      title: prev.isEmpty ? message.trim().substring(0, 30) + '...' : prev.title
-    }));
+    // Update conversation optimistically
+    const updatedConv = {
+      ...currentConversation,
+      messages: [...(currentConversation.messages || []), userMessage, aiMessage],
+      title: currentConversation.title === 'New chat' 
+        ? trimmedMessage.substring(0, 30) + (trimmedMessage.length > 30 ? '...' : '')
+        : currentConversation.title,
+      timestamp: Date.now()
+    };
 
-    // Update conversation list
-    setConversations(prev => prev.map(conv => 
-      conv.id === activeConversation.id 
-        ? { 
-            ...conv, 
-            title: conv.isEmpty ? message.trim().substring(0, 30) + '...' : conv.title,
-            lastMessage: message.trim(), 
-            timestamp: Date.now(),
-            isEmpty: false
-          }
-        : conv
-    ));
+    setActiveConversation(updatedConv);
+    setConversations(prev => 
+      prev.map(c => c.id === currentConversation.id ? updatedConv : c)
+    );
 
-    const messageToSend = message.trim();
+    // Clear input immediately for better UX
     setMessage('');
 
     try {
       const result = await sendRequestWithRetry(API_CONFIG.endpoints.chat, {
         userId: user.id,
-        userName: user.name || user.displayName || 'Unknown User',
-        message: messageToSend,
-        chatId: activeConversation.id,
+        userName: user.name || user.displayName,
+        message: trimmedMessage,
+        chatId: currentConversation.id,
         sessionId: `session_${user.id}_${Date.now()}`,
-        streamResponse: true
-      }, { maxRetries: API_CONFIG.chatMaxRetries });
+        timestamp: new Date().toISOString()
+      }, { maxRetries: 1, timeout: 30000 });
       
       if (result.success && result.data) {
-        const aiResponseText = result.data.response || "I apologize, but I couldn't process your request. Please try again.";
-
-        // Update AI message
-        setActiveConversation(prev => ({
-          ...prev,
-          messages: prev.messages.map(msg => 
+        // Handle both array and object responses
+        const responseData = Array.isArray(result.data) ? result.data[0] : result.data;
+        
+        if (!responseData) {
+          throw new Error('Empty response from server');
+        }
+        
+        const aiResponseText = responseData.response || 
+          responseData.message || 
+          responseData.text ||
+          "I'm processing your request. Let me help you transform your patterns into profits.";
+        
+        // Check if this might be a recovered error
+        const isRecovered = responseData.metadata?.recovered || 
+                          responseData.metadata?.fallback ||
+                          responseData.metadata?.tokensUsed === 0;
+        
+        const finalConv = {
+          ...updatedConv,
+          messages: updatedConv.messages.map(msg => 
             msg.id === aiMessage.id 
-              ? {
-                  ...msg,
-                  text: aiResponseText,
-                  isThinking: false
+              ? { 
+                  ...msg, 
+                  text: aiResponseText, 
+                  isThinking: false,
+                  isRecovered // Flag recovered messages
                 }
               : msg
           )
-        }));
+        };
+
+        setActiveConversation(finalConv);
+        setConversations(prev => 
+          prev.map(c => c.id === currentConversation.id ? finalConv : c)
+        );
         
-        console.log('✅ Message sent successfully');
+        // Log recovered errors for monitoring
+        if (isRecovered) {
+          console.warn('Recovered from AI error, used fallback response');
+        }
       } else {
-        throw new Error(result.error || 'Failed to get response');
+        throw new Error('Invalid response from server');
       }
-      
     } catch (error) {
-      console.error('❌ Message send failed:', error);
-      setError('Failed to send message. Please try again.');
+      console.error('Message send failed:', error);
+      setConnectionError(true);
+      setError('Connection issue. Check your internet and try again.');
       
-      // Remove failed message
-      setActiveConversation(prev => ({
-        ...prev,
-        messages: prev.messages.filter(msg => msg.id !== aiMessage.id)
-      }));
+      // Remove thinking message on error
+      const errorConv = {
+        ...updatedConv,
+        messages: updatedConv.messages.filter(m => m.id !== aiMessage.id)
+      };
+      setActiveConversation(errorConv);
+      setConversations(prev => 
+        prev.map(c => c.id === currentConversation.id ? errorConv : c)
+      );
     } finally {
       setIsSending(false);
     }
-  };
+  }, [message, activeConversation, isSending, user]);
 
-  // Clear conversation
-  const handleClearConversation = (conversationId) => {
-    const clearedConversation = {
-      ...conversations.find(c => c.id === conversationId),
-      title: 'New chat',
-      lastMessage: null,
-      timestamp: null,
-      messages: [],
-      isEmpty: true
-    };
-
-    setConversations(prev => prev.map(conv => 
-      conv.id === conversationId ? clearedConversation : conv
-    ));
-    
-    if (activeConversation?.id === conversationId) {
-      setActiveConversation(clearedConversation);
+  // Delete conversation
+  const deleteConversation = useCallback((convId, e) => {
+    e?.stopPropagation();
+    setConversations(prev => prev.filter(c => c.id !== convId));
+    if (activeConversation?.id === convId) {
+      setActiveConversation(null);
     }
-  };
+  }, [activeConversation]);
 
   return (
-    <div className="flex h-screen bg-white dark:bg-[#343541]">
-      {/* Sidebar - ChatGPT style */}
-      <div className="w-[260px] bg-[#f7f7f8] dark:bg-[#202123] flex flex-col">
+    <div className="flex h-screen bg-white">
+      {/* Mobile menu button */}
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="fixed top-4 left-4 z-50 p-2 rounded-md hover:bg-[#f7f7f8] md:hidden"
+        aria-label="Toggle menu"
+      >
+        {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
+      </button>
+
+      {/* Sidebar */}
+      <div
+        id="sidebar"
+        className={`${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } fixed md:relative md:translate-x-0 z-40 w-[260px] h-full bg-[#f7f7f8] transition-transform duration-200 ease-in-out flex flex-col`}
+      >
         {/* New chat button */}
-        <div className="p-2">
+        <div className="p-2 mt-14 md:mt-0">
           <button
-            onClick={handleNewConversation}
-            className="flex items-center gap-3 w-full rounded-md border border-[#e5e5e5] dark:border-white/20 px-3 py-3 text-sm text-[#202123] dark:text-white hover:bg-[#e5e5e5] dark:hover:bg-[#2a2a2b] transition-colors"
+            onClick={createNewConversation}
+            className="flex items-center gap-3 w-full rounded-md border border-[#e5e5e5] px-3 py-3 text-sm text-[#202123] hover:bg-[#e5e5e5] transition-colors"
           >
             <Plus size={16} />
             New chat
@@ -575,62 +484,44 @@ const ChatInterface = ({ user, onLogout }) => {
         {/* Conversations list */}
         <div className="flex-1 overflow-y-auto">
           <div className="px-2 pb-2">
-            {conversations.map((conv) => (
-              <button
-                key={conv.id}
-                onClick={() => handleConversationSwitch(conv)}
-                className={`group relative flex items-center gap-3 w-full rounded-md px-3 py-3 text-sm transition-colors ${
-                  activeConversation?.id === conv.id
-                    ? 'bg-[#e5e5e5] dark:bg-[#2a2a2b] text-[#202123] dark:text-white'
-                    : 'text-[#202123] dark:text-white hover:bg-[#e5e5e5] dark:hover:bg-[#2a2a2b]'
-                }`}
-              >
-                <MessageSquare size={16} />
-                <span className="flex-1 text-left truncate">
-                  {conv.isEmpty ? 'New chat' : conv.title}
-                </span>
-                {activeConversation?.id === conv.id && !conv.isEmpty && (
-                  <div className="absolute right-2 flex gap-1 opacity-0 group-hover:opacity-100">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Rename functionality can be added here
-                      }}
-                      className="p-1 hover:bg-[#d5d5d5] dark:hover:bg-[#353535] rounded"
-                    >
-                      <Edit3 size={14} />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleClearConversation(conv.id);
-                      }}
-                      className="p-1 hover:bg-[#d5d5d5] dark:hover:bg-[#353535] rounded"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                )}
-              </button>
-            ))}
+            {sortedConversations.length === 0 ? (
+              <div className="text-center text-[#6e6e80] text-sm mt-8 px-4">
+                Your transformation journey begins with your first conversation
+              </div>
+            ) : (
+              sortedConversations.map((conv) => (
+                <div
+                  key={conv.id}
+                  onClick={() => {
+                    setActiveConversation(conv);
+                    setSidebarOpen(false);
+                  }}
+                  className={`group relative flex items-center gap-3 w-full rounded-md px-3 py-3 text-sm transition-colors cursor-pointer ${
+                    activeConversation?.id === conv.id
+                      ? 'bg-[#e5e5e5]'
+                      : 'hover:bg-[#e5e5e5]'
+                  }`}
+                >
+                  <MessageSquare size={16} className="flex-shrink-0" />
+                  <span className="flex-1 text-left truncate">{conv.title}</span>
+                  <button
+                    onClick={(e) => deleteConversation(conv.id, e)}
+                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-[#d5d5d5] rounded transition-opacity"
+                    aria-label="Delete conversation"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
-        {/* Bottom section */}
-        <div className="border-t border-[#e5e5e5] dark:border-white/20 p-2 space-y-2">
-          {/* Theme toggle */}
-          <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className="flex items-center gap-3 w-full rounded-md px-3 py-3 text-sm text-[#202123] dark:text-white hover:bg-[#e5e5e5] dark:hover:bg-[#2a2a2b] transition-colors"
-          >
-            {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
-            {isDarkMode ? 'Light mode' : 'Dark mode'}
-          </button>
-          
-          {/* User section */}
+        {/* User section */}
+        <div className="border-t border-[#e5e5e5] p-2">
           <button
             onClick={onLogout}
-            className="flex items-center gap-3 w-full rounded-md px-3 py-3 text-sm text-[#202123] dark:text-white hover:bg-[#e5e5e5] dark:hover:bg-[#2a2a2b] transition-colors"
+            className="flex items-center gap-3 w-full rounded-md px-3 py-3 text-sm text-[#202123] hover:bg-[#e5e5e5] transition-colors"
           >
             <User size={16} />
             <span className="flex-1 text-left truncate">{user.email}</span>
@@ -639,26 +530,46 @@ const ChatInterface = ({ user, onLogout }) => {
         </div>
       </div>
 
+      {/* Overlay for mobile */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Main chat area */}
       <div className="flex-1 flex flex-col">
-        {/* Messages */}
+        {/* Mobile header */}
+        <div className="md:hidden border-b border-[#e5e5e5] px-4 py-3 text-center">
+          <h1 className="text-xl font-semibold text-[#202123]">
+            Celeste<span className="bg-gradient-to-r from-[#60A5FA] to-[#2563EB] bg-clip-text text-transparent">OS</span>
+          </h1>
+        </div>
+
+        {/* Messages area */}
         <div className="flex-1 overflow-y-auto">
-          {activeConversation?.messages?.length === 0 || activeConversation?.isEmpty ? (
-            <div className="h-full flex items-center justify-center">
-              <div className="text-center max-w-2xl mx-auto px-4">
-                <h1 className="text-4xl font-semibold text-[#202123] dark:text-white mb-8">
-                  CelesteOS
+          {!activeConversation || activeConversation.messages?.length === 0 ? (
+            <div className="h-full flex items-center justify-center p-4">
+              <div className="text-center max-w-2xl mx-auto">
+                <h1 className="text-3xl md:text-4xl font-semibold text-[#202123] mb-4">
+                  Celeste<span className="bg-gradient-to-r from-[#60A5FA] to-[#2563EB] bg-clip-text text-transparent">OS</span>
                 </h1>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <p className="text-[#6e6e80] mb-8">Your success inevitability engine</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
                   {[
-                    'How can I grow my business?',
-                    'Help me be more productive', 
-                    'I need creative ideas'
+                    'Show me my success patterns',
+                    'What\'s blocking my $10k month?',
+                    'Make my next move obvious'
                   ].map((prompt) => (
                     <button
                       key={prompt}
-                      onClick={() => setMessage(prompt)}
-                      className="p-4 rounded-md border border-[#e5e5e5] dark:border-[#40414f] text-sm text-[#202123] dark:text-white hover:bg-[#f7f7f8] dark:hover:bg-[#40414f] transition-colors text-left"
+                      onClick={() => {
+                        setMessage(prompt);
+                        textareaRef.current?.focus();
+                      }}
+                      className="p-4 rounded-md border border-[#e5e5e5] text-sm text-[#202123] hover:bg-[#f7f7f8] transition-colors text-left"
                     >
                       {prompt}
                     </button>
@@ -668,35 +579,31 @@ const ChatInterface = ({ user, onLogout }) => {
             </div>
           ) : (
             <div className="pb-32">
-              {activeConversation?.messages.map((msg, index) => (
+              {activeConversation.messages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`${
-                    msg.isUser 
-                      ? 'bg-white dark:bg-[#343541]' 
-                      : 'bg-[#f7f7f8] dark:bg-[#444654]'
-                  }`}
+                  className={msg.isUser ? 'bg-white' : 'bg-[#f7f7f8]'}
                 >
                   <div className="max-w-3xl mx-auto px-4 py-6">
-                    <div className="flex gap-4">
+                    <div className={`flex gap-4 ${msg.isUser ? 'flex-row-reverse' : 'flex-row'}`}>
                       <div className="flex-shrink-0">
-                        <div className={`w-8 h-8 rounded-sm flex items-center justify-center ${
+                        <div className={`w-8 h-8 rounded-sm flex items-center justify-center font-medium ${
                           msg.isUser 
-                            ? 'bg-purple-600 text-white' 
-                            : 'bg-[#10a37f] text-white'
+                            ? 'bg-white border border-[#e5e5e5] text-[#202123]' 
+                            : 'bg-[#2563EB] text-white'
                         }`}>
-                          {msg.isUser ? 'U' : 'C'}
+                          {msg.isUser ? user.name?.[0]?.toUpperCase() || 'U' : 'C'}
                         </div>
                       </div>
-                      <div className="flex-1 overflow-hidden">
+                      <div className={`flex-1 overflow-hidden ${msg.isUser ? 'text-right' : 'text-left'}`}>
                         {msg.isThinking ? (
-                          <div className="flex items-center gap-1 text-[#202123] dark:text-[#c5c5d2]">
-                            <div className="w-2 h-2 bg-[#10a37f] rounded-full animate-pulse" />
-                            <div className="w-2 h-2 bg-[#10a37f] rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
-                            <div className="w-2 h-2 bg-[#10a37f] rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+                          <div className="flex items-center gap-1 justify-start">
+                            <div className="w-2 h-2 bg-[#2563EB] rounded-full animate-pulse" />
+                            <div className="w-2 h-2 bg-[#2563EB] rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
+                            <div className="w-2 h-2 bg-[#2563EB] rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
                           </div>
                         ) : (
-                          <div className="prose prose-sm dark:prose-invert max-w-none">
+                          <div className={`prose prose-sm max-w-none ${msg.isUser ? '[&>*]:text-right' : '[&>*]:text-left'}`}>
                             <ReactMarkdown>{msg.text}</ReactMarkdown>
                           </div>
                         )}
@@ -710,22 +617,26 @@ const ChatInterface = ({ user, onLogout }) => {
           )}
         </div>
 
-        {/* Error display */}
-        {error && (
-          <div className="mx-auto max-w-3xl px-4 mb-4">
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-md">
-              <div className="font-medium">{error}</div>
-              <div className="text-sm mt-2">
-                Check browser console (F12) for detailed debugging information.
-              </div>
+        {/* Error message */}
+        {connectionError && (
+          <div className="mx-4 mb-2">
+            <div className="max-w-3xl mx-auto bg-red-50 border border-red-200 rounded-md p-3 flex items-center gap-2 text-sm text-red-700">
+              <AlertCircle size={16} />
+              <span>Connection issue. Your message wasn't sent.</span>
+              <button
+                onClick={() => setConnectionError(false)}
+                className="ml-auto text-red-500 hover:text-red-700"
+              >
+                <X size={16} />
+              </button>
             </div>
           </div>
         )}
 
         {/* Input area */}
-        <div className="absolute bottom-0 left-[260px] right-0 bg-gradient-to-t from-white dark:from-[#343541] pt-6">
-          <div className="mx-auto max-w-3xl px-4">
-            <div className="relative flex items-end gap-2 rounded-md border border-[#e5e5e5] dark:border-[#565869] bg-white dark:bg-[#40414f] shadow-sm">
+        <div className="border-t border-[#e5e5e5] bg-white p-4">
+          <div className="max-w-3xl mx-auto">
+            <div className="relative flex items-end gap-2 rounded-md border border-[#e5e5e5] bg-white shadow-sm">
               <textarea
                 ref={textareaRef}
                 value={message}
@@ -736,139 +647,50 @@ const ChatInterface = ({ user, onLogout }) => {
                     handleSendMessage();
                   }
                 }}
-                placeholder="Send a message..."
-                className="flex-1 resize-none bg-transparent px-4 py-3 text-[#202123] dark:text-white placeholder-[#6e6e80] dark:placeholder-[#8e8ea0] focus:outline-none min-h-[24px] max-h-[200px]"
-                style={{ height: '24px' }}
+                placeholder={activeConversation ? "Message CelesteOS..." : "Start your transformation..."}
+                className="flex-1 resize-none bg-transparent px-4 py-3 text-[#202123] placeholder-[#6e6e80] focus:outline-none min-h-[24px] max-h-[200px]"
+                rows={1}
+                disabled={isSending}
               />
               <button
                 onClick={handleSendMessage}
                 disabled={!message.trim() || isSending}
-                className="mb-3 mr-3 p-1 rounded-md text-[#6e6e80] dark:text-[#c5c5d2] hover:bg-[#e5e5e5] dark:hover:bg-[#565869] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="mb-3 mr-3 p-1.5 rounded-md text-white bg-gradient-to-r from-[#60A5FA] to-[#2563EB] disabled:opacity-40 disabled:cursor-not-allowed transition-opacity hover:opacity-90"
+                aria-label="Send message"
               >
                 <Send size={16} />
               </button>
             </div>
-            <p className="text-xs text-center text-[#6e6e80] dark:text-[#c5c5d2] py-2">
-              CelesteOS can make mistakes. Check important info.
-            </p>
           </div>
+          <p className="text-xs text-center text-[#6e6e80] mt-2">
+            CelesteOS transforms patterns into profits
+          </p>
         </div>
       </div>
-
-      <style>{`
-        /* ChatGPT font stack */
-        body {
-          font-family: Söhne, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-        }
-        
-        /* Custom scrollbar like ChatGPT */
-        ::-webkit-scrollbar {
-          width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-          background-color: #c5c5d2;
-          border-radius: 4px;
-        }
-        
-        .dark ::-webkit-scrollbar-thumb {
-          background-color: #565869;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-          background-color: #a0a0a0;
-        }
-        
-        .dark ::-webkit-scrollbar-thumb:hover {
-          background-color: #6e6e80;
-        }
-
-        /* Prose styling for markdown */
-        .prose pre {
-          background-color: #f7f7f8;
-          border: 1px solid #e5e5e5;
-        }
-        
-        .dark .prose pre {
-          background-color: #000;
-          border: 1px solid #565869;
-        }
-        
-        .prose code {
-          background-color: #f7f7f8;
-          padding: 0.125rem 0.25rem;
-          border-radius: 0.25rem;
-        }
-        
-        .dark .prose code {
-          background-color: #000;
-        }
-      `}</style>
     </div>
   );
 };
 
 // Main App Component
-const App = () => {
+const CelesteOSChat = () => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  useEffect(() => {
-    // Check for existing session
-    const savedUser = localStorage.getItem('celesteos_user');
-    const savedToken = localStorage.getItem('celesteos_token');
-    
-    if (savedUser && savedToken) {
-      try {
-        setUser(JSON.parse(savedUser));
-        setToken(savedToken);
-      } catch (error) {
-        console.error('Invalid saved session');
-        localStorage.removeItem('celesteos_user');
-        localStorage.removeItem('celesteos_token');
-      }
-    }
-    
-    setIsCheckingAuth(false);
-  }, []);
-
-  const handleLogin = (userData, authToken) => {
+  const handleLogin = useCallback((userData, authToken) => {
     setUser(userData);
     setToken(authToken);
-    localStorage.setItem('celesteos_user', JSON.stringify(userData));
-    localStorage.setItem('celesteos_token', authToken);
-    
-    // Generate session ID
-    const sessionId = `session_${userData.id}_${Date.now()}`;
-    sessionStorage.setItem('celesteos_session_id', sessionId);
-  };
+  }, []);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem('celesteos_user');
-    localStorage.removeItem('celesteos_token');
-    sessionStorage.removeItem('celesteos_session_id');
-  };
-
-  if (isCheckingAuth) {
-    return null; // Or minimal loading state
-  }
+  }, []);
 
   if (!user) {
     return <AuthScreen onLogin={handleLogin} />;
   }
 
-  return <ChatInterface user={user} onLogout={handleLogout} />;
+  return <ChatInterface user={user} token={token} onLogout={handleLogout} />;
 };
 
-// Export App as default
-export default App;
-
-// Also export components for backward compatibility
-export { AuthScreen, ChatInterface, App };
+export default CelesteOSChat;
