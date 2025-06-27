@@ -502,7 +502,12 @@ const ChatInterface = ({ user, onLogout }) => {
         
         // Update token limits if available in response metadata
         if (responseData.metadata?.limits) {
-          setTokenLimits(responseData.metadata.limits);
+          try {
+            setTokenLimits(responseData.metadata.limits);
+            console.log('Token limits updated:', responseData.metadata.limits);
+          } catch (error) {
+            console.warn('Failed to update token limits:', error);
+          }
         }
         
         if (isRecovered) {
