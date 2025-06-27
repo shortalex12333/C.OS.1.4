@@ -485,6 +485,11 @@ const ChatInterface = ({ user, onLogout }) => {
           prev.map(c => c.id === currentConversation.id ? finalConv : c)
         );
         
+        // Update token limits if available in response metadata
+        if (responseData.metadata?.limits) {
+          setTokenLimits(responseData.metadata.limits);
+        }
+        
         if (isRecovered) {
           console.warn('Recovered from AI error, used fallback response');
         }
