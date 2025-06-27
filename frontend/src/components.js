@@ -23,7 +23,8 @@ const API_CONFIG = {
     login: '/auth/login',
     logout: '/auth/logout',
     verifyToken: '/auth/verify-token',
-    signup: '/auth/signup'
+    signup: '/auth/signup',
+    confirm: '/auth/confirm'
   },
   timeout: 30000,
   maxRetries: 2,
