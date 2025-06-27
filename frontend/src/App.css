@@ -737,3 +737,48 @@ h1:has(.bg-gradient-to-r) {
 .auth-screen button:disabled {
   font-weight: 600 !important; /* Maintain button hierarchy even when disabled */
 }
+
+/* ========================================
+   TOKEN TRACKER COMPONENT
+   ======================================== */
+
+.token-tracker {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.usage-bar {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.usage-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+.token-tracker p {
+  margin: 0;
+  font-weight: 200; /* ExtraLight - de-emphasized metadata */
+}
+
+/* Dark mode support for token tracker */
+.dark .token-tracker {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+.dark .usage-bar {
+  background: #374151;
+}
+
+.dark .token-tracker p {
+  color: #9ca3af;
+}
