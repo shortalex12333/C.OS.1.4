@@ -867,6 +867,12 @@ div:has(> img[src*="avatars.githubusercontent.com/in/1201222"]) {
   color: #15803d;
 }
 
+.dark .confirmation-success {
+  background: #064e3b;
+  border-color: #059669;
+  color: #6ee7b7;
+}
+
 /* Error confirmation */
 .confirmation-error {
   background: #fef2f2;
@@ -874,9 +880,21 @@ div:has(> img[src*="avatars.githubusercontent.com/in/1201222"]) {
   color: #dc2626;
 }
 
+.dark .confirmation-error {
+  background: #7f1d1d;
+  border-color: #dc2626;
+  color: #fca5a5;
+}
+
 /* Loading confirmation */
 .confirmation-loading {
   background: #eff6ff;
   border-color: #3b82f6;
   color: #1d4ed8;
+}
+
+.dark .confirmation-loading {
+  background: #1e3a8a;
+  border-color: #3b82f6;
+  color: #93c5fd;
 }
