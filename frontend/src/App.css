@@ -1005,6 +1005,38 @@ div:has(> img[src*="avatars.githubusercontent.com/in/1201222"]) {
   background-color: #475569 !important;
 }
 
+/* Comprehensive dark mode text fix - catch all */
+.dark * {
+  color: #ffffff;
+}
+
+/* Restore gradient text transparency */
+.dark .bg-gradient-to-r.bg-clip-text,
+.dark .text-transparent {
+  color: transparent !important;
+}
+
+/* Restore button gradients */
+.dark .bg-gradient-to-r:not(.bg-clip-text) {
+  color: #ffffff !important;
+}
+
+/* Specific color overrides for branded elements */
+.dark .text-blue-600,
+.dark .text-blue-700 {
+  color: #60a5fa !important;
+}
+
+.dark .text-green-600,
+.dark .text-green-700 {
+  color: #4ade80 !important;
+}
+
+.dark .text-red-600,
+.dark .text-red-700 {
+  color: #f87171 !important;
+}
+
 /* ========================================
    EMAIL CONFIRMATION MESSAGES
    ======================================== */
