@@ -921,6 +921,90 @@ div:has(> img[src*="avatars.githubusercontent.com/in/1201222"]) {
   background-color: #334155 !important;
 }
 
+/* Main chat interface dark mode */
+.dark .min-h-screen {
+  background-color: #0f172a !important;
+}
+
+.dark .h-screen {
+  background-color: #0f172a !important;
+}
+
+/* CelesteOS branding in center */
+.dark h1:has(.bg-gradient-to-r) {
+  color: #ffffff !important;
+}
+
+/* Message content dark mode */
+.dark .message-content {
+  color: #e2e8f0 !important;
+}
+
+.dark .message-content * {
+  color: inherit !important;
+}
+
+/* Input areas */
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="password"],
+.dark textarea {
+  background-color: #334155 !important;
+  color: #ffffff !important;
+  border-color: #475569 !important;
+}
+
+.dark input[type="text"]:focus,
+.dark input[type="email"]:focus,
+.dark input[type="password"]:focus,
+.dark textarea:focus {
+  border-color: #60a5fa !important;
+  background-color: #1e293b !important;
+}
+
+/* Sidebar dark mode */
+.dark .w-\[260px\] {
+  background-color: #1e293b !important;
+}
+
+/* Button text in dark mode */
+.dark button {
+  color: inherit;
+}
+
+.dark button:not(.bg-gradient-to-r) {
+  color: #e2e8f0 !important;
+}
+
+/* Ensure all text elements are white in dark mode */
+.dark div,
+.dark span,
+.dark p,
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6 {
+  color: #ffffff;
+}
+
+/* Override for gradient text that should remain colored */
+.dark .bg-gradient-to-r.bg-clip-text {
+  color: transparent !important;
+}
+
+/* Fix for suggestion buttons */
+.dark .rounded-md.border {
+  background-color: #334155 !important;
+  border-color: #475569 !important;
+  color: #ffffff !important;
+}
+
+.dark .rounded-md.border:hover {
+  background-color: #475569 !important;
+}
+
 /* ========================================
    EMAIL CONFIRMATION MESSAGES
    ======================================== */
