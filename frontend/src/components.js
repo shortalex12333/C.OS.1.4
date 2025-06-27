@@ -25,8 +25,8 @@ const API_CONFIG = {
     verifyToken: '/auth/verify-token',
     signup: '/auth/signup'
   },
-  timeout: 30000, // Increased for production
-  maxRetries: 2, // Reduced retries
+  timeout: 30000,
+  maxRetries: 2,
   retryDelay: 1000
 };
 
@@ -72,7 +72,6 @@ const sendRequestWithRetry = async (endpoint, payload, options = {}) => {
     const url = `${API_CONFIG.baseUrl}${endpoint}`;
     let lastError;
     
-    // Reduce retries for chat endpoints
     const actualRetries = endpoint.includes('chat') ? 1 : maxRetries;
     
     for (let attempt = 0; attempt < actualRetries; attempt++) {
@@ -122,7 +121,7 @@ const sendRequestWithRetry = async (endpoint, payload, options = {}) => {
   });
 };
 
-// Auth Screen - Production Ready
+// Auth Screen Component
 const AuthScreen = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -142,7 +141,6 @@ const AuthScreen = ({ onLogin }) => {
       }, { maxRetries: 2 });
 
       if (result.success) {
-        // Handle both array and object responses
         const authData = Array.isArray(result.data) ? result.data[0] : result.data;
         
         if (authData?.user?.id && authData?.access_token) {
@@ -153,7 +151,6 @@ const AuthScreen = ({ onLogin }) => {
             displayName: authData.user.email.split('@')[0]
           };
           
-          // Store token in memory only (no localStorage)
           onLogin(userData, authData.access_token);
         } else {
           setError('Invalid response format');
@@ -172,7 +169,6 @@ const AuthScreen = ({ onLogin }) => {
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
-        {/* Logo with gradient OS */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-semibold text-[#202123]">
             Celeste<span className="bg-gradient-to-r from-[#60A5FA] to-[#2563EB] bg-clip-text text-transparent">OS</span>
@@ -227,8 +223,8 @@ const AuthScreen = ({ onLogin }) => {
   );
 };
 
-// Main Chat Interface - Optimized for Scale
-const ChatInterface = ({ user, token, onLogout }) => {
+// Chat Interface Component
+const ChatInterface = ({ user, onLogout }) => {
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
   const [message, setMessage] = useState('');
@@ -241,13 +237,14 @@ const ChatInterface = ({ user, token, onLogout }) => {
   const textareaRef = useRef(null);
   const resizeTimeoutRef = useRef(null);
 
-  // Memoized conversation list for performance
+  // Get session ID from sessionStorage
+  const sessionId = sessionStorage.getItem('celesteos_session_id');
+
   const sortedConversations = useMemo(() => 
     [...conversations].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)),
     [conversations]
   );
 
-  // Close sidebar on mobile when clicking outside
   useEffect(() => {
     if (!sidebarOpen) return;
 
@@ -263,7 +260,6 @@ const ChatInterface = ({ user, token, onLogout }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [sidebarOpen]);
 
-  // Auto scroll with performance optimization
   useEffect(() => {
     if (messagesEndRef.current) {
       requestAnimationFrame(() => {
@@ -272,7 +268,6 @@ const ChatInterface = ({ user, token, onLogout }) => {
     }
   }, [activeConversation?.messages?.length]);
 
-  // Debounced textarea resize
   const handleTextareaResize = useCallback(() => {
     if (resizeTimeoutRef.current) {
       clearTimeout(resizeTimeoutRef.current);
@@ -291,7 +286,6 @@ const ChatInterface = ({ user, token, onLogout }) => {
     handleTextareaResize();
   }, [message, handleTextareaResize]);
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (resizeTimeoutRef.current) {
@@ -300,7 +294,6 @@ const ChatInterface = ({ user, token, onLogout }) => {
     };
   }, []);
 
-  // Create new conversation
   const createNewConversation = useCallback(() => {
     const newConv = {
       id: `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -314,12 +307,10 @@ const ChatInterface = ({ user, token, onLogout }) => {
     setSidebarOpen(false);
   }, []);
 
-  // Send message with optimizations
   const handleSendMessage = useCallback(async () => {
     const trimmedMessage = message.trim();
     if (!trimmedMessage || isSending) return;
 
-    // Create new conversation if none exists
     let currentConversation = activeConversation;
     if (!currentConversation) {
       const newConv = {
@@ -352,7 +343,6 @@ const ChatInterface = ({ user, token, onLogout }) => {
       timestamp: Date.now()
     };
 
-    // Update conversation optimistically
     const updatedConv = {
       ...currentConversation,
       messages: [...(currentConversation.messages || []), userMessage, aiMessage],
@@ -367,7 +357,6 @@ const ChatInterface = ({ user, token, onLogout }) => {
       prev.map(c => c.id === currentConversation.id ? updatedConv : c)
     );
 
-    // Clear input immediately for better UX
     setMessage('');
 
     try {
@@ -376,11 +365,11 @@ const ChatInterface = ({ user, token, onLogout }) => {
         userName: user.name || user.displayName,
         message: trimmedMessage,
         chatId: currentConversation.id,
-        sessionId: `session_${user.id}_${Date.now()}`,
+        sessionId: sessionId || `session_${user.id}_${Date.now()}`,
         timestamp: new Date().toISOString()
       }, { maxRetries: 1, timeout: 30000 });
       
-      if (result.success && result.data) {
+      if (result.success) {
         // Handle both array and object responses
         const responseData = Array.isArray(result.data) ? result.data[0] : result.data;
         
@@ -393,7 +382,6 @@ const ChatInterface = ({ user, token, onLogout }) => {
           responseData.text ||
           "I'm processing your request. Let me help you transform your patterns into profits.";
         
-        // Check if this might be a recovered error
         const isRecovered = responseData.metadata?.recovered || 
                           responseData.metadata?.fallback ||
                           responseData.metadata?.tokensUsed === 0;
@@ -406,7 +394,7 @@ const ChatInterface = ({ user, token, onLogout }) => {
                   ...msg, 
                   text: aiResponseText, 
                   isThinking: false,
-                  isRecovered // Flag recovered messages
+                  isRecovered
                 }
               : msg
           )
@@ -417,7 +405,6 @@ const ChatInterface = ({ user, token, onLogout }) => {
           prev.map(c => c.id === currentConversation.id ? finalConv : c)
         );
         
-        // Log recovered errors for monitoring
         if (isRecovered) {
           console.warn('Recovered from AI error, used fallback response');
         }
@@ -429,7 +416,6 @@ const ChatInterface = ({ user, token, onLogout }) => {
       setConnectionError(true);
       setError('Connection issue. Check your internet and try again.');
       
-      // Remove thinking message on error
       const errorConv = {
         ...updatedConv,
         messages: updatedConv.messages.filter(m => m.id !== aiMessage.id)
@@ -441,9 +427,8 @@ const ChatInterface = ({ user, token, onLogout }) => {
     } finally {
       setIsSending(false);
     }
-  }, [message, activeConversation, isSending, user]);
+  }, [message, activeConversation, isSending, user, sessionId]);
 
-  // Delete conversation
   const deleteConversation = useCallback((convId, e) => {
     e?.stopPropagation();
     setConversations(prev => prev.filter(c => c.id !== convId));
@@ -454,7 +439,6 @@ const ChatInterface = ({ user, token, onLogout }) => {
 
   return (
     <div className="flex h-screen bg-white">
-      {/* Mobile menu button */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
         className="fixed top-4 left-4 z-50 p-2 rounded-md hover:bg-[#f7f7f8] md:hidden"
@@ -463,14 +447,12 @@ const ChatInterface = ({ user, token, onLogout }) => {
         {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
 
-      {/* Sidebar */}
       <div
         id="sidebar"
         className={`${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         } fixed md:relative md:translate-x-0 z-40 w-[260px] h-full bg-[#f7f7f8] transition-transform duration-200 ease-in-out flex flex-col`}
       >
-        {/* New chat button */}
         <div className="p-2 mt-14 md:mt-0">
           <button
             onClick={createNewConversation}
@@ -481,7 +463,6 @@ const ChatInterface = ({ user, token, onLogout }) => {
           </button>
         </div>
 
-        {/* Conversations list */}
         <div className="flex-1 overflow-y-auto">
           <div className="px-2 pb-2">
             {sortedConversations.length === 0 ? (
@@ -517,7 +498,6 @@ const ChatInterface = ({ user, token, onLogout }) => {
           </div>
         </div>
 
-        {/* User section */}
         <div className="border-t border-[#e5e5e5] p-2">
           <button
             onClick={onLogout}
@@ -530,7 +510,6 @@ const ChatInterface = ({ user, token, onLogout }) => {
         </div>
       </div>
 
-      {/* Overlay for mobile */}
       {sidebarOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
@@ -539,16 +518,13 @@ const ChatInterface = ({ user, token, onLogout }) => {
         />
       )}
 
-      {/* Main chat area */}
       <div className="flex-1 flex flex-col">
-        {/* Mobile header */}
         <div className="md:hidden border-b border-[#e5e5e5] px-4 py-3 text-center">
           <h1 className="text-xl font-semibold text-[#202123]">
             Celeste<span className="bg-gradient-to-r from-[#60A5FA] to-[#2563EB] bg-clip-text text-transparent">OS</span>
           </h1>
         </div>
 
-        {/* Messages area */}
         <div className="flex-1 overflow-y-auto">
           {!activeConversation || activeConversation.messages?.length === 0 ? (
             <div className="h-full flex items-center justify-center p-4">
@@ -617,7 +593,6 @@ const ChatInterface = ({ user, token, onLogout }) => {
           )}
         </div>
 
-        {/* Error message */}
         {connectionError && (
           <div className="mx-4 mb-2">
             <div className="max-w-3xl mx-auto bg-red-50 border border-red-200 rounded-md p-3 flex items-center gap-2 text-sm text-red-700">
@@ -633,7 +608,6 @@ const ChatInterface = ({ user, token, onLogout }) => {
           </div>
         )}
 
-        {/* Input area */}
         <div className="border-t border-[#e5e5e5] bg-white p-4">
           <div className="max-w-3xl mx-auto">
             <div className="relative flex items-end gap-2 rounded-md border border-[#e5e5e5] bg-white shadow-sm">
@@ -671,26 +645,10 @@ const ChatInterface = ({ user, token, onLogout }) => {
   );
 };
 
-// Main App Component
-const CelesteOSChat = () => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-
-  const handleLogin = useCallback((userData, authToken) => {
-    setUser(userData);
-    setToken(authToken);
-  }, []);
-
-  const handleLogout = useCallback(() => {
-    setUser(null);
-    setToken(null);
-  }, []);
-
-  if (!user) {
-    return <AuthScreen onLogin={handleLogin} />;
-  }
-
-  return <ChatInterface user={user} token={token} onLogout={handleLogout} />;
+// Export components in the format App.js expects
+const Components = {
+  AuthScreen,
+  ChatInterface
 };
 
-export default CelesteOSChat;
+export default Components;
