@@ -73,6 +73,11 @@ const MessageBubble = React.memo(({
                 {responseTime}ms
               </div>
             )}
+            {stage && (
+              <div className="text-xs text-gray-500 capitalize">
+                Stage: {stage}
+              </div>
+            )}
           </div>
         )}
         <div 
