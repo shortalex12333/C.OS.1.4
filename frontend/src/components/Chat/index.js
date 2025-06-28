@@ -105,6 +105,19 @@ const ChatComponent = ({
     };
   }, []);
   
+  // Initialize session and chat IDs
+  useEffect(() => {
+    // Generate chat ID if not exists
+    if (!sessionStorage.getItem('celesteos_chat_id')) {
+      sessionStorage.setItem('celesteos_chat_id', `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+    }
+    
+    // Generate session ID if not exists  
+    if (!sessionStorage.getItem('celesteos_session_id')) {
+      sessionStorage.setItem('celesteos_session_id', `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+    }
+  }, []);
+  
   // Load conversation from sessionStorage
   useEffect(() => {
     const savedMessages = sessionStorage.getItem('celesteos_chat_messages');
