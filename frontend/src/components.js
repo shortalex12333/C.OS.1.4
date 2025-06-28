@@ -22,6 +22,7 @@ import {
 import ReactMarkdown from 'react-markdown';
 import { cacheService } from './services/cacheService';
 import UserProfilePanel from './components/UserProfilePanel';
+import DebugPanel from './components/DebugPanel';
 
 // API Configuration - FIXED PATHS (Task 2)
 const API_CONFIG = {
