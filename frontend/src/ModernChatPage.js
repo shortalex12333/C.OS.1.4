@@ -1,37 +1,49 @@
 import React from 'react';
 import ChatComponent from './components/Chat';
+import { WEBHOOK_URLS } from './config/webhookConfig';
 
-// Example of how to integrate the new modular chat component
 const ModernChatPage = ({ user, onLogout }) => {
-  return (
-    <div className="h-screen flex flex-col">
-      {/* Optional: Add a top bar with logout */}
-      <div className="bg-white border-b border-gray-200 px-4 py-2 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <img 
-            src="/api/placeholder/32/32" 
-            alt="User" 
-            className="w-8 h-8 rounded-full"
-          />
-          <span className="text-sm font-medium text-gray-700">
-            {user?.name || user?.email}
-          </span>
-        </div>
-        {onLogout && (
-          <button
-            onClick={onLogout}
-            className="text-sm text-gray-500 hover:text-gray-700 transition-colors px-3 py-1 rounded hover:bg-gray-100"
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Please log in to access the chat</h1>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
-            Logout
+            Refresh Page
           </button>
-        )}
+        </div>
       </div>
-      
-      {/* The new modular chat component */}
-      <div className="flex-1">
+    );
+  }
+
+  return (
+    <div className="h-screen bg-gray-900">
+      <div className="h-full flex flex-col">
+        {/* Header */}
+        <div className="bg-gray-800 border-b border-gray-700 p-4">
+          <div className="flex justify-between items-center">
+            <h1 className="text-xl font-bold text-white">
+              Celeste<span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">OS</span>
+            </h1>
+            <div className="flex items-center gap-4">
+              <span className="text-gray-300">{user.email}</span>
+              <button 
+                onClick={onLogout}
+                className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        {/* Chat Interface */}
         <ChatComponent 
           user={user}
-          apiEndpoint="https://api.celeste7.ai/webhook/text-chat-fast"
+          apiEndpoint={WEBHOOK_URLS.TEXT_CHAT_FAST}
           maxMessages={200}
         />
       </div>
