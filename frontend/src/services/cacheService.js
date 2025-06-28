@@ -17,20 +17,22 @@ class CacheService {
   async getCachedData(userId, table, useCache = true, options = {}) {
     const cacheKey = `${userId}_${table}`;
     const now = Date.now();
+    this.requestCount++; // Track requests
     
     // Check local session cache first (for very fast access)
     if (useCache && this.cache.has(cacheKey)) {
       const cached = this.cache.get(cacheKey);
       if (now - cached.timestamp < this.cacheTTL) {
-        console.log(`📱 Local cache hit for ${table}`);
+        console.log(`📱 Local cache hit for ${table} (Request #${this.requestCount})`);
         return cached.data;
       }
     }
 
     try {
-      console.log(`🔄 Fetching from Redis cache: ${table}`);
+      console.log(`🔄 Fetching from Redis cache: ${table} (Request #${this.requestCount})`);
       const startTime = Date.now();
       
+      // FIXED: Correct endpoint path /get-data (Task 2)
       const response = await fetch(`${CACHE_WEBHOOK_BASE}/get-data`, {
         method: 'POST',
         headers: {
@@ -48,7 +50,7 @@ class CacheService {
       });
       
       const responseTime = Date.now() - startTime;
-      console.log(`⚡ Cache response time: ${responseTime}ms for ${table}`);
+      console.log(`⚡ Cache response time: ${responseTime}ms for ${table} (Request #${this.requestCount})`);
       
       if (!response.ok) {
         throw new Error(`Cache fetch failed: HTTP ${response.status}`);
@@ -66,7 +68,7 @@ class CacheService {
       
       return data;
     } catch (error) {
-      console.error(`❌ Cache error for ${table}:`, error);
+      console.error(`❌ Cache error for ${table} (Request #${this.requestCount}):`, error);
       
       // Remove failed cache entry
       this.cache.delete(cacheKey);
