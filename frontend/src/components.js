@@ -1349,7 +1349,7 @@ const ChatInterface = ({ user, onLogout }) => {
         </div>
 
         {/* Messages container */}
-        <div className={`flex-1 overflow-y-auto ${isDarkMode ? 'bg-[#000000]' : 'bg-white'}`}>
+        <div className={`flex-1 overflow-y-auto ${isDarkMode ? 'bg-[#242424]' : 'bg-white'}`}>
           {!activeConversation || activeConversation.messages?.length === 0 ? (
             <div className="h-full flex items-center justify-center p-4">
               <div className="text-center max-w-2xl mx-auto">
@@ -1371,7 +1371,7 @@ const ChatInterface = ({ user, onLogout }) => {
                       }}
                       className={`p-4 rounded-md border text-sm transition-colors text-left ${
                         isDarkMode 
-                          ? 'border-[#444654] text-white hover:bg-[#181818]'
+                          ? 'border-[#444654] text-white hover:bg-[#000000]'
                           : 'border-[#e5e5e5] text-[#202123] hover:bg-[#f7f7f8]'
                       }`}
                     >
@@ -1392,8 +1392,8 @@ const ChatInterface = ({ user, onLogout }) => {
                     key={msg.id}
                     className={`group py-6 ${
                       msg.isUser 
-                        ? (isDarkMode ? 'bg-[#000000]' : 'bg-white')
-                        : (isDarkMode ? 'bg-[#000000]' : 'bg-[#f7f7f8]')
+                        ? (isDarkMode ? 'bg-[#242424]' : 'bg-white')
+                        : (isDarkMode ? 'bg-[#242424]' : 'bg-[#f7f7f8]')
                     }`}
                   >
                     <div className="max-w-4xl mx-auto px-4">
@@ -1417,7 +1417,9 @@ const ChatInterface = ({ user, onLogout }) => {
                                 px-4 py-3 rounded-lg
                                 ${msg.isUser 
                                   ? 'bg-[#2563eb] text-white rounded-tr-sm ml-auto'
-                                  : `${isDarkMode ? 'bg-[#181818] border-[#333] text-white' : 'bg-white border-[#e5e5e5] text-[#202123]'} border rounded-tl-sm`
+                                  : isDarkMode 
+                                    ? 'bg-[#000000] border-[#000000] text-white border rounded-tl-sm'
+                                    : 'bg-[#ffffff] border-[#ffffff] text-[#202123] border rounded-tl-sm'
                                 }
                               `}
                               style={!msg.isUser ? getCategoryStyles(msg.category) : {}}
