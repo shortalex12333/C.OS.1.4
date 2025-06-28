@@ -115,7 +115,7 @@ def test_cors_configuration():
         
         assert response.status_code == 200, f"Expected status code 200, got {response.status_code}"
         assert "access-control-allow-origin" in response.headers, "Response does not contain 'Access-Control-Allow-Origin' header"
-        assert response.headers["access-control-allow-origin"] == "*", f"Expected 'Access-Control-Allow-Origin: *', got {response.headers['access-control-allow-origin']}"
+        assert response.headers["access-control-allow-origin"] == "http://example.com", f"Expected 'Access-Control-Allow-Origin: http://example.com', got {response.headers['access-control-allow-origin']}"
         assert "access-control-allow-methods" in response.headers, "Response does not contain 'Access-Control-Allow-Methods' header"
         assert "access-control-allow-headers" in response.headers, "Response does not contain 'Access-Control-Allow-Headers' header"
         
