@@ -1,13 +1,13 @@
 import React from 'react';
 import ModernChatInterface from './ModernChatInterface';
+import { WEBHOOK_URLS } from './config/webhookConfig';
 
-// Example integration component
-const ChatPage = ({ user }) => {
+const ChatPage = ({ user, onLogout }) => {
   return (
-    <div className="modern-chat">
+    <div className="h-screen">
       <ModernChatInterface 
         user={user}
-        apiEndpoint="https://api.celeste7.ai/webhook/text-chat-fast"
+        apiEndpoint={WEBHOOK_URLS.TEXT_CHAT_FAST}
       />
     </div>
   );
