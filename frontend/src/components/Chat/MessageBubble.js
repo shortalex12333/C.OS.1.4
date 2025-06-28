@@ -12,24 +12,37 @@ const categoryIcons = {
   general: Zap
 };
 
-// Message formatting utilities
+// Enhanced message formatting utilities
 const formatMessage = (text) => {
   if (!text) return '';
+  
+  // Handle code blocks first (before other formatting)
+  text = text.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+  text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
   
   // Handle bold text **text**
   text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   
-  // Handle bullet points
-  text = text.replace(/^[\s]*[-•*]\s+(.+)$/gm, '<li>$1</li>');
-  text = text.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+  // Handle italic text *text*
+  text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
   
-  // Handle code blocks
-  text = text.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
-  text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+  // Handle numbered lists (1. 2. 3.)
+  text = text.replace(/^[\s]*(\d+)\.\s+(.+)$/gm, '<li data-number="$1">$2</li>');
+  text = text.replace(/(<li data-number="[^"]+">.*<\/li>)/s, '<ol>$1</ol>');
   
-  // Break long paragraphs
+  // Handle bullet points (- or •)
+  text = text.replace(/^[\s]*[-•]\s+(.+)$/gm, '<li>$1</li>');
+  text = text.replace(/(<li>(?:(?!<li>)[\s\S])*<\/li>)/g, '<ul>$1</ul>');
+  
+  // Handle links [text](url)
+  text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  
+  // Handle line breaks (double newline to paragraph)
   text = text.replace(/\n\n/g, '</p><p>');
   text = `<p>${text}</p>`;
+  
+  // Clean up empty paragraphs
+  text = text.replace(/<p><\/p>/g, '');
   
   return text;
 };
