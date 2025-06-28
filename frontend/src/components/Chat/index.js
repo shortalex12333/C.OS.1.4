@@ -263,7 +263,51 @@ const ChatComponent = ({
         }
         
       } else {
-        throw new Error(data.error || 'Failed to get response');
+        // Handle new API error response format
+        if (!data.success && data.response) {
+          // Token limit errors
+          if (data.error?.type?.includes('limit_exceeded')) {
+            const errorDetails = data.error.details;
+            const limitType = errorDetails?.limitType || 'token';
+            const resetTime = errorDetails?.resetFormatted || 'soon';
+            const minutesUntilReset = errorDetails?.minutesUntilReset;
+            
+            let errorMessage = data.response; // Use the formatted response message
+            if (minutesUntilReset) {
+              errorMessage += ` (${minutesUntilReset} minutes remaining)`;
+            }
+            
+            setError(errorMessage);
+            setRetryMessage(messageText);
+            
+            // Update token stats with limit info
+            if (data.error.limits) {
+              setTokenStats(prev => ({
+                ...prev,
+                hourly: data.error.limits.hourly,
+                daily: data.error.limits.daily,
+                monthly: data.error.limits.monthly
+              }));
+            }
+            return;
+          }
+          
+          // System errors (high demand, rate limited, etc.)
+          if (data.error?.type) {
+            setError(data.response); // Use the formatted response message
+            setRetryMessage(messageText);
+            
+            // Handle retryAfter for system errors
+            if (data.error.retryAfter) {
+              setTimeout(() => {
+                setError(null);
+              }, data.error.retryAfter * 1000);
+            }
+            return;
+          }
+        }
+        
+        throw new Error(data.error?.details?.message || data.response || 'Failed to get response');
       }
       
     } catch (err) {
