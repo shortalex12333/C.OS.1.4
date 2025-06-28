@@ -15,6 +15,11 @@ function App() {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Check for debug route
+  if (window.location.pathname === '/webhook-debug') {
+    return <WebhookDebugPage />;
+  }
+
   // Check for existing session on app load
   useEffect(() => {
     const checkSession = async () => {
