@@ -1110,11 +1110,16 @@ const ChatInterface = ({ user, onLogout }) => {
 
   const deleteConversation = useCallback((convId, e) => {
     e?.stopPropagation();
-    setConversations(prev => prev.filter(c => c.id !== convId));
+    const updatedConversations = conversations.filter(c => c.id !== convId);
+    setConversations(updatedConversations);
+    
     if (activeConversation?.id === convId) {
       setActiveConversation(null);
     }
-  }, [activeConversation]);
+    
+    // Save to cache/storage
+    saveConversations(updatedConversations);
+  }, [conversations, activeConversation, saveConversations]);
 
   return (
     <div className={`flex h-screen ${isDarkMode ? 'dark bg-[#343541]' : 'bg-white'}`}>
