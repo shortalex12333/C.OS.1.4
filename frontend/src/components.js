@@ -1224,6 +1224,13 @@ const ChatInterface = ({ user, onLogout }) => {
           {/* User section */}
           <div className="p-2 pt-0">
             <button
+              onClick={() => setShowProfilePanel(true)}
+              className="flex items-center gap-3 w-full rounded-md px-3 py-3 text-sm text-[#202123] hover:bg-[#e5e5e5] transition-colors mb-2"
+            >
+              <Settings size={16} />
+              <span className="flex-1 text-left">Profile & Data</span>
+            </button>
+            <button
               onClick={onLogout}
               className="flex items-center gap-3 w-full rounded-md px-3 py-3 text-sm text-[#202123] hover:bg-[#e5e5e5] transition-colors"
             >
