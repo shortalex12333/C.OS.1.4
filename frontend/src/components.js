@@ -10,7 +10,13 @@ import {
   LogOut,
   AlertCircle,
   Sun,
-  Moon
+  Moon,
+  Copy,
+  RefreshCw,
+  Edit3,
+  StopCircle,
+  Check,
+  Clock
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
