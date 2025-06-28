@@ -16,10 +16,12 @@ import {
   Edit3,
   StopCircle,
   Check,
-  Clock
+  Clock,
+  Settings
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { cacheService } from './services/cacheService';
+import UserProfilePanel from './components/UserProfilePanel';
 
 // API Configuration
 const API_CONFIG = {
