@@ -1526,11 +1526,11 @@ const ChatInterface = ({ user, onLogout }) => {
         )}
 
         {/* Input area */}
-        <div className={`border-t p-4 ${isDarkMode ? 'bg-[#343541] border-[#444654]' : 'bg-white border-[#e5e5e5]'}`}>
+        <div className={`border-t p-4 ${isDarkMode ? 'bg-[#242424] border-[#444654]' : 'bg-white border-[#e5e5e5]'}`}>
           <div className="max-w-4xl mx-auto">
             <div className={`relative flex items-end gap-2 rounded-lg border shadow-sm focus-within:ring-1 focus-within:ring-[#2563EB] ${
               isDarkMode 
-                ? 'border-[#555] bg-[#444654] focus-within:border-[#2563EB]'
+                ? 'border-[#555] bg-[#242424] focus-within:border-[#2563EB]'
                 : 'border-[#e5e5e5] bg-white focus-within:border-[#2563EB]'
             }`}>
               <textarea
@@ -1586,7 +1586,7 @@ const ChatInterface = ({ user, onLogout }) => {
             </div>
             
             {editingMessage && (
-              <div className={`mt-2 flex items-center gap-2 text-sm ${isDarkMode ? 'text-[#d1d5db]' : 'text-[#6e6e80]'}`}>
+              <div className={`mt-2 flex items-center gap-2 text-sm ${isDarkMode ? 'text-white' : 'text-[#6e6e80]'}`}>
                 <Edit3 size={14} />
                 <span>Editing message</span>
                 <button
@@ -1601,7 +1601,7 @@ const ChatInterface = ({ user, onLogout }) => {
               </div>
             )}
           </div>
-          <p className={`text-xs text-center mt-2 max-w-4xl mx-auto ${isDarkMode ? 'text-[#888]' : 'text-[#6e6e80]'}`}>
+          <p className={`text-xs text-center mt-2 max-w-4xl mx-auto ${isDarkMode ? 'text-white' : 'text-[#6e6e80]'}`}>
             CelesteOS transforms patterns into profits • {tokensRemaining.toLocaleString()} tokens remaining
           </p>
         </div>
