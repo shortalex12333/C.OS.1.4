@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { AlertCircle, RefreshCw, Zap } from 'lucide-react';
+import { WEBHOOK_URLS } from '../../config/webhookConfig';
 
 import ErrorBoundary from './ErrorBoundary';
 import Header from './Header';
