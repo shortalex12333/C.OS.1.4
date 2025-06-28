@@ -174,12 +174,14 @@ class CacheService {
     return this.getUserDashboardData(userId, false);
   }
 
-  // Get cache statistics
+  // Get cache statistics with request count
   getCacheStats() {
     return {
       entriesCount: this.cache.size,
       entries: Array.from(this.cache.keys()),
-      cacheHitRate: this.calculateHitRate()
+      cacheHitRate: this.calculateHitRate(),
+      totalRequests: this.requestCount,
+      getDataCalls: this.requestCount // Most calls are get-data
     };
   }
 
