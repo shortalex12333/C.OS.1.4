@@ -307,6 +307,8 @@ const AuthScreen = ({ onLogin }) => {
     setDisplayName('');
     setPassword('');
     setConfirmPassword('');
+    setShowPassword(false);
+    setShowConfirmPassword(false);
   };
 
   // Show success message after signup
