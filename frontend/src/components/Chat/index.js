@@ -206,13 +206,11 @@ const ChatComponent = ({
           'Accept': 'application/json',
         },
         body: JSON.stringify({
+          userId: user?.id || 'guest_user_' + Date.now(),
           message: messageText,
-          userId: user?.id,
-          sessionId: sessionStorage.getItem('celesteos_session_id'),
-          conversationHistory: messages.slice(-10).map(msg => ({
-            role: msg.isUser ? 'user' : 'assistant',
-            content: msg.text
-          }))
+          chatId: sessionStorage.getItem('celesteos_chat_id') || `chat_${Date.now()}`,
+          sessionId: sessionStorage.getItem('celesteos_session_id') || `session_${Date.now()}`,
+          userName: user?.displayName || user?.name || user?.email?.split('@')[0] || 'User'
         }),
         signal: abortControllerRef.current.signal
       });
