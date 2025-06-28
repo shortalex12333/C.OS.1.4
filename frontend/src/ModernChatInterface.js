@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Send, AlertCircle, RefreshCw, DollarSign, TrendingUp, Target, Users, BarChart3, Zap } from 'lucide-react';
+import { WEBHOOK_URLS } from './config/webhookConfig';
 
 // Category icons mapping
 const categoryIcons = {
