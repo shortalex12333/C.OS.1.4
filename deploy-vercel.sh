@@ -17,22 +17,25 @@ if ! command -v vercel &> /dev/null; then
     npm install -g vercel
 fi
 
-# Navigate to frontend directory
+# Navigate to frontend directory and test build
 cd frontend
 
 # Install dependencies
 echo "📦 Installing frontend dependencies..."
-yarn install
+npm install
 
 # Build the project
 echo "🔨 Building frontend for production..."
-yarn build
+npm run build
 
 # Check if build was successful
 if [ ! -d "build" ]; then
     echo "❌ Build failed! Please check the build logs."
     exit 1
 fi
+
+echo "✅ Build successful! Checking build output..."
+ls -la build/
 
 # Go back to root
 cd ..
@@ -41,6 +44,7 @@ cd ..
 echo "🚀 Deploying to Vercel..."
 vercel --prod
 
+echo ""
 echo "✅ Deployment complete!"
 echo ""
 echo "📋 Next Steps:"
