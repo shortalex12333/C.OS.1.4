@@ -23,7 +23,7 @@ import ReactMarkdown from 'react-markdown';
 import { cacheService } from './services/cacheService';
 import UserProfilePanel from './components/UserProfilePanel';
 
-// API Configuration
+// API Configuration - FIXED PATHS (Task 2)
 const API_CONFIG = {
   baseUrl: 'https://api.celeste7.ai/webhook',
   endpoints: {
@@ -32,9 +32,10 @@ const API_CONFIG = {
     fetchConversations: '/fetch-conversations',
     auth: '/auth',
     login: '/auth/login',
-    logout: '/auth/logout',
-    verifyToken: '/auth/verify-token',
-    signup: '/auth-signup'
+    logout: '/auth/logout',  // FIXED: was auth-logout
+    verifyToken: '/auth/verify-token',  // FIXED: was auth/verify-token
+    signup: '/auth-signup',
+    getData: '/get-data'  // ADDED: This was missing and called 78 times!
   },
   timeout: 30000,
   maxRetries: 2,
