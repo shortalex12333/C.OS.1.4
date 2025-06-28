@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AlertCircle, CheckCircle, XCircle, RefreshCw, Copy, Download } from 'lucide-react';
+import { WEBHOOK_BASE_URL, WEBHOOK_URLS } from '../config/webhookConfig';
 
-// Webhook Debug Component - Task 1
+// Webhook Debug Component - UPDATED to use hardcoded WEBHOOK_BASE_URL
 const WebhookDebugger = () => {
   const [logs, setLogs] = useState([]);
   const [isIntercepting, setIsIntercepting] = useState(true);
@@ -12,7 +13,7 @@ const WebhookDebugger = () => {
   // Store original fetch function
   const originalFetch = window.fetch;
 
-  // Debug fetch wrapper - Task 5
+  // Debug fetch wrapper
   const debugFetch = useCallback(async (url, options) => {
     const timestamp = new Date().toISOString();
     const logId = Date.now() + Math.random();
@@ -82,7 +83,7 @@ const WebhookDebugger = () => {
     };
   }, [isIntercepting, debugFetch, originalFetch]);
 
-  // Webhook Health Check - Task 3
+  // Webhook Health Check - Uses hardcoded WEBHOOK_URLS
   const testAllWebhooks = useCallback(async () => {
     setIsRunningTests(true);
     setTestResults({});
@@ -90,42 +91,42 @@ const WebhookDebugger = () => {
     const webhooks = [
       { 
         name: 'Auth Login',
-        url: 'https://api.celeste7.ai/webhook/auth/login', 
+        url: WEBHOOK_URLS.AUTH_LOGIN, 
         body: { email: 'test@test.com', password: 'test123' } 
       },
       { 
         name: 'Auth Signup',
-        url: 'https://api.celeste7.ai/webhook/auth-signup', 
+        url: WEBHOOK_URLS.AUTH_SIGNUP, 
         body: { email: 'test@test.com', password: 'test123', displayName: 'Test User' } 
       },
       { 
         name: 'Auth Logout',
-        url: 'https://api.celeste7.ai/webhook/auth/logout', 
+        url: WEBHOOK_URLS.AUTH_LOGOUT, 
         body: { token: 'test-token' } 
       },
       { 
         name: 'Auth Verify Token',
-        url: 'https://api.celeste7.ai/webhook/auth/verify-token', 
+        url: WEBHOOK_URLS.AUTH_VERIFY_TOKEN, 
         body: { token: 'test-token' } 
       },
       { 
         name: 'Text Chat Fast',
-        url: 'https://api.celeste7.ai/webhook/text-chat-fast', 
+        url: WEBHOOK_URLS.TEXT_CHAT_FAST, 
         body: { message: 'test', userId: 'test', sessionId: 'test-session' } 
       },
       { 
         name: 'Get Data',
-        url: 'https://api.celeste7.ai/webhook/get-data', 
+        url: WEBHOOK_URLS.GET_DATA, 
         body: { userId: 'test', table: 'user_personalization' } 
       },
       { 
         name: 'Fetch Chat',
-        url: 'https://api.celeste7.ai/webhook/fetch-chat', 
+        url: WEBHOOK_URLS.FETCH_CHAT, 
         body: { chatId: 'test-chat', userId: 'test' } 
       },
       { 
         name: 'Fetch Conversations',
-        url: 'https://api.celeste7.ai/webhook/fetch-conversations', 
+        url: WEBHOOK_URLS.FETCH_CONVERSATIONS, 
         body: { userId: 'test' } 
       }
     ];
@@ -155,7 +156,8 @@ const WebhookDebugger = () => {
           responseTime: `${responseTime}ms`,
           success: response.ok,
           data: data,
-          error: null
+          error: null,
+          url: webhook.url
         };
       } catch (error) {
         results[webhook.name] = {
@@ -164,7 +166,8 @@ const WebhookDebugger = () => {
           responseTime: 'N/A',
           success: false,
           data: null,
-          error: error.message
+          error: error.message,
+          url: webhook.url
         };
       }
     }
@@ -208,6 +211,15 @@ const WebhookDebugger = () => {
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Webhook Debugger</h1>
+          
+          {/* Base URL Display */}
+          <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-blue-800">Base URL:</span>
+              <code className="bg-blue-100 px-2 py-1 rounded text-blue-900">{WEBHOOK_BASE_URL}</code>
+              <span className="text-xs text-blue-600">(HARDCODED - Never dynamic)</span>
+            </div>
+          </div>
           
           {/* Controls */}
           <div className="flex flex-wrap gap-4 mb-6">
@@ -259,14 +271,14 @@ const WebhookDebugger = () => {
             </button>
           </div>
 
-          {/* Current Request Format Documentation - Task 4 */}
+          {/* Current Request Format Documentation */}
           <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-            <h3 className="text-lg font-semibold mb-2">Current Request Formats:</h3>
+            <h3 className="text-lg font-semibold mb-2">Current Request Formats (Using {WEBHOOK_BASE_URL}):</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
                 <h4 className="font-medium">Auth Login:</h4>
                 <pre className="bg-white p-2 rounded text-xs overflow-x-auto">
-{`URL: /webhook/auth/login
+{`URL: ${WEBHOOK_URLS.AUTH_LOGIN}
 Body: {
   email: string,
   password: string
@@ -281,7 +293,7 @@ Headers: {
               <div>
                 <h4 className="font-medium">Text Chat:</h4>
                 <pre className="bg-white p-2 rounded text-xs overflow-x-auto">
-{`URL: /webhook/text-chat-fast
+{`URL: ${WEBHOOK_URLS.TEXT_CHAT_FAST}
 Body: {
   userId: string,
   userName: string,
@@ -296,7 +308,7 @@ Body: {
               <div>
                 <h4 className="font-medium">Get Data (Cache):</h4>
                 <pre className="bg-white p-2 rounded text-xs overflow-x-auto">
-{`URL: /webhook/get-data
+{`URL: ${WEBHOOK_URLS.GET_DATA}
 Body: {
   userId: string,
   table: string,
@@ -309,7 +321,7 @@ Note: Called 78+ times!`}
               <div>
                 <h4 className="font-medium">Auth Signup:</h4>
                 <pre className="bg-white p-2 rounded text-xs overflow-x-auto">
-{`URL: /webhook/auth-signup
+{`URL: ${WEBHOOK_URLS.AUTH_SIGNUP}
 Body: {
   displayName: string,
   email: string,
@@ -341,6 +353,7 @@ Body: {
                       Status: {result.status} {result.statusText}
                     </div>
                     <div>Response Time: {result.responseTime}</div>
+                    <div className="text-xs text-gray-500 break-all">URL: {result.url}</div>
                     {result.error && (
                       <div className="text-red-600 text-xs">Error: {result.error}</div>
                     )}

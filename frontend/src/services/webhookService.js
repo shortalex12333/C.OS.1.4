@@ -1,5 +1,8 @@
-// Enhanced Webhook Service with Debugging and Emergency Fallback - Task 6
+// Enhanced Webhook Service with Debugging and Emergency Fallback
+// UPDATED: Uses hardcoded WEBHOOK_BASE_URL - NEVER dynamic URLs
+
 import { cacheService } from './cacheService';
+import { WEBHOOK_BASE_URL, WEBHOOK_CONFIG } from '../config/webhookConfig';
 
 // Emergency fallback mode toggle
 const WEBHOOK_DEBUG_MODE = process.env.NODE_ENV === 'development' || localStorage.getItem('webhook_debug_mode') === 'true';
@@ -43,7 +46,8 @@ const MOCK_DATA = {
 
 class WebhookService {
   constructor() {
-    this.baseUrl = 'https://api.celeste7.ai/webhook';
+    // CRITICAL: Always use WEBHOOK_BASE_URL - NEVER dynamic URLs
+    this.baseUrl = WEBHOOK_BASE_URL;
     this.requestQueue = [];
     this.isOnline = true;
     this.failureCount = 0;
@@ -52,7 +56,8 @@ class WebhookService {
 
   // Enhanced request with debugging and fallback
   async makeRequest(endpoint, payload, options = {}) {
-    const fullUrl = `${this.baseUrl}${endpoint}`;
+    // CRITICAL: Always use WEBHOOK_BASE_URL - NEVER dynamic URLs
+    const fullUrl = `${WEBHOOK_BASE_URL}${endpoint}`;
     
     console.log(`🔵 Webhook Request: ${endpoint}`, {
       url: fullUrl,
@@ -68,13 +73,7 @@ class WebhookService {
 
     try {
       const response = await fetch(fullUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        mode: 'cors',
-        credentials: 'omit',
+        ...WEBHOOK_CONFIG.defaults,
         body: JSON.stringify(payload),
         ...options
       });
@@ -155,7 +154,7 @@ class WebhookService {
     };
   }
 
-  // Specific webhook methods with corrected paths - Task 2
+  // Specific webhook methods with hardcoded URLs
   async login(email, password) {
     return this.makeRequest('/auth/login', { 
       email: email.toLowerCase().trim(), 
@@ -206,7 +205,7 @@ class WebhookService {
     });
   }
 
-  // Health check for all endpoints
+  // Health check for all endpoints - Uses hardcoded WEBHOOK_BASE_URL
   async healthCheck() {
     const endpoints = [
       { name: 'Auth Login', endpoint: '/auth/login', payload: { email: 'test@test.com', password: 'test' } },
@@ -227,7 +226,7 @@ class WebhookService {
           success: result.success,
           responseTime: `${responseTime}ms`,
           status: result.success ? 'OK' : 'ERROR',
-          endpoint
+          endpoint: `${WEBHOOK_BASE_URL}${endpoint}` // Show full URL
         };
       } catch (error) {
         results[name] = {
@@ -235,7 +234,7 @@ class WebhookService {
           responseTime: 'N/A',
           status: 'FAILED',
           error: error.message,
-          endpoint
+          endpoint: `${WEBHOOK_BASE_URL}${endpoint}` // Show full URL
         };
       }
     }
@@ -260,7 +259,7 @@ class WebhookService {
       failureCount: this.failureCount,
       maxFailures: this.maxFailures,
       emergencyMode: WEBHOOK_DEBUG_MODE && this.failureCount >= this.maxFailures,
-      baseUrl: this.baseUrl
+      baseUrl: this.baseUrl // Will always be WEBHOOK_BASE_URL
     };
   }
 }

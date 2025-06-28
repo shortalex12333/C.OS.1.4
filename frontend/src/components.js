@@ -23,24 +23,25 @@ import ReactMarkdown from 'react-markdown';
 import { cacheService } from './services/cacheService';
 import UserProfilePanel from './components/UserProfilePanel';
 import DebugPanel from './components/DebugPanel';
+import { WEBHOOK_CONFIG, WEBHOOK_URLS } from './config/webhookConfig';
 
-// API Configuration - FIXED PATHS (Task 2)
+// API Configuration - UPDATED to use hardcoded webhook config
 const API_CONFIG = {
-  baseUrl: 'https://api.celeste7.ai/webhook',
+  baseUrl: WEBHOOK_CONFIG.baseUrl,
   endpoints: {
     chat: '/text-chat-fast',
     fetchChat: '/fetch-chat',
     fetchConversations: '/fetch-conversations',
     auth: '/auth',
     login: '/auth/login',
-    logout: '/auth/logout',  // FIXED: was auth-logout
-    verifyToken: '/auth/verify-token',  // FIXED: was auth/verify-token
+    logout: '/auth/logout',
+    verifyToken: '/auth/verify-token',
     signup: '/auth-signup',
-    getData: '/get-data'  // ADDED: This was missing and called 78 times!
+    getData: '/get-data'
   },
-  timeout: 30000,
-  maxRetries: 2,
-  retryDelay: 1000
+  timeout: WEBHOOK_CONFIG.timeout,
+  maxRetries: WEBHOOK_CONFIG.maxRetries,
+  retryDelay: WEBHOOK_CONFIG.retryDelay
 };
 
 // Request Queue to prevent API hammering
@@ -78,11 +79,12 @@ class RequestQueue {
 
 const apiQueue = new RequestQueue(3);
 
-// Optimized retry logic with queue
+// Optimized retry logic with queue - USES HARDCODED WEBHOOK_CONFIG
 const sendRequestWithRetry = async (endpoint, payload, options = {}) => {
   return apiQueue.add(async () => {
     const { maxRetries = API_CONFIG.maxRetries, timeout = API_CONFIG.timeout, signal } = options;
-    const url = `${API_CONFIG.baseUrl}${endpoint}`;
+    // CRITICAL: Always use WEBHOOK_CONFIG.baseUrl - NEVER dynamic URLs
+    const url = `${WEBHOOK_CONFIG.baseUrl}${endpoint}`;
     let lastError;
     
     const actualRetries = endpoint.includes('chat') ? 1 : maxRetries;
@@ -96,13 +98,7 @@ const sendRequestWithRetry = async (endpoint, payload, options = {}) => {
         const requestSignal = signal || controller.signal;
         
         const response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          mode: 'cors',
-          credentials: 'omit',
+          ...WEBHOOK_CONFIG.defaults,
           body: JSON.stringify(payload),
           signal: requestSignal
         });

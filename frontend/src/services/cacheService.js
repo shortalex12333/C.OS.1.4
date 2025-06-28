@@ -1,8 +1,8 @@
 // Redis Cache Service for CelesteOS
 // Replaces slow Supabase queries with fast Redis-cached webhook calls
-// FIXED: Uses correct /webhook/get-data endpoint (Task 2)
+// UPDATED: Uses hardcoded webhook config (WEBHOOK_BASE_URL)
 
-const CACHE_WEBHOOK_BASE = 'https://api.celeste7.ai/webhook';
+import { WEBHOOK_BASE_URL } from '../config/webhookConfig';
 
 class CacheService {
   constructor() {
@@ -32,8 +32,8 @@ class CacheService {
       console.log(`🔄 Fetching from Redis cache: ${table} (Request #${this.requestCount})`);
       const startTime = Date.now();
       
-      // FIXED: Correct endpoint path /get-data (Task 2)
-      const response = await fetch(`${CACHE_WEBHOOK_BASE}/get-data`, {
+      // CRITICAL: Uses WEBHOOK_BASE_URL (hardcoded) - NEVER dynamic URLs
+      const response = await fetch(`${WEBHOOK_BASE_URL}/get-data`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
