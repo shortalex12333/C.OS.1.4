@@ -843,10 +843,14 @@ const ChatInterface = ({ user, onLogout }) => {
       timestamp: Date.now()
     };
     
-    setConversations(prev => [newConv, ...prev]);
+    const updatedConversations = [newConv, ...conversations];
+    setConversations(updatedConversations);
     setActiveConversation(newConv);
     setSidebarOpen(false);
-  }, []);
+    
+    // Save to cache/storage
+    saveConversations(updatedConversations);
+  }, [conversations, saveConversations]);
 
   const handleSendMessage = useCallback(async () => {
     const trimmedMessage = message.trim();
