@@ -12,7 +12,6 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [confirmationMessage, setConfirmationMessage] = useState('');
 
   // Check for existing session on app load
   useEffect(() => {
