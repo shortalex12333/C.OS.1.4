@@ -1349,14 +1349,14 @@ const ChatInterface = ({ user, onLogout }) => {
         </div>
 
         {/* Messages container */}
-        <div className={`flex-1 overflow-y-auto ${isDarkMode ? 'bg-[#343541]' : 'bg-white'}`}>
+        <div className={`flex-1 overflow-y-auto ${isDarkMode ? 'bg-[#000000]' : 'bg-white'}`}>
           {!activeConversation || activeConversation.messages?.length === 0 ? (
             <div className="h-full flex items-center justify-center p-4">
               <div className="text-center max-w-2xl mx-auto">
                 <h1 className={`text-3xl md:text-4xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-[#202123]'}`}>
                   Celeste<span className="bg-gradient-to-r from-[#60A5FA] to-[#2563EB] bg-clip-text text-transparent">OS</span>
                 </h1>
-                <p className={`mb-8 ${isDarkMode ? 'text-[#d1d5db]' : 'text-[#6e6e80]'}`}>Your success inevitability engine</p>
+                <p className={`mb-8 ${isDarkMode ? 'text-white' : 'text-[#6e6e80]'}`}>Your success inevitability engine</p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
                   {[
                     'Show me my success patterns',
@@ -1371,7 +1371,7 @@ const ChatInterface = ({ user, onLogout }) => {
                       }}
                       className={`p-4 rounded-md border text-sm transition-colors text-left ${
                         isDarkMode 
-                          ? 'border-[#444654] text-white hover:bg-[#444654]'
+                          ? 'border-[#444654] text-white hover:bg-[#181818]'
                           : 'border-[#e5e5e5] text-[#202123] hover:bg-[#f7f7f8]'
                       }`}
                     >
@@ -1392,8 +1392,8 @@ const ChatInterface = ({ user, onLogout }) => {
                     key={msg.id}
                     className={`group py-6 ${
                       msg.isUser 
-                        ? (isDarkMode ? 'bg-[#343541]' : 'bg-white')
-                        : (isDarkMode ? 'bg-[#444654]' : 'bg-[#f7f7f8]')
+                        ? (isDarkMode ? 'bg-[#000000]' : 'bg-white')
+                        : (isDarkMode ? 'bg-[#000000]' : 'bg-[#f7f7f8]')
                     }`}
                   >
                     <div className="max-w-4xl mx-auto px-4">
@@ -1417,7 +1417,7 @@ const ChatInterface = ({ user, onLogout }) => {
                                 px-4 py-3 rounded-lg
                                 ${msg.isUser 
                                   ? 'bg-[#2563eb] text-white rounded-tr-sm ml-auto'
-                                  : `${isDarkMode ? 'bg-[#343541] border-[#555] text-white' : 'bg-white border-[#e5e5e5] text-[#202123]'} border rounded-tl-sm`
+                                  : `${isDarkMode ? 'bg-[#181818] border-[#333] text-white' : 'bg-white border-[#e5e5e5] text-[#202123]'} border rounded-tl-sm`
                                 }
                               `}
                               style={!msg.isUser ? getCategoryStyles(msg.category) : {}}
@@ -1439,7 +1439,7 @@ const ChatInterface = ({ user, onLogout }) => {
                                         msg.isUser 
                                           ? 'bg-blue-800' 
                                           : isDarkMode 
-                                            ? 'bg-[#555] text-white' 
+                                            ? 'bg-[#333] text-white' 
                                             : 'bg-gray-100 text-gray-800'
                                       }`}>
                                         {children}
@@ -1450,7 +1450,7 @@ const ChatInterface = ({ user, onLogout }) => {
                                         msg.isUser 
                                           ? 'bg-blue-800' 
                                           : isDarkMode 
-                                            ? 'bg-[#555] text-white' 
+                                            ? 'bg-[#333] text-white' 
                                             : 'bg-gray-100 text-gray-800'
                                       }`}>
                                         {children}
@@ -1476,7 +1476,7 @@ const ChatInterface = ({ user, onLogout }) => {
                             )}
                           </div>
                           
-                          {/* User avatar */}
+                          {/* User avatar - keeping same styling as requested */}
                           {msg.isUser && (
                             <div className="flex-shrink-0">
                               <div className={`w-8 h-8 rounded-sm flex items-center justify-center font-medium ${
