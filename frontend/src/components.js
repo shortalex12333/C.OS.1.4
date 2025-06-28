@@ -467,6 +467,149 @@ const AuthScreen = ({ onLogin }) => {
   );
 };
 
+// Utility functions for message actions
+const copyToClipboard = async (text) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (err) {
+    // Fallback for older browsers
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    return true;
+  }
+};
+
+// Typing Indicator Component
+const TypingIndicator = () => (
+  <div className="flex items-center space-x-1 p-2">
+    <div className="flex space-x-1">
+      <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
+      <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+      <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+    </div>
+    <span className="text-sm text-gray-500 ml-2">CelesteOS is thinking...</span>
+  </div>
+);
+
+// Error Message Component with Countdown
+const ErrorMessage = ({ error, onRetry, onDismiss }) => {
+  const [countdown, setCountdown] = useState(error?.retryAfter || 0);
+  
+  useEffect(() => {
+    if (!error?.retryAfter) return;
+    
+    const timer = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [error?.retryAfter]);
+
+  const getErrorStyles = () => {
+    if (error?.type === 'token_limit') return 'bg-amber-50 border-amber-200 text-amber-800';
+    if (error?.type === 'rate_limit') return 'bg-red-50 border-red-200 text-red-800';
+    if (error?.type === 'success') return 'bg-green-50 border-green-200 text-green-800';
+    return 'bg-gray-50 border-gray-200 text-gray-800';
+  };
+
+  return (
+    <div className={`mx-auto max-w-md p-4 border rounded-lg ${getErrorStyles()}`}>
+      <div className="flex items-center gap-2 mb-2">
+        <AlertCircle size={16} />
+        <span className="font-medium">{error?.title || 'Error'}</span>
+      </div>
+      <p className="text-sm">{error?.message}</p>
+      {countdown > 0 && (
+        <div className="mt-2 flex items-center gap-2">
+          <Clock size={14} />
+          <span className="text-sm">Retry in {countdown} seconds</span>
+        </div>
+      )}
+      {error?.resetTime && (
+        <p className="text-xs mt-1 opacity-75">
+          Resets at {new Date(error.resetTime).toLocaleTimeString()}
+        </p>
+      )}
+      <div className="flex gap-2 mt-3">
+        {countdown === 0 && onRetry && (
+          <button 
+            onClick={onRetry}
+            className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Retry Now
+          </button>
+        )}
+        <button 
+          onClick={onDismiss}
+          className="px-3 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700"
+        >
+          Dismiss
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Message Actions Component
+const MessageActions = ({ message, onCopy, onEdit, onRegenerate, isLastAiMessage }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    const success = await copyToClipboard(message.text);
+    if (success) {
+      setCopied(true);
+      onCopy && onCopy();
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  return (
+    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 mt-2">
+      <button
+        onClick={handleCopy}
+        className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
+        title="Copy message"
+      >
+        {copied ? <Check size={12} /> : <Copy size={12} />}
+        {copied ? 'Copied!' : 'Copy'}
+      </button>
+      
+      {!message.isUser && (
+        <button
+          onClick={() => onEdit(message)}
+          className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
+          title="Edit message"
+        >
+          <Edit3 size={12} />
+          Edit
+        </button>
+      )}
+      
+      {!message.isUser && isLastAiMessage && (
+        <button
+          onClick={() => onRegenerate(message)}
+          className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
+          title="Regenerate response"
+        >
+          <RefreshCw size={12} />
+          Regenerate
+        </button>
+      )}
+    </div>
+  );
+};
+
 // Chat Interface Component
 const ChatInterface = ({ user, onLogout }) => {
   const [conversations, setConversations] = useState([]);
@@ -478,6 +621,11 @@ const ChatInterface = ({ user, onLogout }) => {
   const [connectionError, setConnectionError] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState(1);
+  const [tokensRemaining, setTokensRemaining] = useState(50000);
+  const [userStage, setUserStage] = useState('exploring');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [abortController, setAbortController] = useState(null);
+  const [editingMessage, setEditingMessage] = useState(null);
   
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
