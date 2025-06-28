@@ -1156,19 +1156,21 @@ const ChatInterface = ({ user, onLogout }) => {
         id="sidebar"
         className={`${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } fixed md:relative md:translate-x-0 z-40 w-[260px] h-full bg-[#f7f7f8] transition-transform duration-200 ease-in-out flex flex-col`}
+        } fixed md:relative md:translate-x-0 z-40 w-[260px] h-full transition-transform duration-200 ease-in-out flex flex-col ${
+          isDarkMode ? 'bg-[#202123]' : 'bg-[#f7f7f8]'
+        }`}
       >
         {/* Logo and Users Online */}
-        <div className="p-4 border-b border-[#e5e5e5] mt-14 md:mt-0">
+        <div className={`p-4 border-b mt-14 md:mt-0 ${isDarkMode ? 'border-[#444654]' : 'border-[#e5e5e5]'}`}>
           <div className="flex items-center gap-2 mb-2">
             <div className="w-8 h-8 bg-gradient-to-r from-[#60A5FA] to-[#2563EB] rounded-md flex items-center justify-center">
               <span className="text-white font-bold text-sm">C</span>
             </div>
-            <h2 className="text-lg font-semibold text-[#202123]">
+            <h2 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-[#202123]'}`}>
               Celeste<span className="bg-gradient-to-r from-[#60A5FA] to-[#2563EB] bg-clip-text text-transparent">OS</span>
             </h2>
           </div>
-          <div className="text-sm text-[#6e6e80]">
+          <div className={`text-sm ${isDarkMode ? 'text-[#d1d5db]' : 'text-[#6e6e80]'}`}>
             <span className="font-medium">{onlineUsers}</span> {onlineUsers === 1 ? 'User' : 'Users'} online
           </div>
         </div>
@@ -1177,7 +1179,11 @@ const ChatInterface = ({ user, onLogout }) => {
         <div className="p-2">
           <button
             onClick={createNewConversation}
-            className="flex items-center gap-3 w-full rounded-md border border-[#e5e5e5] px-3 py-3 text-sm text-[#202123] hover:bg-[#e5e5e5] transition-colors"
+            className={`flex items-center gap-3 w-full rounded-md border px-3 py-3 text-sm transition-colors ${
+              isDarkMode 
+                ? 'border-[#444654] text-white hover:bg-[#2a2b32]'
+                : 'border-[#e5e5e5] text-[#202123] hover:bg-[#e5e5e5]'
+            }`}
           >
             <Plus size={16} />
             New chat
@@ -1188,7 +1194,7 @@ const ChatInterface = ({ user, onLogout }) => {
         <div className="flex-1 overflow-y-auto">
           <div className="px-2 pb-2">
             {sortedConversations.length === 0 ? (
-              <div className="text-center text-[#6e6e80] text-sm mt-8 px-4">
+              <div className={`text-center text-sm mt-8 px-4 ${isDarkMode ? 'text-[#d1d5db]' : 'text-[#6e6e80]'}`}>
                 Your transformation journey begins with your first conversation
               </div>
             ) : (
@@ -1201,15 +1207,17 @@ const ChatInterface = ({ user, onLogout }) => {
                   }}
                   className={`group relative flex items-center gap-3 w-full rounded-md px-3 py-3 text-sm transition-colors cursor-pointer ${
                     activeConversation?.id === conv.id
-                      ? 'bg-[#e5e5e5]'
-                      : 'hover:bg-[#e5e5e5]'
+                      ? (isDarkMode ? 'bg-[#2a2b32]' : 'bg-[#e5e5e5]')
+                      : (isDarkMode ? 'hover:bg-[#2a2b32]' : 'hover:bg-[#e5e5e5]')
                   }`}
                 >
                   <MessageSquare size={16} className="flex-shrink-0" />
                   <span className="flex-1 text-left truncate">{conv.title}</span>
                   <button
                     onClick={(e) => deleteConversation(conv.id, e)}
-                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-[#d5d5d5] rounded transition-opacity"
+                    className={`opacity-0 group-hover:opacity-100 p-1 rounded transition-opacity ${
+                      isDarkMode ? 'hover:bg-[#444654]' : 'hover:bg-[#d5d5d5]'
+                    }`}
                     aria-label="Delete conversation"
                   >
                     <Trash2 size={14} />
@@ -1221,12 +1229,16 @@ const ChatInterface = ({ user, onLogout }) => {
         </div>
 
         {/* Bottom section */}
-        <div className="border-t border-[#e5e5e5]">
+        <div className={`border-t ${isDarkMode ? 'border-[#444654]' : 'border-[#e5e5e5]'}`}>
           {/* Theme toggle */}
           <div className="p-2">
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
-              className="flex items-center gap-3 w-full rounded-md px-3 py-3 text-sm text-[#202123] hover:bg-[#e5e5e5] transition-colors"
+              className={`flex items-center gap-3 w-full rounded-md px-3 py-3 text-sm transition-colors ${
+                isDarkMode 
+                  ? 'text-white hover:bg-[#2a2b32]'
+                  : 'text-[#202123] hover:bg-[#e5e5e5]'
+              }`}
             >
               {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
               <span className="flex-1 text-left">{isDarkMode ? 'Light mode' : 'Dark mode'}</span>
@@ -1237,14 +1249,22 @@ const ChatInterface = ({ user, onLogout }) => {
           <div className="p-2 pt-0">
             <button
               onClick={() => setShowProfilePanel(true)}
-              className="flex items-center gap-3 w-full rounded-md px-3 py-3 text-sm text-[#202123] hover:bg-[#e5e5e5] transition-colors mb-2"
+              className={`flex items-center gap-3 w-full rounded-md px-3 py-3 text-sm transition-colors mb-2 ${
+                isDarkMode 
+                  ? 'text-white hover:bg-[#2a2b32]'
+                  : 'text-[#202123] hover:bg-[#e5e5e5]'
+              }`}
             >
               <Settings size={16} />
               <span className="flex-1 text-left">Profile & Data</span>
             </button>
             <button
               onClick={onLogout}
-              className="flex items-center gap-3 w-full rounded-md px-3 py-3 text-sm text-[#202123] hover:bg-[#e5e5e5] transition-colors"
+              className={`flex items-center gap-3 w-full rounded-md px-3 py-3 text-sm transition-colors ${
+                isDarkMode 
+                  ? 'text-white hover:bg-[#2a2b32]'
+                  : 'text-[#202123] hover:bg-[#e5e5e5]'
+              }`}
             >
               <User size={16} />
               <span className="flex-1 text-left truncate">{user.email}</span>
