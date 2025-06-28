@@ -491,14 +491,14 @@ const copyToClipboard = async (text) => {
 };
 
 // Typing Indicator Component
-const TypingIndicator = () => (
+const TypingIndicator = ({ isDarkMode }) => (
   <div className="flex items-center space-x-1 p-2">
     <div className="flex space-x-1">
-      <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
-      <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-      <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+      <div className={`w-2 h-2 rounded-full animate-pulse ${isDarkMode ? 'bg-gray-400' : 'bg-gray-400'}`}></div>
+      <div className={`w-2 h-2 rounded-full animate-pulse ${isDarkMode ? 'bg-gray-400' : 'bg-gray-400'}`} style={{animationDelay: '0.2s'}}></div>
+      <div className={`w-2 h-2 rounded-full animate-pulse ${isDarkMode ? 'bg-gray-400' : 'bg-gray-400'}`} style={{animationDelay: '0.4s'}}></div>
     </div>
-    <span className="text-sm text-gray-500 ml-2">CelesteOS is thinking...</span>
+    <span className={`text-sm ml-2 ${isDarkMode ? 'text-[#d1d5db]' : 'text-gray-500'}`}>CelesteOS is thinking...</span>
   </div>
 );
 
