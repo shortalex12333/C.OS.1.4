@@ -1,13 +1,14 @@
 import React from 'react';
-import { DollarSign, TrendingUp, Target, Users, BarChart3, Zap } from 'lucide-react';
+import { DollarSign, TrendingUp, Target, Users, BarChart3, Zap, Brain, Building } from 'lucide-react';
 
-// Category icons mapping
+// Category icons mapping for new API specification
 const categoryIcons = {
   sales: DollarSign,
   marketing: TrendingUp,
-  strategy: Target,
   operations: BarChart3,
-  hr: Users,
+  finance: DollarSign,
+  mindset: Brain,
+  strategy: Target,
   general: Zap
 };
 
