@@ -370,6 +370,7 @@ const ChatComponent = ({
         category={msg.category}
         confidence={msg.confidence}
         responseTime={msg.responseTime}
+        stage={msg.stage}
         fadeIn={msg.fadeIn}
         timestamp={msg.timestamp}
       />
