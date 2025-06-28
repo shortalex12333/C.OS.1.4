@@ -332,13 +332,13 @@ const AuthScreen = ({ onLogin }) => {
             <div className="mb-4">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
                 <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
             </div>
-            <h3 className="text-lg font-semibold text-green-900 mb-2">Check your email!</h3>
-            <p className="text-green-700 mb-4">We've sent a confirmation link to <strong>{email}</strong></p>
-            <p className="text-sm text-green-600 mb-6">Click the link to activate your account and begin your transformation journey.</p>
+            <h3 className="text-lg font-semibold text-green-900 mb-2">Account created successfully!</h3>
+            <p className="text-green-700 mb-4">Welcome to CelesteOS! Your account is ready to use.</p>
+            <p className="text-sm text-green-600 mb-6">Redirecting you to login in a few seconds...</p>
             
             <button
               onClick={() => {
@@ -347,9 +347,9 @@ const AuthScreen = ({ onLogin }) => {
                 setEmail('');
                 setPassword('');
               }}
-              className="text-sm text-[#2563EB] hover:underline"
+              className="bg-[#2563EB] hover:bg-[#1e40af] text-white px-6 py-2 rounded-lg transition-colors"
             >
-              Back to login
+              Continue to Login
             </button>
           </div>
         </div>
