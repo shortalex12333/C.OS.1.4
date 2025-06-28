@@ -819,6 +819,140 @@ h1:has(.bg-gradient-to-r) {
   --message-ai-bg: #374151;
 }
 
+/* ========================================
+   MESSAGE BUBBLE STYLING
+   ======================================== */
+
+/* User messages - right aligned */
+.message-user {
+  background: var(--message-user-bg) !important;
+  color: #ffffff !important;
+  border-radius: 12px 12px 4px 12px !important;
+  padding: 12px 16px !important;
+  max-width: 70% !important;
+  animation: slideInRight 0.3s ease-out;
+}
+
+/* AI messages - left aligned */
+.message-ai {
+  background: var(--message-ai-bg) !important;
+  color: var(--text-primary) !important;
+  border-radius: 12px 12px 12px 4px !important;
+  padding: 12px 16px !important;
+  max-width: 85% !important;
+  animation: fadeInTyping 0.4s ease-out;
+}
+
+/* Category-based border styling */
+.message-ai.category-sales {
+  border-left: 3px solid var(--category-sales);
+}
+
+.message-ai.category-marketing {
+  border-left: 3px solid var(--category-marketing);
+}
+
+.message-ai.category-operations {
+  border-left: 3px solid var(--category-operations);
+}
+
+.message-ai.category-finance {
+  border-left: 3px solid var(--category-finance);
+}
+
+.message-ai.category-mindset {
+  border-left: 3px solid var(--category-mindset);
+}
+
+.message-ai.category-strategy {
+  border-left: 3px solid var(--category-strategy);
+}
+
+/* System messages - center aligned */
+.message-system {
+  margin: 0 auto;
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+  border: 1px solid;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.message-system.token-limit {
+  background: #fef3c7;
+  border-color: #d97706;
+  color: #92400e;
+}
+
+.message-system.high-demand {
+  background: #fee2e2;
+  border-color: #dc2626;
+  color: #991b1b;
+}
+
+.message-system.success {
+  background: #d1fae5;
+  border-color: #059669;
+  color: #065f46;
+}
+
+/* Message animations */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInTyping {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   TYPING INDICATOR
+   ======================================== */
+
+.typing-indicator {
+  display: flex;
+  gap: 4px;
+  padding: 12px 16px;
+}
+
+.typing-indicator span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #9ca3af;
+  animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(1) { animation-delay: 0s; }
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+  0%, 60%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  30% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 /* Hide Emergent branding */
 div:has(> img[src*="avatars.githubusercontent.com/in/1201222"]) {
   display: none !important;
