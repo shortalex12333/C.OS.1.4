@@ -1259,6 +1259,12 @@ const ChatInterface = ({ user, onLogout }) => {
                     style={{ width: `${Math.max(0, (tokensRemaining / 50000) * 100)}%` }}
                   />
                 </div>
+                {cacheLoading && (
+                  <div className="text-xs text-[#6e6e80] flex items-center gap-1">
+                    <div className="w-3 h-3 border border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    Loading...
+                  </div>
+                )}
               </div>
             </div>
             
@@ -1266,8 +1272,32 @@ const ChatInterface = ({ user, onLogout }) => {
             <div className="flex items-center gap-2">
               <span className="text-sm text-[#6e6e80] capitalize">{userStage}</span>
               <span className="hidden md:inline text-sm font-medium text-[#202123]">
-                {user.name || user.displayName}
+                {userProfile?.display_name || user.name || user.displayName}
               </span>
+              {/* Cache refresh button */}
+              <button
+                onClick={async () => {
+                  setCacheLoading(true);
+                  try {
+                    await cacheService.refreshUserData(user.id);
+                    // Reload user data
+                    const profileData = await cacheService.getUserProfile(user.id, false);
+                    if (profileData?.data?.[0]) {
+                      setUserProfile(profileData.data[0]);
+                      setUserStage(profileData.data[0].stage || 'exploring');
+                      setTokensRemaining(profileData.data[0].tokens_remaining || 50000);
+                    }
+                  } catch (error) {
+                    console.error('Failed to refresh cache:', error);
+                  } finally {
+                    setCacheLoading(false);
+                  }
+                }}
+                className="p-1 text-[#6e6e80] hover:text-[#202123] transition-colors"
+                title="Refresh user data"
+              >
+                <RefreshCw size={14} className={cacheLoading ? 'animate-spin' : ''} />
+              </button>
             </div>
           </div>
         </div>
