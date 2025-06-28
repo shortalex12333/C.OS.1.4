@@ -1286,27 +1286,27 @@ const ChatInterface = ({ user, onLogout }) => {
       {/* Main chat area */}
       <div className="flex-1 flex flex-col">
         {/* Header with token counter and user info */}
-        <div className={`border-b p-4 py-3 ${isDarkMode ? 'bg-[#343541] border-[#444654]' : 'bg-white border-[#e5e5e5]'}`}>
+        <div className={`border-b p-4 py-3 ${isDarkMode ? 'bg-white border-[#e5e5e5]' : 'bg-white border-[#e5e5e5]'}`}>
           <div className="flex items-center justify-between max-w-4xl mx-auto">
             {/* Token display */}
             <div className="flex items-center gap-4">
               <div className="md:hidden">
-                <h1 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-[#202123]'}`}>
+                <h1 className={`text-xl font-semibold ${isDarkMode ? 'text-[#202123]' : 'text-[#202123]'}`}>
                   Celeste<span className="bg-gradient-to-r from-[#60A5FA] to-[#2563EB] bg-clip-text text-transparent">OS</span>
                 </h1>
               </div>
               <div className="hidden md:flex items-center gap-3">
-                <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-[#202123]'}`}>
+                <span className={`text-sm font-medium ${isDarkMode ? 'text-[#202123]' : 'text-[#202123]'}`}>
                   {tokensRemaining.toLocaleString()} tokens today
                 </span>
-                <div className={`w-24 h-2 rounded-full overflow-hidden ${isDarkMode ? 'bg-[#444654]' : 'bg-gray-200'}`}>
+                <div className={`w-24 h-2 rounded-full overflow-hidden ${isDarkMode ? 'bg-gray-200' : 'bg-gray-200'}`}>
                   <div 
                     className="h-full bg-gradient-to-r from-[#60A5FA] to-[#2563EB] transition-all duration-300"
                     style={{ width: `${Math.max(0, (tokensRemaining / 50000) * 100)}%` }}
                   />
                 </div>
                 {cacheLoading && (
-                  <div className={`text-xs flex items-center gap-1 ${isDarkMode ? 'text-[#d1d5db]' : 'text-[#6e6e80]'}`}>
+                  <div className={`text-xs flex items-center gap-1 ${isDarkMode ? 'text-[#6e6e80]' : 'text-[#6e6e80]'}`}>
                     <div className="w-3 h-3 border border-blue-500 border-t-transparent rounded-full animate-spin"></div>
                     Loading...
                   </div>
@@ -1316,8 +1316,8 @@ const ChatInterface = ({ user, onLogout }) => {
             
             {/* User info */}
             <div className="flex items-center gap-2">
-              <span className={`text-sm capitalize ${isDarkMode ? 'text-[#d1d5db]' : 'text-[#6e6e80]'}`}>{userStage}</span>
-              <span className={`hidden md:inline text-sm font-medium ${isDarkMode ? 'text-white' : 'text-[#202123]'}`}>
+              <span className={`text-sm capitalize ${isDarkMode ? 'text-[#6e6e80]' : 'text-[#6e6e80]'}`}>{userStage}</span>
+              <span className={`hidden md:inline text-sm font-medium ${isDarkMode ? 'text-[#202123]' : 'text-[#202123]'}`}>
                 {userProfile?.display_name || user.name || user.displayName}
               </span>
               {/* Cache refresh button */}
@@ -1339,7 +1339,7 @@ const ChatInterface = ({ user, onLogout }) => {
                     setCacheLoading(false);
                   }
                 }}
-                className={`p-1 transition-colors ${isDarkMode ? 'text-[#d1d5db] hover:text-white' : 'text-[#6e6e80] hover:text-[#202123]'}`}
+                className={`p-1 transition-colors ${isDarkMode ? 'text-[#6e6e80] hover:text-[#202123]' : 'text-[#6e6e80] hover:text-[#202123]'}`}
                 title="Refresh user data"
               >
                 <RefreshCw size={14} className={cacheLoading ? 'animate-spin' : ''} />
