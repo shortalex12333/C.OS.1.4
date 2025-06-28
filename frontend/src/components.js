@@ -631,9 +631,116 @@ const ChatInterface = ({ user, onLogout }) => {
   const [abortController, setAbortController] = useState(null);
   const [editingMessage, setEditingMessage] = useState(null);
   
+  // User data from cache
+  const [userProfile, setUserProfile] = useState(null);
+  const [userPatterns, setUserPatterns] = useState(null);
+  const [businessMetrics, setBusinessMetrics] = useState(null);
+  const [cacheLoading, setCacheLoading] = useState(true);
+  
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
   const resizeTimeoutRef = useRef(null);
+
+  // Load user data from cache on component mount
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (!user?.id) return;
+      
+      setCacheLoading(true);
+      console.log('🔄 Loading user data from cache...');
+      
+      try {
+        // Preload session data in background
+        cacheService.preloadUserSession(user.id);
+        
+        // Load critical user data
+        const [profileData, patternsData, businessData] = await Promise.all([
+          cacheService.getUserProfile(user.id),
+          cacheService.getUserPatterns(user.id),
+          cacheService.getBusinessMetrics(user.id, 'finance')
+        ]);
+        
+        if (profileData?.data) {
+          setUserProfile(profileData.data[0] || null);
+          console.log('✅ User profile loaded from cache');
+        }
+        
+        if (patternsData?.data) {
+          setUserPatterns(patternsData.data);
+          console.log('✅ User patterns loaded from cache');
+        }
+        
+        if (businessData?.data) {
+          setBusinessMetrics(businessData.data);
+          console.log('✅ Business metrics loaded from cache');
+        }
+        
+        // Update user stage and tokens from profile if available
+        if (profileData?.data?.[0]) {
+          const profile = profileData.data[0];
+          setUserStage(profile.stage || 'exploring');
+          setTokensRemaining(profile.tokens_remaining || 50000);
+        }
+        
+      } catch (error) {
+        console.error('❌ Error loading user data from cache:', error);
+      } finally {
+        setCacheLoading(false);
+      }
+    };
+    
+    loadUserData();
+  }, [user?.id]);
+
+  // Load saved conversations with cache integration
+  useEffect(() => {
+    const loadSavedConversations = async () => {
+      if (!user?.id) return;
+      
+      try {
+        // Try to load conversation history from cache
+        const conversationData = await cacheService.getCachedData(user.id, 'user_conversations');
+        
+        if (conversationData?.data) {
+          setConversations(conversationData.data);
+          console.log('✅ Conversations loaded from cache');
+        } else {
+          // Fallback to localStorage if cache fails
+          const saved = localStorage.getItem(`celesteos_conversations_${user.id}`);
+          if (saved) {
+            try {
+              const parsed = JSON.parse(saved);
+              setConversations(parsed);
+            } catch (e) {
+              console.error('Failed to parse saved conversations:', e);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error loading conversations:', error);
+      }
+    };
+    
+    loadSavedConversations();
+  }, [user?.id]);
+
+  // Save conversations to cache and localStorage
+  const saveConversations = useCallback(async (newConversations) => {
+    if (!user?.id) return;
+    
+    // Save to localStorage immediately (fast, reliable)
+    localStorage.setItem(`celesteos_conversations_${user.id}`, JSON.stringify(newConversations));
+    
+    // Update cache in background (don't block UI)
+    try {
+      await cacheService.updateCacheAfterModification(user.id, 'user_conversations', {
+        data: newConversations,
+        updated_at: new Date().toISOString()
+      });
+    } catch (error) {
+      console.log('⚠️ Failed to update conversation cache:', error);
+    }
+  }, [user?.id]);
 
   // Simple presence tracking
   useEffect(() => {
