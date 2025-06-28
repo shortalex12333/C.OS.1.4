@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ChatComponent from './components/Chat';
+import { WEBHOOK_URLS } from './config/webhookConfig';
 
 // Demo component for testing the new chat interface
 const ChatDemo = () => {
@@ -15,7 +16,7 @@ const ChatDemo = () => {
   // Demo configurations
   const demoConfigs = {
     normal: {
-      apiEndpoint: 'https://api.celeste7.ai/webhook/text-chat-fast',
+      apiEndpoint: WEBHOOK_URLS.TEXT_CHAT_FAST,
       title: 'Normal Chat',
       description: 'Full functionality with real API'
     },
