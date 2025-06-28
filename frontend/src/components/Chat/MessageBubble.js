@@ -40,6 +40,7 @@ const MessageBubble = React.memo(({
   category, 
   confidence, 
   responseTime, 
+  stage,
   fadeIn = false,
   timestamp
 }) => {
