@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import './styles/fonts.css';
+import './styles/chat.css';
 import Components from './components';
 
 const { 
