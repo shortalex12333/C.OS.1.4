@@ -175,8 +175,19 @@ const AuthScreen = ({ onLogin }) => {
 
       if (result.success) {
         if (isSignup) {
-          // Show success message for signup
-          setSignupSuccess(true);
+          // Handle signup success - new API format
+          const responseData = result.data;
+          if (responseData.statusCode === 201 && responseData.response?.success) {
+            setSignupSuccess(true);
+            // Clear form fields on success
+            setDisplayName('');
+            setEmail('');
+            setPassword('');
+            setConfirmPassword('');
+            setError('');
+          } else {
+            setError('Signup failed. Please try again.');
+          }
         } else {
           // Handle login
           const authData = Array.isArray(result.data) ? result.data[0] : result.data;
@@ -195,11 +206,31 @@ const AuthScreen = ({ onLogin }) => {
           }
         }
       } else {
+        // Handle signup/login errors with new API format
         const errorData = result.data;
-        if (errorData?.error?.includes('already registered')) {
-          setError('This email is already registered. Try logging in.');
+        
+        if (isSignup) {
+          // Handle signup-specific errors
+          if (errorData.statusCode === 400) {
+            setError(errorData.response?.error || 'Invalid input. Please check your details.');
+          } else if (errorData.statusCode === 422) {
+            const errorMsg = errorData.response?.error || 'Password too weak';
+            const suggestion = errorData.response?.suggestion;
+            setError(suggestion ? `${errorMsg}\n\nSuggestion: ${suggestion}` : errorMsg);
+          } else if (errorData.statusCode === 409) {
+            setError('Email already registered. Try logging in instead.');
+          } else if (errorData.statusCode === 500) {
+            setError('Signup failed. Please try again.');
+          } else {
+            setError(errorData.response?.error || 'Signup failed. Please try again.');
+          }
         } else {
-          setError(isSignup ? 'Signup failed. Please try again.' : 'Invalid email or password');
+          // Handle login errors
+          if (errorData?.error?.includes('already registered')) {
+            setError('This email is already registered. Try logging in.');
+          } else {
+            setError('Invalid email or password');
+          }
         }
       }
     } catch (error) {
