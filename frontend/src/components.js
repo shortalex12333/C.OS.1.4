@@ -498,7 +498,7 @@ const TypingIndicator = ({ isDarkMode }) => (
       <div className={`w-2 h-2 rounded-full animate-pulse ${isDarkMode ? 'bg-gray-400' : 'bg-gray-400'}`} style={{animationDelay: '0.2s'}}></div>
       <div className={`w-2 h-2 rounded-full animate-pulse ${isDarkMode ? 'bg-gray-400' : 'bg-gray-400'}`} style={{animationDelay: '0.4s'}}></div>
     </div>
-    <span className={`text-sm ml-2 ${isDarkMode ? 'text-[#d1d5db]' : 'text-gray-500'}`}>CelesteOS is thinking...</span>
+    <span className={`text-sm ml-2 ${isDarkMode ? 'text-white' : 'text-gray-500'}`}>CelesteOS is thinking...</span>
   </div>
 );
 
