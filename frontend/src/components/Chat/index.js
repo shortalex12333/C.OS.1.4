@@ -228,10 +228,12 @@ const ChatComponent = ({
           id: `ai-${Date.now()}`,
           text: data.response,
           isUser: false,
-          timestamp: new Date(),
+          timestamp: new Date(data.timestamp || Date.now()),
           category: data.metadata?.category,
           confidence: data.metadata?.confidence,
           responseTime: data.metadata?.responseTime,
+          stage: data.metadata?.stage,
+          requestId: data.requestId,
           fadeIn: true
         };
         
@@ -240,11 +242,14 @@ const ChatComponent = ({
           return newMessages.slice(-maxMessages);
         });
         
-        // Update token stats
+        // Update token stats with new format
         if (data.metadata?.tokensUsed !== undefined || data.metadata?.tokensRemaining !== undefined) {
           setTokenStats(prev => ({
             remaining: data.metadata?.tokensRemaining ?? prev.remaining,
-            used: prev.used + (data.metadata?.tokensUsed || 0)
+            used: prev.used + (data.metadata?.tokensUsed || 0),
+            hourly: data.error?.limits?.hourly,
+            daily: data.error?.limits?.daily,
+            monthly: data.error?.limits?.monthly
           }));
         }
         
