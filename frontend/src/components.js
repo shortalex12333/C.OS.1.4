@@ -586,7 +586,7 @@ const MessageActions = ({ message, onCopy, onEdit, onRegenerate, isLastAiMessage
         onClick={handleCopy}
         className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
           isDarkMode 
-            ? 'text-[#d1d5db] hover:text-white hover:bg-[#555]'
+            ? 'text-white hover:text-white hover:bg-[#333]'
             : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
         }`}
         title="Copy message"
@@ -600,7 +600,7 @@ const MessageActions = ({ message, onCopy, onEdit, onRegenerate, isLastAiMessage
           onClick={() => onEdit(message)}
           className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
             isDarkMode 
-              ? 'text-[#d1d5db] hover:text-white hover:bg-[#555]'
+              ? 'text-white hover:text-white hover:bg-[#333]'
               : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
           }`}
           title="Edit message"
@@ -615,7 +615,7 @@ const MessageActions = ({ message, onCopy, onEdit, onRegenerate, isLastAiMessage
           onClick={() => onRegenerate(message)}
           className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
             isDarkMode 
-              ? 'text-[#d1d5db] hover:text-white hover:bg-[#555]'
+              ? 'text-white hover:text-white hover:bg-[#333]'
               : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
           }`}
           title="Regenerate response"
