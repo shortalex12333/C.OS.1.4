@@ -1541,6 +1541,13 @@ const ChatInterface = ({ user, onLogout }) => {
           </p>
         </div>
       </div>
+      
+      {/* User Profile Panel */}
+      <UserProfilePanel 
+        user={user}
+        isOpen={showProfilePanel}
+        onClose={() => setShowProfilePanel(false)}
+      />
     </div>
   );
 };
