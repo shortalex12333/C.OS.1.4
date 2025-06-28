@@ -974,11 +974,13 @@ const ChatInterface = ({ user, onLogout }) => {
         };
 
         setActiveConversation(finalConv);
-        setConversations(prev => 
-          prev.map(c => c.id === currentConversation.id ? finalConv : c)
-        );
+        const updatedConversations = conversations.map(c => c.id === currentConversation.id ? finalConv : c);
+        setConversations(updatedConversations);
         
-        // Save to sessionStorage
+        // Save to cache/storage
+        saveConversations(updatedConversations);
+        
+        // Save to sessionStorage for this specific chat
         sessionStorage.setItem(`chat_${currentConversation.id}`, JSON.stringify({
           messages: finalConv.messages,
           lastUpdated: Date.now(),
