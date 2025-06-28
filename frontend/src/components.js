@@ -638,6 +638,7 @@ const ChatInterface = ({ user, onLogout }) => {
   const [userPatterns, setUserPatterns] = useState(null);
   const [businessMetrics, setBusinessMetrics] = useState(null);
   const [cacheLoading, setCacheLoading] = useState(true);
+  const [showProfilePanel, setShowProfilePanel] = useState(false);
   
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
