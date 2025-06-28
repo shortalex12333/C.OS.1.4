@@ -784,8 +784,40 @@ h1:has(.bg-gradient-to-r) {
 }
 
 /* ========================================
-   DARK MODE IMPLEMENTATION
+   CHAT UI THEME VARIABLES
    ======================================== */
+
+:root {
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --error: #ef4444;
+  --warning: #f59e0b;
+  --success: #10b981;
+  --message-user-bg: var(--primary);
+  --message-ai-bg: #f3f4f6;
+  --border-radius: 12px;
+  
+  /* Category colors */
+  --category-sales: #10b981;
+  --category-marketing: #8b5cf6;
+  --category-operations: #3b82f6;
+  --category-finance: #f59e0b;
+  --category-mindset: #ec4899;
+  --category-strategy: #f97316;
+}
+
+/* Dark mode variables */
+.dark {
+  --bg-primary: #1f2937;
+  --bg-secondary: #111827;
+  --text-primary: #f9fafb;
+  --text-secondary: #9ca3af;
+  --message-ai-bg: #374151;
+}
 
 /* Hide Emergent branding */
 div:has(> img[src*="avatars.githubusercontent.com/in/1201222"]) {
