@@ -126,7 +126,7 @@ function App() {
     try {
       const token = localStorage.getItem('celesteos_token');
       if (token) {
-        await fetch('https://api.celeste7.ai/webhook/auth/logout', {
+        await fetch(WEBHOOK_URLS.AUTH_LOGOUT, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
