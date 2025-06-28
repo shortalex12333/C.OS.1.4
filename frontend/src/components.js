@@ -140,6 +140,47 @@ const AuthScreen = ({ onLogin }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // Password strength indicator
+  const getPasswordStrength = (password) => {
+    if (!password) return { strength: 0, text: '', color: '' };
+    
+    let score = 0;
+    let feedback = [];
+    
+    if (password.length >= 8) score += 1;
+    else feedback.push('at least 8 characters');
+    
+    if (/[A-Z]/.test(password)) score += 1;
+    else feedback.push('uppercase letter');
+    
+    if (/[a-z]/.test(password)) score += 1;
+    else feedback.push('lowercase letter');
+    
+    if (/[0-9]/.test(password)) score += 1;
+    else feedback.push('number');
+    
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score += 1;
+    else feedback.push('special character');
+    
+    // Check for weak patterns
+    const weakPasswords = ['password', '12345678', 'qwerty', 'abc123', 'password123'];
+    const isWeak = weakPasswords.some(weak => password.toLowerCase().includes(weak));
+    
+    if (isWeak) {
+      return { strength: 0, text: 'Too weak (common password)', color: 'text-red-500' };
+    }
+    
+    if (score <= 2) {
+      return { strength: score, text: `Weak (needs: ${feedback.slice(0, 2).join(', ')})`, color: 'text-red-500' };
+    } else if (score <= 3) {
+      return { strength: score, text: 'Fair', color: 'text-yellow-500' };
+    } else if (score <= 4) {
+      return { strength: score, text: 'Good', color: 'text-green-500' };
+    } else {
+      return { strength: score, text: 'Strong', color: 'text-green-600' };
+    }
+  };
+
   const handleSubmit = useCallback(async () => {
     if (isLoading) return;
     
