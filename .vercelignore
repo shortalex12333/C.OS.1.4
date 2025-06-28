@@ -1,0 +1,65 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Production builds
+build/
+dist/
+.next/
+out/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+.npm
+.eslintcache
+
+# Optional npm cache directory
+.npm
+
+# dotenv environment variables file (keep .env files local)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Backend files (not needed for frontend deployment)
+backend/
+tests/
+scripts/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary folders
+tmp/
+temp/
+
+# Cache directories
+.cache/
+.parcel-cache/
+
+# Vercel
+.vercel
