@@ -70,7 +70,7 @@ const EmptyState = React.memo(() => (
 // Main Chat Component
 const ChatComponent = ({ 
   user, 
-  apiEndpoint = 'https://api.celeste7.ai/webhook/text-chat-fast',
+  apiEndpoint = WEBHOOK_URLS.TEXT_CHAT_FAST,
   maxMessages = 200
 }) => {
   // State management
