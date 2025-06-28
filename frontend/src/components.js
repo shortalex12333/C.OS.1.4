@@ -1317,14 +1317,14 @@ const ChatInterface = ({ user, onLogout }) => {
         </div>
 
         {/* Messages container */}
-        <div className="flex-1 overflow-y-auto bg-white">
+        <div className={`flex-1 overflow-y-auto ${isDarkMode ? 'bg-[#343541]' : 'bg-white'}`}>
           {!activeConversation || activeConversation.messages?.length === 0 ? (
             <div className="h-full flex items-center justify-center p-4">
               <div className="text-center max-w-2xl mx-auto">
-                <h1 className="text-3xl md:text-4xl font-semibold text-[#202123] mb-4">
+                <h1 className={`text-3xl md:text-4xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-[#202123]'}`}>
                   Celeste<span className="bg-gradient-to-r from-[#60A5FA] to-[#2563EB] bg-clip-text text-transparent">OS</span>
                 </h1>
-                <p className="text-[#6e6e80] mb-8">Your success inevitability engine</p>
+                <p className={`mb-8 ${isDarkMode ? 'text-[#d1d5db]' : 'text-[#6e6e80]'}`}>Your success inevitability engine</p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
                   {[
                     'Show me my success patterns',
@@ -1337,7 +1337,11 @@ const ChatInterface = ({ user, onLogout }) => {
                         setMessage(prompt);
                         textareaRef.current?.focus();
                       }}
-                      className="p-4 rounded-md border border-[#e5e5e5] text-sm text-[#202123] hover:bg-[#f7f7f8] transition-colors text-left"
+                      className={`p-4 rounded-md border text-sm transition-colors text-left ${
+                        isDarkMode 
+                          ? 'border-[#444654] text-white hover:bg-[#444654]'
+                          : 'border-[#e5e5e5] text-[#202123] hover:bg-[#f7f7f8]'
+                      }`}
                     >
                       {prompt}
                     </button>
@@ -1354,11 +1358,15 @@ const ChatInterface = ({ user, onLogout }) => {
                 return (
                   <div
                     key={msg.id}
-                    className={`group ${msg.isUser ? 'bg-white' : 'bg-[#f7f7f8]'} py-6`}
+                    className={`group py-6 ${
+                      msg.isUser 
+                        ? (isDarkMode ? 'bg-[#343541]' : 'bg-white')
+                        : (isDarkMode ? 'bg-[#444654]' : 'bg-[#f7f7f8]')
+                    }`}
                   >
                     <div className="max-w-4xl mx-auto px-4">
                       {msg.isThinking ? (
-                        <TypingIndicator />
+                        <TypingIndicator isDarkMode={isDarkMode} />
                       ) : (
                         <div className={`flex gap-4 ${msg.isUser ? 'justify-end' : 'justify-start'}`}>
                           {/* Avatar */}
@@ -1377,13 +1385,17 @@ const ChatInterface = ({ user, onLogout }) => {
                                 px-4 py-3 rounded-lg
                                 ${msg.isUser 
                                   ? 'bg-[#2563eb] text-white rounded-tr-sm ml-auto'
-                                  : 'bg-white border border-[#e5e5e5] rounded-tl-sm'
+                                  : `${isDarkMode ? 'bg-[#343541] border-[#555] text-white' : 'bg-white border-[#e5e5e5] text-[#202123]'} border rounded-tl-sm`
                                 }
                               `}
                               style={!msg.isUser ? getCategoryStyles(msg.category) : {}}
                             >
                               <div className={`prose prose-sm max-w-none ${
-                                msg.isUser ? 'prose-invert' : ''
+                                msg.isUser 
+                                  ? 'prose-invert' 
+                                  : isDarkMode 
+                                    ? 'prose-invert' 
+                                    : ''
                               }`}>
                                 <ReactMarkdown
                                   components={{
@@ -1392,14 +1404,22 @@ const ChatInterface = ({ user, onLogout }) => {
                                     em: ({children}) => <em className="italic">{children}</em>,
                                     code: ({children}) => (
                                       <code className={`px-1 py-0.5 rounded text-sm ${
-                                        msg.isUser ? 'bg-blue-800' : 'bg-gray-100'
+                                        msg.isUser 
+                                          ? 'bg-blue-800' 
+                                          : isDarkMode 
+                                            ? 'bg-[#555] text-white' 
+                                            : 'bg-gray-100 text-gray-800'
                                       }`}>
                                         {children}
                                       </code>
                                     ),
                                     pre: ({children}) => (
                                       <pre className={`p-3 rounded-lg overflow-x-auto text-sm ${
-                                        msg.isUser ? 'bg-blue-800' : 'bg-gray-100'
+                                        msg.isUser 
+                                          ? 'bg-blue-800' 
+                                          : isDarkMode 
+                                            ? 'bg-[#555] text-white' 
+                                            : 'bg-gray-100 text-gray-800'
                                       }`}>
                                         {children}
                                       </pre>
@@ -1419,6 +1439,7 @@ const ChatInterface = ({ user, onLogout }) => {
                                 onEdit={handleEditMessage}
                                 onRegenerate={handleRegenerateMessage}
                                 isLastAiMessage={isLastAiMessage}
+                                isDarkMode={isDarkMode}
                               />
                             )}
                           </div>
@@ -1426,7 +1447,11 @@ const ChatInterface = ({ user, onLogout }) => {
                           {/* User avatar */}
                           {msg.isUser && (
                             <div className="flex-shrink-0">
-                              <div className="w-8 h-8 bg-white border border-[#e5e5e5] text-[#202123] rounded-sm flex items-center justify-center font-medium">
+                              <div className={`w-8 h-8 rounded-sm flex items-center justify-center font-medium ${
+                                isDarkMode 
+                                  ? 'bg-[#444654] border border-[#555] text-white'
+                                  : 'bg-white border border-[#e5e5e5] text-[#202123]'
+                              }`}>
                                 {user.name?.[0]?.toUpperCase() || 'U'}
                               </div>
                             </div>
