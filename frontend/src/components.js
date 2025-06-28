@@ -992,6 +992,7 @@ const ChatInterface = ({ user, onLogout }) => {
 
   return (
     <div className={`flex h-screen ${isDarkMode ? 'dark bg-[#343541]' : 'bg-white'}`}>
+      {/* Mobile menu button */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
         className="fixed top-4 left-4 z-50 p-2 rounded-md hover:bg-[#f7f7f8] md:hidden"
@@ -1000,6 +1001,7 @@ const ChatInterface = ({ user, onLogout }) => {
         {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
 
+      {/* Sidebar */}
       <div
         id="sidebar"
         className={`${
@@ -1032,6 +1034,7 @@ const ChatInterface = ({ user, onLogout }) => {
           </button>
         </div>
 
+        {/* Conversations list */}
         <div className="flex-1 overflow-y-auto">
           <div className="px-2 pb-2">
             {sortedConversations.length === 0 ? (
@@ -1094,6 +1097,7 @@ const ChatInterface = ({ user, onLogout }) => {
         </div>
       </div>
 
+      {/* Sidebar overlay for mobile */}
       {sidebarOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
@@ -1102,14 +1106,43 @@ const ChatInterface = ({ user, onLogout }) => {
         />
       )}
 
+      {/* Main chat area */}
       <div className="flex-1 flex flex-col">
-        <div className="md:hidden border-b border-[#e5e5e5] px-4 py-3 text-center">
-          <h1 className="text-xl font-semibold text-[#202123]">
-            Celeste<span className="bg-gradient-to-r from-[#60A5FA] to-[#2563EB] bg-clip-text text-transparent">OS</span>
-          </h1>
+        {/* Header with token counter and user info */}
+        <div className="border-b border-[#e5e5e5] bg-white px-4 py-3">
+          <div className="flex items-center justify-between max-w-4xl mx-auto">
+            {/* Token display */}
+            <div className="flex items-center gap-4">
+              <div className="md:hidden">
+                <h1 className="text-xl font-semibold text-[#202123]">
+                  Celeste<span className="bg-gradient-to-r from-[#60A5FA] to-[#2563EB] bg-clip-text text-transparent">OS</span>
+                </h1>
+              </div>
+              <div className="hidden md:flex items-center gap-3">
+                <span className="text-sm font-medium text-[#202123]">
+                  {tokensRemaining.toLocaleString()} tokens today
+                </span>
+                <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-[#60A5FA] to-[#2563EB] transition-all duration-300"
+                    style={{ width: `${Math.max(0, (tokensRemaining / 50000) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+            
+            {/* User info */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-[#6e6e80] capitalize">{userStage}</span>
+              <span className="hidden md:inline text-sm font-medium text-[#202123]">
+                {user.name || user.displayName}
+              </span>
+            </div>
+          </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        {/* Messages container */}
+        <div className="flex-1 overflow-y-auto bg-white">
           {!activeConversation || activeConversation.messages?.length === 0 ? (
             <div className="h-full flex items-center justify-center p-4">
               <div className="text-center max-w-2xl mx-auto">
@@ -1139,62 +1172,131 @@ const ChatInterface = ({ user, onLogout }) => {
             </div>
           ) : (
             <div className="pb-32">
-              {activeConversation.messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={msg.isUser ? 'bg-white' : 'bg-[#f7f7f8]'}
-                >
-                  <div className="max-w-3xl mx-auto px-4 py-6">
-                    <div className={`flex gap-4 ${msg.isUser ? 'flex-row-reverse' : 'flex-row'}`}>
-                      <div className="flex-shrink-0">
-                        <div className={`w-8 h-8 rounded-sm flex items-center justify-center font-medium ${
-                          msg.isUser 
-                            ? 'bg-white border border-[#e5e5e5] text-[#202123]' 
-                            : 'bg-[#2563EB] text-white'
-                        }`}>
-                          {msg.isUser ? user.name?.[0]?.toUpperCase() || 'U' : 'C'}
+              {activeConversation.messages.map((msg, index) => {
+                const isLastAiMessage = !msg.isUser && 
+                  index === activeConversation.messages.length - 1;
+                
+                return (
+                  <div
+                    key={msg.id}
+                    className={`group ${msg.isUser ? 'bg-white' : 'bg-[#f7f7f8]'} py-6`}
+                  >
+                    <div className="max-w-4xl mx-auto px-4">
+                      {msg.isThinking ? (
+                        <TypingIndicator />
+                      ) : (
+                        <div className={`flex gap-4 ${msg.isUser ? 'justify-end' : 'justify-start'}`}>
+                          {/* Avatar */}
+                          {!msg.isUser && (
+                            <div className="flex-shrink-0">
+                              <div className="w-8 h-8 bg-[#2563EB] text-white rounded-sm flex items-center justify-center font-medium">
+                                C
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Message content */}
+                          <div className={`flex-1 max-w-[85%] ${msg.isUser ? 'max-w-[70%]' : ''}`}>
+                            <div 
+                              className={`
+                                px-4 py-3 rounded-lg
+                                ${msg.isUser 
+                                  ? 'bg-[#2563eb] text-white rounded-tr-sm ml-auto'
+                                  : 'bg-white border border-[#e5e5e5] rounded-tl-sm'
+                                }
+                              `}
+                              style={!msg.isUser ? getCategoryStyles(msg.category) : {}}
+                            >
+                              <div className={`prose prose-sm max-w-none ${
+                                msg.isUser ? 'prose-invert' : ''
+                              }`}>
+                                <ReactMarkdown
+                                  components={{
+                                    p: ({children}) => <p className="mb-2 last:mb-0">{children}</p>,
+                                    strong: ({children}) => <strong className="font-semibold">{children}</strong>,
+                                    em: ({children}) => <em className="italic">{children}</em>,
+                                    code: ({children}) => (
+                                      <code className={`px-1 py-0.5 rounded text-sm ${
+                                        msg.isUser ? 'bg-blue-800' : 'bg-gray-100'
+                                      }`}>
+                                        {children}
+                                      </code>
+                                    ),
+                                    pre: ({children}) => (
+                                      <pre className={`p-3 rounded-lg overflow-x-auto text-sm ${
+                                        msg.isUser ? 'bg-blue-800' : 'bg-gray-100'
+                                      }`}>
+                                        {children}
+                                      </pre>
+                                    ),
+                                  }}
+                                >
+                                  {msg.text}
+                                </ReactMarkdown>
+                              </div>
+                            </div>
+                            
+                            {/* Message actions */}
+                            {!msg.isThinking && (
+                              <MessageActions
+                                message={msg}
+                                onCopy={handleCopyMessage}
+                                onEdit={handleEditMessage}
+                                onRegenerate={handleRegenerateMessage}
+                                isLastAiMessage={isLastAiMessage}
+                              />
+                            )}
+                          </div>
+                          
+                          {/* User avatar */}
+                          {msg.isUser && (
+                            <div className="flex-shrink-0">
+                              <div className="w-8 h-8 bg-white border border-[#e5e5e5] text-[#202123] rounded-sm flex items-center justify-center font-medium">
+                                {user.name?.[0]?.toUpperCase() || 'U'}
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                      <div className={`flex-1 overflow-hidden ${msg.isUser ? 'text-right' : 'text-left'}`}>
-                        {msg.isThinking ? (
-                          <div className="flex items-center gap-1 justify-start">
-                            <div className="w-2 h-2 bg-[#2563EB] rounded-full animate-pulse" />
-                            <div className="w-2 h-2 bg-[#2563EB] rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
-                            <div className="w-2 h-2 bg-[#2563EB] rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
-                          </div>
-                        ) : (
-                          <div className={`prose prose-sm max-w-none ${msg.isUser ? '[&>*]:text-right' : '[&>*]:text-left'}`}>
-                            <ReactMarkdown>{msg.text}</ReactMarkdown>
-                          </div>
-                        )}
-                      </div>
+                      )}
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               <div ref={messagesEndRef} />
             </div>
           )}
         </div>
 
-        {connectionError && (
+        {/* Error messages */}
+        {error && (
           <div className="mx-4 mb-2">
-            <div className="max-w-3xl mx-auto bg-red-50 border border-red-200 rounded-md p-3 flex items-center gap-2 text-sm text-red-700">
-              <AlertCircle size={16} />
-              <span>Connection issue. Your message wasn't sent.</span>
+            <ErrorMessage 
+              error={error}
+              onRetry={() => setError(null)}
+              onDismiss={() => setError(null)}
+            />
+          </div>
+        )}
+
+        {/* Stop generation button */}
+        {isGenerating && (
+          <div className="mx-4 mb-2">
+            <div className="max-w-4xl mx-auto">
               <button
-                onClick={() => setConnectionError(false)}
-                className="ml-auto text-red-500 hover:text-red-700"
+                onClick={stopGeneration}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
-                <X size={16} />
+                <StopCircle size={16} />
+                Stop generating
               </button>
             </div>
           </div>
         )}
 
+        {/* Input area */}
         <div className="border-t border-[#e5e5e5] bg-white p-4">
-          <div className="max-w-3xl mx-auto">
-            <div className="relative flex items-end gap-2 rounded-md border border-[#e5e5e5] bg-white shadow-sm">
+          <div className="max-w-4xl mx-auto">
+            <div className="relative flex items-end gap-2 rounded-lg border border-[#e5e5e5] bg-white shadow-sm focus-within:border-[#2563EB] focus-within:ring-1 focus-within:ring-[#2563EB]">
               <textarea
                 ref={textareaRef}
                 value={message}
@@ -1202,26 +1304,65 @@ const ChatInterface = ({ user, onLogout }) => {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
-                    handleSendMessage();
+                    if (editingMessage) {
+                      // Handle edit submission
+                      setEditingMessage(null);
+                      handleSendMessage();
+                    } else {
+                      handleSendMessage();
+                    }
                   }
                 }}
-                placeholder={activeConversation ? "Message CelesteOS..." : "Start your transformation..."}
-                className="flex-1 resize-none bg-transparent px-4 py-3 text-[#202123] placeholder-[#6e6e80] focus:outline-none min-h-[24px] max-h-[200px]"
+                placeholder={
+                  editingMessage 
+                    ? "Edit your message..." 
+                    : activeConversation 
+                    ? "Ask anything about your business..." 
+                    : "Start your transformation..."
+                }
+                className="flex-1 resize-none bg-transparent px-4 py-3 text-[#202123] placeholder-[#6e6e80] focus:outline-none min-h-[24px] max-h-[200px] overflow-y-auto"
                 rows={1}
                 disabled={isSending}
+                style={{ height: 'auto' }}
+                onInput={handleTextareaResize}
               />
               <button
-                onClick={handleSendMessage}
+                onClick={() => {
+                  if (editingMessage) {
+                    setEditingMessage(null);
+                  }
+                  handleSendMessage();
+                }}
                 disabled={!message.trim() || isSending}
-                className="mb-3 mr-3 p-1.5 rounded-md text-white bg-gradient-to-r from-[#60A5FA] to-[#2563EB] disabled:opacity-40 disabled:cursor-not-allowed transition-opacity hover:opacity-90"
-                aria-label="Send message"
+                className="mb-3 mr-3 p-2 rounded-md text-white bg-gradient-to-r from-[#60A5FA] to-[#2563EB] disabled:opacity-40 disabled:cursor-not-allowed transition-opacity hover:opacity-90"
+                aria-label={editingMessage ? "Update message" : "Send message"}
               >
-                <Send size={16} />
+                {isSending ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Send size={16} />
+                )}
               </button>
             </div>
+            
+            {editingMessage && (
+              <div className="mt-2 flex items-center gap-2 text-sm text-[#6e6e80]">
+                <Edit3 size={14} />
+                <span>Editing message</span>
+                <button
+                  onClick={() => {
+                    setEditingMessage(null);
+                    setMessage('');
+                  }}
+                  className="text-[#2563EB] hover:text-[#1d4ed8]"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
           </div>
-          <p className="text-xs text-center text-[#6e6e80] mt-2">
-            CelesteOS transforms patterns into profits
+          <p className="text-xs text-center text-[#6e6e80] mt-2 max-w-4xl mx-auto">
+            CelesteOS transforms patterns into profits • {tokensRemaining.toLocaleString()} tokens remaining
           </p>
         </div>
       </div>
