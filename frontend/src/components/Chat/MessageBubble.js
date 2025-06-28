@@ -49,14 +49,12 @@ const MessageBubble = React.memo(({
   
   return (
     <div 
-      className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 ${
-        fadeIn ? 'animate-fade-in' : ''
-      }`}
+      className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}
       role="log"
       aria-live="polite"
       data-testid={isUser ? 'user-message' : 'ai-message'}
     >
-      <div className={`max-w-[80%] ${isUser ? 'order-2' : 'order-1'}`}>
+      <div className={`${isUser ? 'order-2' : 'order-1'}`}>
         {!isUser && category && (
           <div className="flex items-center gap-2 mb-2">
             <div className="flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
@@ -81,10 +79,10 @@ const MessageBubble = React.memo(({
           </div>
         )}
         <div 
-          className={`px-4 py-3 rounded-2xl transition-transform hover:scale-[1.02] ${
+          className={`${
             isUser 
-              ? 'bg-blue-500 text-white ml-4' 
-              : 'bg-gray-100 text-gray-900 mr-4'
+              ? 'message-user ml-4' 
+              : `message-ai mr-4 ${category ? `category-${category}` : ''}`
           }`}
           style={{ 
             fontSize: isMobile ? '14px' : '15px',
