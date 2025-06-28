@@ -1017,9 +1017,11 @@ const ChatInterface = ({ user, onLogout }) => {
         messages: updatedConv.messages.filter(m => m.id !== aiMessage.id)
       };
       setActiveConversation(errorConv);
-      setConversations(prev => 
-        prev.map(c => c.id === currentConversation.id ? errorConv : c)
-      );
+      const updatedConversations = conversations.map(c => c.id === currentConversation.id ? errorConv : c);
+      setConversations(updatedConversations);
+      
+      // Save to cache/storage
+      saveConversations(updatedConversations);
     } finally {
       setIsSending(false);
       setIsGenerating(false);
