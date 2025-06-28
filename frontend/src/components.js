@@ -568,7 +568,7 @@ const ErrorMessage = ({ error, onRetry, onDismiss }) => {
 };
 
 // Message Actions Component
-const MessageActions = ({ message, onCopy, onEdit, onRegenerate, isLastAiMessage }) => {
+const MessageActions = ({ message, onCopy, onEdit, onRegenerate, isLastAiMessage, isDarkMode }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -584,7 +584,11 @@ const MessageActions = ({ message, onCopy, onEdit, onRegenerate, isLastAiMessage
     <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 mt-2">
       <button
         onClick={handleCopy}
-        className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
+        className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
+          isDarkMode 
+            ? 'text-[#d1d5db] hover:text-white hover:bg-[#555]'
+            : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+        }`}
         title="Copy message"
       >
         {copied ? <Check size={12} /> : <Copy size={12} />}
@@ -594,7 +598,11 @@ const MessageActions = ({ message, onCopy, onEdit, onRegenerate, isLastAiMessage
       {!message.isUser && (
         <button
           onClick={() => onEdit(message)}
-          className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
+          className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
+            isDarkMode 
+              ? 'text-[#d1d5db] hover:text-white hover:bg-[#555]'
+              : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+          }`}
           title="Edit message"
         >
           <Edit3 size={12} />
@@ -605,7 +613,11 @@ const MessageActions = ({ message, onCopy, onEdit, onRegenerate, isLastAiMessage
       {!message.isUser && isLastAiMessage && (
         <button
           onClick={() => onRegenerate(message)}
-          className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
+          className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
+            isDarkMode 
+              ? 'text-[#d1d5db] hover:text-white hover:bg-[#555]'
+              : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+          }`}
           title="Regenerate response"
         >
           <RefreshCw size={12} />
