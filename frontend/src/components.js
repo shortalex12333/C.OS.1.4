@@ -141,6 +141,13 @@ const AuthScreen = ({ onLogin }) => {
   const handleSubmit = useCallback(async () => {
     if (isLoading) return;
     
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+    
     // Validation
     if (isSignup) {
       if (!email || !password || !confirmPassword) {
@@ -155,8 +162,17 @@ const AuthScreen = ({ onLogin }) => {
         setError('Password must be at least 8 characters');
         return;
       }
+      // Check for weak passwords
+      const weakPasswords = ['password', '12345678', 'qwerty', 'abc123', 'password123'];
+      if (weakPasswords.some(weak => password.toLowerCase().includes(weak))) {
+        setError('Password too weak. Try something like: YourName2024!@#');
+        return;
+      }
     } else {
-      if (!email || !password) return;
+      if (!email || !password) {
+        setError('Please enter your email and password');
+        return;
+      }
     }
     
     setIsLoading(true);
