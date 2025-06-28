@@ -125,7 +125,10 @@ const Header = ({ tokenStats, isLoading, onClearChat, connectionStatus }) => {
       </div>
       <TokenCounter 
         remaining={tokenStats.remaining} 
-        used={tokenStats.used} 
+        used={tokenStats.used}
+        hourly={tokenStats.hourly}
+        daily={tokenStats.daily}
+        monthly={tokenStats.monthly}
         isLoading={isLoading}
       />
     </div>
