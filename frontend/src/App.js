@@ -152,22 +152,7 @@ function App() {
   }
 
   if (!isAuthenticated) {
-    return (
-      <div>
-        {confirmationMessage && (
-          <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 p-4 rounded-lg shadow-lg max-w-md w-full mx-4 confirmation-message ${
-            confirmationMessage.includes('✅') 
-              ? 'confirmation-success' 
-              : confirmationMessage.includes('❌')
-              ? 'confirmation-error'
-              : 'confirmation-loading'
-          }`}>
-            <p className="text-center font-medium">{confirmationMessage}</p>
-          </div>
-        )}
-        <AuthScreen onLogin={handleLogin} />
-      </div>
-    );
+    return <AuthScreen onLogin={handleLogin} />;
   }
 
   return <ChatInterface user={user} onLogout={handleLogout} />;
