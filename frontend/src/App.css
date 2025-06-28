@@ -1038,6 +1038,118 @@ div:has(> img[src*="avatars.githubusercontent.com/in/1201222"]) {
 }
 
 /* ========================================
+   MODERN CHAT INTERFACE ANIMATIONS
+   ======================================== */
+
+/* Fade in animation for new messages */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Bounce animation for typing indicator */
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+
+/* Smooth transitions for all interactive elements */
+.modern-chat button,
+.modern-chat textarea,
+.modern-chat input {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Custom scrollbar for chat */
+.modern-chat .overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modern-chat .overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modern-chat .overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.modern-chat .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Message bubble hover effects */
+.modern-chat .message-bubble {
+  transition: transform 0.1s ease-out;
+}
+
+.modern-chat .message-bubble:hover {
+  transform: translateY(-1px);
+}
+
+/* Focus styles for accessibility */
+.modern-chat button:focus,
+.modern-chat textarea:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Loading spinner */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Responsive typography */
+@media (max-width: 640px) {
+  .modern-chat {
+    font-size: 14px;
+  }
+  
+  .modern-chat .text-lg {
+    font-size: 16px;
+  }
+  
+  .modern-chat .text-xl {
+    font-size: 18px;
+  }
+}
+
+/* Touch targets for mobile */
+@media (max-width: 640px) {
+  .modern-chat button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* ========================================
    EMAIL CONFIRMATION MESSAGES
    ======================================== */
 
