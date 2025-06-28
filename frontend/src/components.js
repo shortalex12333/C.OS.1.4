@@ -1617,6 +1617,9 @@ const ChatInterface = ({ user, onLogout }) => {
         isOpen={showProfilePanel}
         onClose={() => setShowProfilePanel(false)}
       />
+      
+      {/* Debug Panel for Webhook Debugging */}
+      <DebugPanel isDarkMode={isDarkMode} />
     </div>
   );
 };
