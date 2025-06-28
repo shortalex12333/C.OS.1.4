@@ -4,6 +4,7 @@ import './styles/fonts.css';
 import './styles/chat.css';
 import Components from './components';
 import WebhookDebugPage from './WebhookDebugPage';
+import { WEBHOOK_URLS } from './config/webhookConfig';
 
 const { 
   AuthScreen, 
