@@ -26,7 +26,7 @@ const ChatDemo = () => {
       description: 'Shows error handling when API fails'
     },
     performance: {
-      apiEndpoint: 'https://api.celeste7.ai/webhook/text-chat-fast',
+      apiEndpoint: WEBHOOK_URLS.TEXT_CHAT_FAST,
       title: 'Performance Test',
       description: 'Pre-loaded with messages for performance testing'
     }
