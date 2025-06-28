@@ -149,7 +149,7 @@ const TokenCounter = React.memo(({ remaining, used, isLoading }) => (
 ));
 
 // Main Chat Interface Component
-const ModernChatInterface = ({ user, apiEndpoint = 'https://api.celeste7.ai/webhook/text-chat-fast' }) => {
+const ModernChatInterface = ({ user, apiEndpoint = WEBHOOK_URLS.TEXT_CHAT_FAST }) => {
   // State management
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
