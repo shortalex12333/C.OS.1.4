@@ -1494,9 +1494,13 @@ const ChatInterface = ({ user, onLogout }) => {
         )}
 
         {/* Input area */}
-        <div className="border-t border-[#e5e5e5] bg-white p-4">
+        <div className={`border-t p-4 ${isDarkMode ? 'bg-[#343541] border-[#444654]' : 'bg-white border-[#e5e5e5]'}`}>
           <div className="max-w-4xl mx-auto">
-            <div className="relative flex items-end gap-2 rounded-lg border border-[#e5e5e5] bg-white shadow-sm focus-within:border-[#2563EB] focus-within:ring-1 focus-within:ring-[#2563EB]">
+            <div className={`relative flex items-end gap-2 rounded-lg border shadow-sm focus-within:ring-1 focus-within:ring-[#2563EB] ${
+              isDarkMode 
+                ? 'border-[#555] bg-[#444654] focus-within:border-[#2563EB]'
+                : 'border-[#e5e5e5] bg-white focus-within:border-[#2563EB]'
+            }`}>
               <textarea
                 ref={textareaRef}
                 value={message}
@@ -1520,7 +1524,11 @@ const ChatInterface = ({ user, onLogout }) => {
                     ? "Ask anything about your business..." 
                     : "Start your transformation..."
                 }
-                className="flex-1 resize-none bg-transparent px-4 py-3 text-[#202123] placeholder-[#6e6e80] focus:outline-none min-h-[24px] max-h-[200px] overflow-y-auto"
+                className={`flex-1 resize-none bg-transparent px-4 py-3 focus:outline-none min-h-[24px] max-h-[200px] overflow-y-auto ${
+                  isDarkMode 
+                    ? 'text-white placeholder-[#888]'
+                    : 'text-[#202123] placeholder-[#6e6e80]'
+                }`}
                 rows={1}
                 disabled={isSending}
                 style={{ height: 'auto' }}
@@ -1546,7 +1554,7 @@ const ChatInterface = ({ user, onLogout }) => {
             </div>
             
             {editingMessage && (
-              <div className="mt-2 flex items-center gap-2 text-sm text-[#6e6e80]">
+              <div className={`mt-2 flex items-center gap-2 text-sm ${isDarkMode ? 'text-[#d1d5db]' : 'text-[#6e6e80]'}`}>
                 <Edit3 size={14} />
                 <span>Editing message</span>
                 <button
@@ -1561,7 +1569,7 @@ const ChatInterface = ({ user, onLogout }) => {
               </div>
             )}
           </div>
-          <p className="text-xs text-center text-[#6e6e80] mt-2 max-w-4xl mx-auto">
+          <p className={`text-xs text-center mt-2 max-w-4xl mx-auto ${isDarkMode ? 'text-[#888]' : 'text-[#6e6e80]'}`}>
             CelesteOS transforms patterns into profits • {tokensRemaining.toLocaleString()} tokens remaining
           </p>
         </div>
