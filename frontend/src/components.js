@@ -244,6 +244,12 @@ const AuthScreen = ({ onLogin }) => {
             setPassword('');
             setConfirmPassword('');
             setError('');
+            
+            // Auto-redirect to login after 3 seconds
+            setTimeout(() => {
+              setSignupSuccess(false);
+              setIsSignup(false);
+            }, 3000);
           } else {
             setError('Signup failed. Please try again.');
           }
