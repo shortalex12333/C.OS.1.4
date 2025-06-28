@@ -76,7 +76,7 @@ const apiQueue = new RequestQueue(3);
 // Optimized retry logic with queue
 const sendRequestWithRetry = async (endpoint, payload, options = {}) => {
   return apiQueue.add(async () => {
-    const { maxRetries = API_CONFIG.maxRetries, timeout = API_CONFIG.timeout } = options;
+    const { maxRetries = API_CONFIG.maxRetries, timeout = API_CONFIG.timeout, signal } = options;
     const url = `${API_CONFIG.baseUrl}${endpoint}`;
     let lastError;
     
@@ -87,6 +87,9 @@ const sendRequestWithRetry = async (endpoint, payload, options = {}) => {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
         
+        // Use provided signal or create new one
+        const requestSignal = signal || controller.signal;
+        
         const response = await fetch(url, {
           method: 'POST',
           headers: {
@@ -96,7 +99,7 @@ const sendRequestWithRetry = async (endpoint, payload, options = {}) => {
           mode: 'cors',
           credentials: 'omit',
           body: JSON.stringify(payload),
-          signal: controller.signal
+          signal: requestSignal
         });
         
         clearTimeout(timeoutId);
@@ -113,7 +116,7 @@ const sendRequestWithRetry = async (endpoint, payload, options = {}) => {
         lastError = error;
         
         if (error.name === 'AbortError') {
-          console.error(`Timeout on attempt ${attempt + 1}`);
+          throw error; // Don't retry on user abort
         }
         
         if (attempt < actualRetries - 1) {
