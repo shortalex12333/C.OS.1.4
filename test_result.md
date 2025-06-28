@@ -192,6 +192,18 @@ backend:
         agent: "main"
         comment: "Implemented comprehensive webhook debugging system: WebhookDebugger component with request/response intercepting, health check for all endpoints, emergency fallback mode with mock data, corrected webhook paths (/auth/logout, /auth/verify-token), added missing /get-data endpoint, request counting and performance monitoring. Debug panel floating button added to main interface. Full debugger accessible at /webhook-debug route."
 
+        
+  - task: "Webhook URL Hardcoding"
+    implemented: true
+    working: true
+    file: "config/webhookConfig.js, components.js, App.js, services/*, ChatDemo.js, ModernChatPage.js, ChatPage.js, ModernChatInterface.js, components/Chat/*"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Eliminated ALL dynamic webhook URLs and implemented centralized hardcoded configuration. Created /config/webhookConfig.js with WEBHOOK_BASE_URL = 'https://api.celeste7.ai/webhook' (hardcoded). Updated ALL 10+ components to use WEBHOOK_URLS constants instead of window.location.origin, process.env.REACT_APP_BACKEND_URL, or any dynamic URL construction. Every webhook call now uses hardcoded https://api.celeste7.ai/webhook/* regardless of frontend hosting location (Vercel, Netlify, localhost, etc). This ensures 100% consistent n8n integration and eliminates URL mismatch issues completely."
 frontend:
   - task: "Branding Update - Celeste7 to CelesteOS"
     implemented: true
