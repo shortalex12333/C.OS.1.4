@@ -1,5 +1,6 @@
 // Redis Cache Service for CelesteOS
 // Replaces slow Supabase queries with fast Redis-cached webhook calls
+// FIXED: Uses correct /webhook/get-data endpoint (Task 2)
 
 const CACHE_WEBHOOK_BASE = 'https://api.celeste7.ai/webhook';
 
@@ -9,6 +10,7 @@ class CacheService {
     this.processing = false;
     this.cache = new Map(); // Local cache for session
     this.cacheTTL = 5 * 60 * 1000; // 5 minutes local cache
+    this.requestCount = 0; // Track API calls
   }
 
   // Generic cache getter with local session cache
