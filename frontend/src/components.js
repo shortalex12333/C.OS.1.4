@@ -19,6 +19,7 @@ import {
   Clock
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { cacheService } from './services/cacheService';
 
 // API Configuration
 const API_CONFIG = {
