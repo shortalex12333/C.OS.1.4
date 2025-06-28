@@ -195,8 +195,8 @@ frontend:
 
   - task: "Webhook URL Updates"
     implemented: true
-    working: "pending_testing"
-    file: "components.js, App.js"
+    working: "testing_in_progress"
+    file: "components.js, App.js, services/webhookService.js, services/cacheService.js"
     stuck_count: 0
     priority: "high" 
     needs_retesting: true
@@ -210,6 +210,9 @@ frontend:
       - working: "pending_testing"
         agent: "main"
         comment: "Changed base URL back to https://api.celeste7.ai/webhook while keeping all the same endpoints. All authentication URLs now point to the correct API endpoints. Login endpoint: https://api.celeste7.ai/webhook/auth/login"
+      - working: "testing_in_progress"
+        agent: "main"
+        comment: "MAJOR UPDATE: Implemented comprehensive webhook debugging system with WebhookDebugger component, fixed path mismatches (/auth/logout vs auth-logout), added missing /get-data endpoint, created emergency fallback mode, and added request/response logging. Fixed critical issues: auth logout path, auth verify-token path, and added the missing /webhook/get-data endpoint that was being called 78+ times. Debug panel added to main interface and full debugger available at /webhook-debug route."
 
   - task: "Onboarding UX Enhancement"
     implemented: true
