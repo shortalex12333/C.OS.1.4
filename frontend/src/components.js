@@ -755,6 +755,7 @@ const ChatInterface = ({ user, onLogout }) => {
     }
     
     setIsSending(true);
+    setIsGenerating(true);
     setError(null);
     setConnectionError(false);
 
@@ -789,6 +790,10 @@ const ChatInterface = ({ user, onLogout }) => {
 
     setMessage('');
 
+    // Create abort controller for this request
+    const controller = new AbortController();
+    setAbortController(controller);
+
     try {
       const result = await sendRequestWithRetry(API_CONFIG.endpoints.chat, {
         userId: user.id,
@@ -797,20 +802,27 @@ const ChatInterface = ({ user, onLogout }) => {
         chatId: currentConversation.id,
         sessionId: sessionId || `session_${user.id}_${Date.now()}`,
         timestamp: new Date().toISOString()
-      }, { maxRetries: 1, timeout: 30000 });
+      }, { maxRetries: 1, timeout: 30000, signal: controller.signal });
       
       if (result.success) {
-        // Handle both array and object responses
+        // Handle array response format
         const responseData = Array.isArray(result.data) ? result.data[0] : result.data;
         
         if (!responseData) {
           throw new Error('Empty response from server');
         }
         
+        // Extract data from new response format
         const aiResponseText = responseData.response || 
           responseData.message || 
           responseData.text ||
           "I'm processing your request. Let me help you transform your patterns into profits.";
+        
+        // Update token information from metadata
+        if (responseData.metadata) {
+          setTokensRemaining(responseData.metadata.tokensRemaining || tokensRemaining);
+          setUserStage(responseData.metadata.stage || userStage);
+        }
         
         const isRecovered = responseData.metadata?.recovered || 
                           responseData.metadata?.fallback ||
@@ -824,7 +836,9 @@ const ChatInterface = ({ user, onLogout }) => {
                   ...msg, 
                   text: aiResponseText, 
                   isThinking: false,
-                  isRecovered
+                  isRecovered,
+                  category: responseData.metadata?.category,
+                  metadata: responseData.metadata
                 }
               : msg
           )
@@ -835,6 +849,17 @@ const ChatInterface = ({ user, onLogout }) => {
           prev.map(c => c.id === currentConversation.id ? finalConv : c)
         );
         
+        // Save to sessionStorage
+        sessionStorage.setItem(`chat_${currentConversation.id}`, JSON.stringify({
+          messages: finalConv.messages,
+          lastUpdated: Date.now(),
+          metadata: {
+            tokensRemaining,
+            stage: userStage,
+            userName: user.name || user.displayName
+          }
+        }));
+        
         if (isRecovered) {
           console.warn('Recovered from AI error, used fallback response');
         }
@@ -842,9 +867,19 @@ const ChatInterface = ({ user, onLogout }) => {
         throw new Error('Invalid response from server');
       }
     } catch (error) {
+      if (error.name === 'AbortError') {
+        console.log('Request was aborted by user');
+        return;
+      }
+      
       console.error('Message send failed:', error);
       setConnectionError(true);
-      setError('Connection issue. Check your internet and try again.');
+      setError({
+        type: 'network_error',
+        title: 'Connection Issue',
+        message: 'Check your internet and try again.',
+        retryAfter: 0
+      });
       
       const errorConv = {
         ...updatedConv,
@@ -856,8 +891,93 @@ const ChatInterface = ({ user, onLogout }) => {
       );
     } finally {
       setIsSending(false);
+      setIsGenerating(false);
+      setAbortController(null);
     }
-  }, [message, activeConversation, isSending, user, sessionId]);
+  }, [message, activeConversation, isSending, user, sessionId, tokensRemaining, userStage]);
+
+  // Stop generation function
+  const stopGeneration = useCallback(() => {
+    if (abortController) {
+      abortController.abort();
+      setIsGenerating(false);
+      setIsSending(false);
+      setAbortController(null);
+    }
+  }, [abortController]);
+
+  // Message action handlers
+  const handleCopyMessage = useCallback((message) => {
+    // Could add toast notification here
+    console.log('Message copied:', message.text.substring(0, 50) + '...');
+  }, []);
+
+  const handleEditMessage = useCallback((message) => {
+    setEditingMessage(message);
+    setMessage(message.text);
+    textareaRef.current?.focus();
+  }, []);
+
+  const handleRegenerateMessage = useCallback(async (message) => {
+    if (!activeConversation || isSending) return;
+    
+    // Find the user message that preceded this AI message
+    const messageIndex = activeConversation.messages.findIndex(m => m.id === message.id);
+    if (messageIndex <= 0) return;
+    
+    const userMessage = activeConversation.messages[messageIndex - 1];
+    if (!userMessage.isUser) return;
+    
+    // Remove the AI message and regenerate
+    const updatedMessages = activeConversation.messages.slice(0, messageIndex);
+    const updatedConv = {
+      ...activeConversation,
+      messages: updatedMessages
+    };
+    
+    setActiveConversation(updatedConv);
+    setConversations(prev => 
+      prev.map(c => c.id === activeConversation.id ? updatedConv : c)
+    );
+    
+    // Trigger regeneration by "sending" the user message again
+    setMessage(userMessage.text);
+    // Use a small delay to ensure state updates
+    setTimeout(() => {
+      handleSendMessage();
+    }, 100);
+  }, [activeConversation, isSending, handleSendMessage]);
+
+  // Load chat from sessionStorage
+  const loadChat = useCallback((chatId) => {
+    const saved = sessionStorage.getItem(`chat_${chatId}`);
+    if (saved) {
+      try {
+        const { messages, metadata } = JSON.parse(saved);
+        if (metadata) {
+          setTokensRemaining(metadata.tokensRemaining || 50000);
+          setUserStage(metadata.stage || 'exploring');
+        }
+        return messages;
+      } catch (e) {
+        console.error('Failed to load chat:', e);
+      }
+    }
+    return [];
+  }, []);
+
+  // Get category styles for messages
+  const getCategoryStyles = (category) => {
+    const categoryStyles = {
+      sales: { borderLeft: '3px solid #10b981' },
+      marketing: { borderLeft: '3px solid #8b5cf6' },
+      operations: { borderLeft: '3px solid #3b82f6' },
+      finance: { borderLeft: '3px solid #f59e0b' },
+      mindset: { borderLeft: '3px solid #ec4899' },
+      strategy: { borderLeft: '3px solid #f97316' }
+    };
+    return categoryStyles[category] || {};
+  };
 
   const deleteConversation = useCallback((convId, e) => {
     e?.stopPropagation();
