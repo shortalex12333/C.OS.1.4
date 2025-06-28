@@ -80,55 +80,6 @@ function App() {
     checkSession();
   }, []);
 
-  // Email confirmation route handling
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const confirmToken = urlParams.get('confirm');
-    
-    if (confirmToken) {
-      handleEmailConfirmation(confirmToken);
-    }
-  }, []);
-
-  const handleEmailConfirmation = async (token) => {
-    try {
-      setIsLoading(true);
-      setConfirmationMessage('Confirming your email...');
-      
-      const response = await fetch('https://api.celeste7.ai/webhook/auth/confirm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token })
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        // Handle both array and object responses
-        const confirmData = Array.isArray(data) ? data[0] : data;
-        
-        if (confirmData && confirmData.success) {
-          setConfirmationMessage('✅ Email confirmed successfully! You can now log in.');
-          // Clean up URL by removing the confirm parameter
-          const url = new URL(window.location);
-          url.searchParams.delete('confirm');
-          window.history.replaceState({}, document.title, url.pathname + url.search);
-          
-          // Clear message after 5 seconds
-          setTimeout(() => setConfirmationMessage(''), 5000);
-        } else {
-          setConfirmationMessage('❌ Email confirmation failed. Please try again or contact support.');
-        }
-      } else {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-    } catch (error) {
-      console.error('Confirmation failed:', error);
-      setConfirmationMessage('❌ Email confirmation failed. Please check your connection and try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleLogin = (userData, token) => {
     // Generate unique sessionId for this login session
     const sessionId = generateUniqueSessionId(userData.id);
