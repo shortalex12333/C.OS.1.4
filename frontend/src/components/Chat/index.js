@@ -181,24 +181,20 @@ const ChatComponent = ({
   }, [messages, isLoading, scrollToBottom]);
   
   // Send message function
-  const sendMessage = useCallback(async (messageText = inputValue.trim(), isRetry = false) => {
-    if (!messageText || isLoading || !connectionStatus.isOnline) return;
-    
-    // Abort previous request if still pending
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    
-    abortControllerRef.current = new AbortController();
-    
-    setError(null);
+  const sendMessage = useCallback(async (messageText = inputValue, isRetry = false) => {
+    const text = messageText.trim();
+    if (!text || isLoading) return;
+
+    // Clear any existing streaming
+    clearAllStreaming();
+
     setIsLoading(true);
-    setConnectionStatus(prev => ({ ...prev, isConnected: false }));
+    setError(null);
+    setRetryMessage(null);
     
-    // Add user message immediately (optimistic update)
     const userMessage = {
       id: `user-${Date.now()}`,
-      text: messageText,
+      text,
       isUser: true,
       timestamp: new Date()
     };
@@ -219,28 +215,29 @@ const ChatComponent = ({
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
+        mode: 'cors',
+        credentials: 'omit',
         body: JSON.stringify({
-          userId: user?.id || 'guest_user_' + Date.now(),
-          message: messageText,
-          chatId: sessionStorage.getItem('celesteos_chat_id') || `chat_${Date.now()}`,
-          sessionId: sessionStorage.getItem('celesteos_session_id') || `session_${Date.now()}`,
-          userName: user?.displayName || user?.name || user?.email?.split('@')[0] || 'User'
-        }),
-        signal: abortControllerRef.current.signal
+          userId: user.id,
+          userName: user.name || user.displayName,
+          message: text,
+          chatId: `chat_${user.id}_${Date.now()}`,
+          sessionId: `session_${user.id}`,
+          timestamp: new Date().toISOString()
+        })
       });
       
-      setConnectionStatus(prev => ({ ...prev, isConnected: true }));
-      
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(`HTTP ${response.status}`);
       }
       
       const data = await response.json();
       
       if (data.success && data.response) {
+        const aiMessageId = `ai-${Date.now()}`;
         const aiMessage = {
-          id: `ai-${Date.now()}`,
-          text: data.response,
+          id: aiMessageId,
+          text: '', // Start with empty text for streaming
           isUser: false,
           timestamp: new Date(data.timestamp || Date.now()),
           category: data.metadata?.category,
@@ -248,7 +245,8 @@ const ChatComponent = ({
           responseTime: data.metadata?.responseTime,
           stage: data.metadata?.stage,
           requestId: data.requestId,
-          fadeIn: true
+          fadeIn: true,
+          isStreaming: true
         };
         
         setMessages(prev => {
@@ -256,89 +254,42 @@ const ChatComponent = ({
           return newMessages.slice(-maxMessages);
         });
         
+        // Start word-by-word streaming
+        streamMessage(data.response, aiMessageId);
+        
         // Update token stats with new format
         if (data.metadata?.tokensUsed !== undefined || data.metadata?.tokensRemaining !== undefined) {
           setTokenStats(prev => ({
-            remaining: data.metadata?.tokensRemaining ?? prev.remaining,
-            used: prev.used + (data.metadata?.tokensUsed || 0),
-            hourly: data.error?.limits?.hourly,
-            daily: data.error?.limits?.daily,
-            monthly: data.error?.limits?.monthly
+            remaining: data.metadata?.tokensRemaining || prev.remaining,
+            used: (prev.used || 0) + (data.metadata?.tokensUsed || 0)
           }));
         }
         
-        setRetryMessage(null);
-        
-        // Announce to screen readers
-        if ('speechSynthesis' in window) {
-          const utterance = new SpeechSynthesisUtterance('New message received');
-          utterance.volume = 0; // Silent but triggers screen reader
-          speechSynthesis.speak(utterance);
-        }
+        // Save to localStorage periodically
+        saveToLocalStorage([...messages, userMessage, { ...aiMessage, text: data.response }]);
         
       } else {
-        // Handle new API error response format
-        if (!data.success && data.response) {
-          // Token limit errors
-          if (data.error?.type?.includes('limit_exceeded')) {
-            const errorDetails = data.error.details;
-            const limitType = errorDetails?.limitType || 'token';
-            const resetTime = errorDetails?.resetFormatted || 'soon';
-            const minutesUntilReset = errorDetails?.minutesUntilReset;
-            
-            let errorMessage = data.response; // Use the formatted response message
-            if (minutesUntilReset) {
-              errorMessage += ` (${minutesUntilReset} minutes remaining)`;
-            }
-            
-            setError(errorMessage);
-            setRetryMessage(messageText);
-            
-            // Update token stats with limit info
-            if (data.error.limits) {
-              setTokenStats(prev => ({
-                ...prev,
-                hourly: data.error.limits.hourly,
-                daily: data.error.limits.daily,
-                monthly: data.error.limits.monthly
-              }));
-            }
-            return;
-          }
-          
-          // System errors (high demand, rate limited, etc.)
-          if (data.error?.type) {
-            setError(data.response); // Use the formatted response message
-            setRetryMessage(messageText);
-            
-            // Handle retryAfter for system errors
-            if (data.error.retryAfter) {
-              setTimeout(() => {
-                setError(null);
-              }, data.error.retryAfter * 1000);
-            }
-            return;
-          }
-        }
-        
-        throw new Error(data.error?.details?.message || data.response || 'Failed to get response');
+        throw new Error('Invalid response format');
       }
+    } catch (error) {
+      console.error('Send message error:', error);
       
-    } catch (err) {
-      if (err.name === 'AbortError') {
-        console.log('Request aborted');
-        return;
-      }
+      // Add error message without streaming
+      const errorMessage = {
+        id: `error-${Date.now()}`,
+        text: 'Failed to send message. Please try again.',
+        isUser: false,
+        isError: true,
+        timestamp: new Date()
+      };
       
-      console.error('Chat error:', err);
-      setError(err.message);
-      setRetryMessage(messageText);
-      setConnectionStatus(prev => ({ ...prev, isConnected: false }));
+      setMessages(prev => [...prev, errorMessage]);
+      setRetryMessage(text);
+      setError(error.message || 'Network error');
     } finally {
       setIsLoading(false);
-      abortControllerRef.current = null;
     }
-  }, [inputValue, isLoading, messages, user?.id, apiEndpoint, maxMessages, connectionStatus.isOnline]);
+  }, [inputValue, isLoading, user, apiEndpoint, maxMessages, messages, saveToLocalStorage, streamMessage, clearAllStreaming]);
   
   // Handle input changes with debouncing
   const handleInputChange = useCallback((e) => {
