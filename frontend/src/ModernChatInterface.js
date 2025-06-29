@@ -264,16 +264,20 @@ const ModernChatInterface = ({ user, apiEndpoint = WEBHOOK_URLS.TEXT_CHAT_FAST }
   }, [messages, isLoading, scrollToBottom]);
   
   // Send message function
-  const sendMessage = useCallback(async (messageText = inputValue.trim(), isRetry = false) => {
-    if (!messageText || isLoading) return;
-    
-    setError(null);
+  const sendMessage = useCallback(async (messageText = inputValue, isRetry = false) => {
+    const text = messageText.trim();
+    if (!text || isLoading) return;
+
+    // Clear any existing streaming
+    clearAllStreaming();
+
     setIsLoading(true);
+    setError(null);
+    setRetryMessage(null);
     
-    // Add user message immediately (optimistic update)
     const userMessage = {
-      id: Date.now(),
-      text: messageText,
+      id: `user-${Date.now()}`,
+      text,
       isUser: true,
       timestamp: new Date()
     };
@@ -290,55 +294,75 @@ const ModernChatInterface = ({ user, apiEndpoint = WEBHOOK_URLS.TEXT_CHAT_FAST }
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
+        mode: 'cors',
+        credentials: 'omit',
         body: JSON.stringify({
-          message: messageText,
-          userId: user?.id,
-          sessionId: sessionStorage.getItem('celesteos_session_id'),
-          conversationHistory: messages.slice(-10) // Last 10 messages for context
-        }),
+          userId: user.id,
+          userName: user.name || user.displayName,
+          message: text,
+          chatId: `chat_${user.id}_${Date.now()}`,
+          sessionId: `session_${user.id}`,
+          timestamp: new Date().toISOString()
+        })
       });
       
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(`HTTP ${response.status}`);
       }
       
       const data = await response.json();
       
       if (data.success && data.response) {
+        const aiMessageId = `ai-${Date.now()}`;
         const aiMessage = {
-          id: Date.now() + 1,
-          text: data.response,
+          id: aiMessageId,
+          text: '', // Start with empty text for streaming
           isUser: false,
-          timestamp: new Date(),
+          timestamp: new Date(data.timestamp || Date.now()),
           category: data.metadata?.category,
           confidence: data.metadata?.confidence,
           responseTime: data.metadata?.responseTime,
-          fadeIn: true
+          stage: data.metadata?.stage,
+          requestId: data.requestId,
+          fadeIn: true,
+          isStreaming: true
         };
         
         setMessages(prev => [...prev, aiMessage]);
         
-        // Update token stats
-        if (data.metadata?.tokensUsed || data.metadata?.tokensRemaining) {
+        // Start word-by-word streaming
+        streamMessage(data.response, aiMessageId);
+        
+        // Update token stats with new format
+        if (data.metadata?.tokensUsed !== undefined || data.metadata?.tokensRemaining !== undefined) {
           setTokenStats(prev => ({
             remaining: data.metadata?.tokensRemaining || prev.remaining,
-            used: prev.used + (data.metadata?.tokensUsed || 0)
+            used: (prev.used || 0) + (data.metadata?.tokensUsed || 0)
           }));
         }
         
-        setRetryMessage(null);
       } else {
-        throw new Error(data.error || 'Failed to get response');
+        throw new Error('Invalid response format');
       }
+    } catch (error) {
+      console.error('Send message error:', error);
       
-    } catch (err) {
-      console.error('Chat error:', err);
-      setError(err.message);
-      setRetryMessage(messageText);
+      // Add error message without streaming
+      const errorMessage = {
+        id: `error-${Date.now()}`,
+        text: 'Failed to send message. Please try again.',
+        isUser: false,
+        isError: true,
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+      setRetryMessage(text);
+      setError(error.message || 'Network error');
     } finally {
       setIsLoading(false);
     }
-  }, [inputValue, isLoading, messages, user?.id, apiEndpoint]);
+  }, [inputValue, isLoading, user, apiEndpoint, streamMessage, clearAllStreaming]);
   
   // Handle input changes with debouncing
   const handleInputChange = useCallback((e) => {
