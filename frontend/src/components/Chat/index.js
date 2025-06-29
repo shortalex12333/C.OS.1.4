@@ -97,6 +97,8 @@ const ChatComponent = ({
   const textareaRef = useRef(null);
   const abortControllerRef = useRef(null);
   const retryTimeoutRef = useRef(null);
+  const debounceRef = useRef(null);
+  const messagesContainerRef = useRef(null);
 
   // Word-by-word streaming function - FIXED IMPLEMENTATION  
   const streamMessage = useCallback((fullText, messageId) => {
