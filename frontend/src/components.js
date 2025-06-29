@@ -1100,35 +1100,6 @@ const ChatInterface = ({ user, onLogout }) => {
                           responseData.metadata?.fallback ||
                           responseData.metadata?.tokensUsed === 0;
         
-        // Update token information from metadata
-        if (responseData.metadata) {
-          setTokensRemaining(responseData.metadata.tokensRemaining || tokensRemaining);
-          setUserStage(responseData.metadata.stage || userStage);
-          
-          // Update user profile cache with new token count
-          if (responseData.metadata.tokensRemaining !== tokensRemaining) {
-            try {
-              await cacheService.updateCacheAfterModification(user.id, 'user_personalization', {
-                ...userProfile,
-                tokens_remaining: responseData.metadata.tokensRemaining,
-                stage: responseData.metadata.stage,
-                updated_at: new Date().toISOString()
-              });
-            } catch (error) {
-              console.log('⚠️ Failed to update profile cache:', error);
-            }
-          }
-        }
-        
-        const isRecovered = responseData.metadata?.recovered || 
-                          responseData.metadata?.fallback ||
-                          responseData.metadata?.tokensUsed === 0;
-        
-        // Check if response was recovered or fallback
-        const isRecovered = responseData.metadata?.recovered || 
-                          responseData.metadata?.fallback ||
-                          responseData.metadata?.tokensUsed === 0;
-        
         // STEP 1: Add empty message to UI immediately
         const finalConv = {
           ...updatedConv,
