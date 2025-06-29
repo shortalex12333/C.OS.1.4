@@ -1124,7 +1124,44 @@ const ChatInterface = ({ user, onLogout }) => {
         // CRITICAL: Start word-by-word streaming animation AFTER UI update
         setTimeout(() => {
           console.log('🚀 Starting streaming animation with text:', aiResponseText); // DEBUG
-          streamMessage(aiResponseText, aiMessage.id, currentConversation.id);
+          try {
+            streamMessage(aiResponseText, aiMessage.id, currentConversation.id);
+            
+            // EMERGENCY FALLBACK: If streaming doesn't work after 5 seconds, show full text
+            setTimeout(() => {
+              console.log('🚨 EMERGENCY FALLBACK: Checking if streaming completed');
+              setActiveConversation(prev => {
+                if (!prev) return prev;
+                const targetMessage = prev.messages.find(m => m.id === aiMessage.id);
+                if (targetMessage?.isStreaming) {
+                  console.log('🚨 EMERGENCY: Streaming stuck, showing full text');
+                  return {
+                    ...prev,
+                    messages: prev.messages.map(msg => 
+                      msg.id === aiMessage.id 
+                        ? { ...msg, text: aiResponseText, isStreaming: false, isThinking: false }
+                        : msg
+                    )
+                  };
+                }
+                return prev;
+              });
+            }, 5000); // 5 second emergency fallback
+            
+          } catch (error) {
+            console.error('🚨 CRITICAL: Streaming failed, using emergency fallback', error);
+            // EMERGENCY: Show full text immediately
+            setActiveConversation(prev => 
+              prev ? {
+                ...prev,
+                messages: prev.messages.map(msg => 
+                  msg.id === aiMessage.id 
+                    ? { ...msg, text: aiResponseText, isStreaming: false, isThinking: false }
+                    : msg
+                )
+              } : prev
+            );
+          }
         }, 100); // Small delay to ensure UI is updated first
         
         // Save to cache/storage (will be updated as streaming completes)
