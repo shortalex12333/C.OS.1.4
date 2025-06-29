@@ -81,16 +81,77 @@ const ChatComponent = ({
   const [error, setError] = useState(null);
   const [retryMessage, setRetryMessage] = useState(null);
   const [tokenStats, setTokenStats] = useState({ remaining: 0, used: 0 });
-  const [connectionStatus, setConnectionStatus] = useState({
+  
+  // Streaming animation state
+  const [streamingIntervals, setStreamingIntervals] = useState(new Map());
+  
+  // Connection monitoring
+  const [connectionStatus, setConnectionStatus] = useState({ 
     isOnline: navigator.onLine,
-    isConnected: true
+    isConnected: true,
+    lastPing: Date.now()
   });
   
-  // Refs
+  // Refs for cleanup and auto-scroll
   const messagesEndRef = useRef(null);
+  const textareaRef = useRef(null);
   const abortControllerRef = useRef(null);
-  const debounceRef = useRef(null);
-  const messagesContainerRef = useRef(null);
+  const retryTimeoutRef = useRef(null);
+
+  // Word-by-word streaming function
+  const streamMessage = useCallback((fullText, messageId) => {
+    // Clear any existing interval for this message
+    if (streamingIntervals.has(messageId)) {
+      clearInterval(streamingIntervals.get(messageId));
+      streamingIntervals.delete(messageId);
+    }
+
+    const words = fullText.split(' ');
+    let currentIndex = 0;
+    
+    const interval = setInterval(() => {
+      if (currentIndex < words.length) {
+        setMessages(prev => prev.map(msg => 
+          msg.id === messageId 
+            ? { 
+                ...msg, 
+                text: words.slice(0, currentIndex + 1).join(' '),
+                isStreaming: true
+              }
+            : msg
+        ));
+        currentIndex++;
+      } else {
+        // Streaming complete
+        setMessages(prev => prev.map(msg => 
+          msg.id === messageId 
+            ? { ...msg, isStreaming: false }
+            : msg
+        ));
+        clearInterval(interval);
+        setStreamingIntervals(prev => {
+          const newMap = new Map(prev);
+          newMap.delete(messageId);
+          return newMap;
+        });
+      }
+    }, 40); // 40ms delay between words
+
+    setStreamingIntervals(prev => new Map(prev).set(messageId, interval));
+  }, [streamingIntervals]);
+
+  // Clear all streaming intervals
+  const clearAllStreaming = useCallback(() => {
+    streamingIntervals.forEach(interval => clearInterval(interval));
+    setStreamingIntervals(new Map());
+  }, [streamingIntervals]);
+
+  // Clear streaming when component unmounts
+  useEffect(() => {
+    return () => {
+      clearAllStreaming();
+    };
+  }, [clearAllStreaming]);
   
   // Connection status monitoring
   useEffect(() => {
