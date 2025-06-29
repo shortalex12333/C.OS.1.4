@@ -1518,7 +1518,7 @@ const ChatInterface = ({ user, onLogout }) => {
                   >
                     <div className="max-w-4xl mx-auto px-4">
                       {msg.isThinking ? (
-                        <TypingIndicator isDarkMode={isDarkMode} />
+                        <TypingIndicator isDarkMode={isDarkMode} isStreaming={msg.isStreaming} />
                       ) : (
                         <div className={`flex gap-4 ${msg.isUser ? 'justify-end' : 'justify-start'}`}>
                           {/* Avatar */}
@@ -1534,13 +1534,14 @@ const ChatInterface = ({ user, onLogout }) => {
                           <div className={`flex-1 max-w-[85%] ${msg.isUser ? 'max-w-[70%]' : ''}`}>
                             <div 
                               className={`
-                                px-4 py-3 rounded-lg
+                                px-4 py-3 rounded-lg transition-all duration-200
                                 ${msg.isUser 
                                   ? 'bg-[#2563eb] text-white rounded-tr-sm ml-auto'
                                   : isDarkMode 
                                     ? 'bg-[#000000] border-[#000000] text-white border rounded-tl-sm'
                                     : 'bg-[#ffffff] border-[#ffffff] text-[#202123] border rounded-tl-sm'
                                 }
+                                ${msg.isStreaming ? 'animate-pulse' : ''}
                               `}
                               style={!msg.isUser ? getCategoryStyles(msg.category) : {}}
                             >
@@ -1582,11 +1583,15 @@ const ChatInterface = ({ user, onLogout }) => {
                                 >
                                   {msg.text}
                                 </ReactMarkdown>
+                                {/* Streaming cursor */}
+                                {msg.isStreaming && (
+                                  <span className="inline-block w-2 h-4 bg-current ml-1 animate-pulse"></span>
+                                )}
                               </div>
                             </div>
                             
-                            {/* Message actions */}
-                            {!msg.isThinking && (
+                            {/* Message actions - hide during streaming */}
+                            {!msg.isThinking && !msg.isStreaming && (
                               <MessageActions
                                 message={msg}
                                 onCopy={handleCopyMessage}
