@@ -881,42 +881,6 @@ const ChatInterface = ({ user, onLogout }) => {
     }
   }, [user?.id]);
 
-  // Simple presence tracking
-  useEffect(() => {
-    // For MVP: Use localStorage to track unique visitors
-    const visitorId = localStorage.getItem('visitor_id') || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    if (!localStorage.getItem('visitor_id')) {
-      localStorage.setItem('visitor_id', visitorId);
-    }
-
-    // Use a simple counter service (replace with your own endpoint)
-    const updatePresence = async () => {
-      try {
-        // Option 1: Use a simple Vercel/Netlify function
-        // const res = await fetch('/api/presence', { method: 'POST', body: JSON.stringify({ visitorId }) });
-        
-        // Option 2: For now, use localStorage to simulate
-        const activeUsers = JSON.parse(localStorage.getItem('active_users') || '{}');
-        activeUsers[visitorId] = Date.now();
-        
-        // Clean up old entries (>5 min)
-        Object.keys(activeUsers).forEach(id => {
-          if (Date.now() - activeUsers[id] > 300000) delete activeUsers[id];
-        });
-        
-        localStorage.setItem('active_users', JSON.stringify(activeUsers));
-        setOnlineUsers(Object.keys(activeUsers).length);
-      } catch (err) {
-        console.error('Presence update failed:', err);
-      }
-    };
-
-    updatePresence();
-    const interval = setInterval(updatePresence, 30000); // Update every 30s
-
-    return () => clearInterval(interval);
-  }, []);
-
   // Get session ID from sessionStorage
   const sessionId = sessionStorage.getItem('celesteos_session_id');
 
