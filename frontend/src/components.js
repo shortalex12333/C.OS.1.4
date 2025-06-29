@@ -1073,40 +1073,17 @@ const ChatInterface = ({ user, onLogout }) => {
           responseData.text ||
           "I'm processing your request. Let me help you transform your patterns into profits.";
         
+        // SIMPLE STREAMING IMPLEMENTATION - REPLACE COMPLEX VERSION
         console.log('🔍 AI Response Text:', aiResponseText); // DEBUG
         
-        // Update token information from metadata
-        if (responseData.metadata) {
-          setTokensRemaining(responseData.metadata.tokensRemaining || tokensRemaining);
-          setUserStage(responseData.metadata.stage || userStage);
-          
-          // Update user profile cache with new token count
-          if (responseData.metadata.tokensRemaining !== tokensRemaining) {
-            try {
-              await cacheService.updateCacheAfterModification(user.id, 'user_personalization', {
-                ...userProfile,
-                tokens_remaining: responseData.metadata.tokensRemaining,
-                stage: responseData.metadata.stage,
-                updated_at: new Date().toISOString()
-              });
-            } catch (error) {
-              console.log('⚠️ Failed to update profile cache:', error);
-            }
-          }
-        }
-        
-        const isRecovered = responseData.metadata?.recovered || 
-                          responseData.metadata?.fallback ||
-                          responseData.metadata?.tokensUsed === 0;
-        
-        // Add message with empty content first - FIXED IMPLEMENTATION
+        // STEP 1: Add empty message to UI immediately
         const finalConv = {
           ...updatedConv,
           messages: updatedConv.messages.map(msg => 
             msg.id === aiMessage.id 
               ? { 
                   ...msg, 
-                  text: '', // Start with empty text for streaming
+                  text: '', // Start with empty text
                   isThinking: false, // STOP thinking animation
                   isRecovered,
                   isStreaming: true,
@@ -1118,51 +1095,61 @@ const ChatInterface = ({ user, onLogout }) => {
         };
 
         setActiveConversation(finalConv);
-        const updatedConversations = conversations.map(c => c.id === currentConversation.id ? finalConv : c);
-        setConversations(updatedConversations);
+        setConversations(prev => 
+          prev.map(c => c.id === currentConversation.id ? finalConv : c)
+        );
         
-        // CRITICAL: Start word-by-word streaming animation AFTER UI update
-        setTimeout(() => {
-          console.log('🚀 Starting streaming animation with text:', aiResponseText); // DEBUG
-          try {
-            streamMessage(aiResponseText, aiMessage.id, currentConversation.id);
+        // STEP 2: Start simple word-by-word streaming
+        const words = aiResponseText.split(' ');
+        let wordIndex = 0;
+        
+        console.log('🚀 Starting SIMPLE streaming with', words.length, 'words:', words);
+        
+        const streamInterval = setInterval(() => {
+          if (wordIndex < words.length) {
+            const currentText = words.slice(0, wordIndex + 1).join(' ');
+            console.log(`📝 SIMPLE Word ${wordIndex + 1}/${words.length}: "${currentText}"`);
             
-            // EMERGENCY FALLBACK: If streaming doesn't work after 5 seconds, show full text
-            setTimeout(() => {
-              console.log('🚨 EMERGENCY FALLBACK: Checking if streaming completed');
-              setActiveConversation(prev => {
-                if (!prev) return prev;
-                const targetMessage = prev.messages.find(m => m.id === aiMessage.id);
-                if (targetMessage?.isStreaming) {
-                  console.log('🚨 EMERGENCY: Streaming stuck, showing full text');
-                  return {
-                    ...prev,
-                    messages: prev.messages.map(msg => 
-                      msg.id === aiMessage.id 
-                        ? { ...msg, text: aiResponseText, isStreaming: false, isThinking: false }
-                        : msg
-                    )
-                  };
-                }
-                return prev;
-              });
-            }, 5000); // 5 second emergency fallback
-            
-          } catch (error) {
-            console.error('🚨 CRITICAL: Streaming failed, using emergency fallback', error);
-            // EMERGENCY: Show full text immediately
-            setActiveConversation(prev => 
-              prev ? {
+            // SIMPLE: Update only activeConversation
+            setActiveConversation(prev => {
+              if (!prev) return prev;
+              return {
                 ...prev,
                 messages: prev.messages.map(msg => 
                   msg.id === aiMessage.id 
-                    ? { ...msg, text: aiResponseText, isStreaming: false, isThinking: false }
+                    ? { ...msg, text: currentText, isStreaming: true }
                     : msg
                 )
-              } : prev
-            );
+              };
+            });
+            
+            wordIndex++;
+          } else {
+            console.log('✅ SIMPLE streaming complete!');
+            
+            // FINAL: Mark streaming complete
+            setActiveConversation(prev => {
+              if (!prev) return prev;
+              const finalConv = {
+                ...prev,
+                messages: prev.messages.map(msg => 
+                  msg.id === aiMessage.id 
+                    ? { ...msg, text: aiResponseText, isStreaming: false }
+                    : msg
+                )
+              };
+              
+              // Update conversations with final result
+              setConversations(prevConv => 
+                prevConv.map(c => c.id === prev.id ? finalConv : c)
+              );
+              
+              return finalConv;
+            });
+            
+            clearInterval(streamInterval);
           }
-        }, 100); // Small delay to ensure UI is updated first
+        }, 80); // 80ms between words
         
         // Save to cache/storage (will be updated as streaming completes)
         saveConversations(updatedConversations);
