@@ -1316,7 +1316,7 @@ const ChatInterface = ({ user, onLogout }) => {
             </h2>
           </div>
           <div className={`text-sm ${isDarkMode ? 'text-[#d1d5db]' : 'text-[#6e6e80]'}`}>
-            <span className="font-medium">{onlineUsers}</span> {onlineUsers === 1 ? 'User' : 'Users'} online
+            Transform your patterns into profits
           </div>
         </div>
 
