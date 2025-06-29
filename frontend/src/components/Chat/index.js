@@ -295,6 +295,11 @@ const ChatComponent = ({
       const data = await response.json();
       
       if (data.success && data.response) {
+        // STOP pulsing animation immediately  
+        setIsLoading(false);
+        
+        console.log('🔍 Chat Component Webhook Response:', data); // DEBUG
+        
         const aiMessageId = `ai-${Date.now()}`;
         const aiMessage = {
           id: aiMessageId,
@@ -315,8 +320,13 @@ const ChatComponent = ({
           return newMessages.slice(-maxMessages);
         });
         
-        // Start word-by-word streaming
-        streamMessage(data.response, aiMessageId);
+        console.log('🔍 AI Response Text:', data.response); // DEBUG
+        
+        // Start word-by-word streaming AFTER UI update
+        setTimeout(() => {
+          console.log('🚀 Starting streaming animation'); // DEBUG
+          streamMessage(data.response, aiMessageId);
+        }, 100);
         
         // Update token stats with new format
         if (data.metadata?.tokensUsed !== undefined || data.metadata?.tokensRemaining !== undefined) {
