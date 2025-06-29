@@ -165,30 +165,44 @@ const ModernChatInterface = ({ user, apiEndpoint = WEBHOOK_URLS.TEXT_CHAT_FAST }
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
 
-  // Word-by-word streaming function
+  // Word-by-word streaming function - FIXED IMPLEMENTATION
   const streamMessage = useCallback((fullText, messageId) => {
+    console.log('🎬 ModernChat streamMessage called:', { fullText, messageId }); // DEBUG
+    
     // Clear any existing interval for this message
     if (streamingIntervals.has(messageId)) {
       clearInterval(streamingIntervals.get(messageId));
       streamingIntervals.delete(messageId);
     }
 
+    if (!fullText || !messageId) {
+      console.error('❌ ModernChat streamMessage: Missing required parameters', { fullText, messageId });
+      return;
+    }
+
     const words = fullText.split(' ');
     let currentIndex = 0;
     
+    console.log('📝 ModernChat starting stream with', words.length, 'words'); // DEBUG
+    
     const interval = setInterval(() => {
       if (currentIndex < words.length) {
+        const currentText = words.slice(0, currentIndex + 1).join(' ');
+        console.log(`📝 ModernChat Word ${currentIndex + 1}/${words.length}:`, currentText); // DEBUG
+        
         setMessages(prev => prev.map(msg => 
           msg.id === messageId 
             ? { 
                 ...msg, 
-                text: words.slice(0, currentIndex + 1).join(' '),
+                text: currentText,
                 isStreaming: true
               }
             : msg
         ));
         currentIndex++;
       } else {
+        console.log('✅ ModernChat streaming complete for message:', messageId); // DEBUG
+        
         // Streaming complete
         setMessages(prev => prev.map(msg => 
           msg.id === messageId 
