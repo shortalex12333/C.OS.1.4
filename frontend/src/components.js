@@ -1050,8 +1050,14 @@ const ChatInterface = ({ user, onLogout }) => {
       }, { maxRetries: 1, timeout: 30000, signal: controller.signal });
       
       if (result.success) {
+        // STOP pulsing animation immediately
+        setIsSending(false);
+        setIsGenerating(false);
+        
         // Handle array response format
         const responseData = Array.isArray(result.data) ? result.data[0] : result.data;
+        
+        console.log('🔍 Webhook Response Data:', responseData); // DEBUG
         
         if (!responseData) {
           throw new Error('Empty response from server');
@@ -1062,6 +1068,8 @@ const ChatInterface = ({ user, onLogout }) => {
           responseData.message || 
           responseData.text ||
           "I'm processing your request. Let me help you transform your patterns into profits.";
+        
+        console.log('🔍 AI Response Text:', aiResponseText); // DEBUG
         
         // Update token information from metadata
         if (responseData.metadata) {
@@ -1087,7 +1095,7 @@ const ChatInterface = ({ user, onLogout }) => {
                           responseData.metadata?.fallback ||
                           responseData.metadata?.tokensUsed === 0;
         
-        // First, update the message with metadata but empty text
+        // Add message with empty content first - FIXED IMPLEMENTATION
         const finalConv = {
           ...updatedConv,
           messages: updatedConv.messages.map(msg => 
@@ -1095,7 +1103,7 @@ const ChatInterface = ({ user, onLogout }) => {
               ? { 
                   ...msg, 
                   text: '', // Start with empty text for streaming
-                  isThinking: false,
+                  isThinking: false, // STOP thinking animation
                   isRecovered,
                   isStreaming: true,
                   category: responseData.metadata?.category,
@@ -1109,8 +1117,11 @@ const ChatInterface = ({ user, onLogout }) => {
         const updatedConversations = conversations.map(c => c.id === currentConversation.id ? finalConv : c);
         setConversations(updatedConversations);
         
-        // Start word-by-word streaming animation
-        streamMessage(aiResponseText, aiMessage.id, currentConversation.id);
+        // CRITICAL: Start word-by-word streaming animation AFTER UI update
+        setTimeout(() => {
+          console.log('🚀 Starting streaming animation with text:', aiResponseText); // DEBUG
+          streamMessage(aiResponseText, aiMessage.id, currentConversation.id);
+        }, 100); // Small delay to ensure UI is updated first
         
         // Save to cache/storage (will be updated as streaming completes)
         saveConversations(updatedConversations);
