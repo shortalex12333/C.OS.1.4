@@ -658,31 +658,59 @@ const ChatInterface = ({ user, onLogout }) => {
   const textareaRef = useRef(null);
   const resizeTimeoutRef = useRef(null);
 
-  // Word-by-word streaming function - FIXED IMPLEMENTATION
+  // Word-by-word streaming function - EMERGENCY FIX
   const streamMessage = useCallback((fullText, messageId, conversationId) => {
-    console.log('🎬 streamMessage called:', { fullText, messageId, conversationId }); // DEBUG
+    console.log('🚨 EMERGENCY streamMessage called:', { fullText, messageId, conversationId });
+    
+    // CRITICAL: Validate input parameters
+    if (!fullText || !messageId || !conversationId) {
+      console.error('❌ CRITICAL: Missing parameters for streaming', { fullText, messageId, conversationId });
+      // EMERGENCY: Set text immediately if streaming fails
+      setActiveConversation(prev => 
+        prev ? {
+          ...prev,
+          messages: prev.messages.map(msg => 
+            msg.id === messageId 
+              ? { ...msg, text: fullText || 'Error: No response text', isThinking: false, isStreaming: false }
+              : msg
+          )
+        } : prev
+      );
+      return;
+    }
     
     // Clear any existing interval for this message
     if (streamingIntervals.has(messageId)) {
       clearInterval(streamingIntervals.get(messageId));
-      streamingIntervals.delete(messageId);
-    }
-
-    if (!fullText || !messageId) {
-      console.error('❌ streamMessage: Missing required parameters', { fullText, messageId });
-      return;
     }
 
     const words = fullText.split(' ');
     let currentIndex = 0;
     
-    console.log('📝 Starting stream with', words.length, 'words'); // DEBUG
+    console.log('📝 EMERGENCY: Starting stream with', words.length, 'words:', words);
+    
+    // EMERGENCY: If no words, set text immediately
+    if (words.length === 0) {
+      console.error('❌ CRITICAL: No words to stream');
+      setActiveConversation(prev => 
+        prev ? {
+          ...prev,
+          messages: prev.messages.map(msg => 
+            msg.id === messageId 
+              ? { ...msg, text: fullText, isThinking: false, isStreaming: false }
+              : msg
+          )
+        } : prev
+      );
+      return;
+    }
     
     const interval = setInterval(() => {
       if (currentIndex < words.length) {
         const currentText = words.slice(0, currentIndex + 1).join(' ');
-        console.log(`📝 Word ${currentIndex + 1}/${words.length}:`, currentText); // DEBUG
+        console.log(`📝 EMERGENCY Word ${currentIndex + 1}/${words.length}:`, currentText);
         
+        // Update BOTH conversations and activeConversation
         setConversations(prev => 
           prev.map(conv => 
             conv.id === conversationId
@@ -703,7 +731,6 @@ const ChatInterface = ({ user, onLogout }) => {
           )
         );
         
-        // Update active conversation if it matches
         setActiveConversation(prev => 
           prev && prev.id === conversationId
             ? {
@@ -724,9 +751,9 @@ const ChatInterface = ({ user, onLogout }) => {
         
         currentIndex++;
       } else {
-        console.log('✅ Streaming complete for message:', messageId); // DEBUG
+        console.log('✅ EMERGENCY: Streaming complete for message:', messageId);
         
-        // Streaming complete
+        // FINAL: Mark streaming as complete
         setConversations(prev => 
           prev.map(conv => 
             conv.id === conversationId
@@ -762,7 +789,7 @@ const ChatInterface = ({ user, onLogout }) => {
           return newMap;
         });
       }
-    }, 40); // 40ms delay between words
+    }, 100); // SLOWER: 100ms between words to debug
 
     setStreamingIntervals(prev => new Map(prev).set(messageId, interval));
   }, [streamingIntervals]);
