@@ -1076,6 +1076,11 @@ const ChatInterface = ({ user, onLogout }) => {
         // SIMPLE STREAMING IMPLEMENTATION - REPLACE COMPLEX VERSION
         console.log('🔍 AI Response Text:', aiResponseText); // DEBUG
         
+        // Check if response was recovered or fallback
+        const isRecovered = responseData.metadata?.recovered || 
+                          responseData.metadata?.fallback ||
+                          responseData.metadata?.tokensUsed === 0;
+        
         // STEP 1: Add empty message to UI immediately
         const finalConv = {
           ...updatedConv,
