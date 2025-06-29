@@ -313,6 +313,11 @@ const ModernChatInterface = ({ user, apiEndpoint = WEBHOOK_URLS.TEXT_CHAT_FAST }
       const data = await response.json();
       
       if (data.success && data.response) {
+        // STOP pulsing animation immediately
+        setIsLoading(false);
+        
+        console.log('🔍 ModernChat Webhook Response:', data); // DEBUG
+        
         const aiMessageId = `ai-${Date.now()}`;
         const aiMessage = {
           id: aiMessageId,
@@ -330,8 +335,13 @@ const ModernChatInterface = ({ user, apiEndpoint = WEBHOOK_URLS.TEXT_CHAT_FAST }
         
         setMessages(prev => [...prev, aiMessage]);
         
-        // Start word-by-word streaming
-        streamMessage(data.response, aiMessageId);
+        console.log('🔍 AI Response Text:', data.response); // DEBUG
+        
+        // Start word-by-word streaming AFTER UI update
+        setTimeout(() => {
+          console.log('🚀 Starting streaming animation'); // DEBUG
+          streamMessage(data.response, aiMessageId);
+        }, 100);
         
         // Update token stats with new format
         if (data.metadata?.tokensUsed !== undefined || data.metadata?.tokensRemaining !== undefined) {
