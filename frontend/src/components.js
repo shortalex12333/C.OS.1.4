@@ -980,6 +980,9 @@ const ChatInterface = ({ user, onLogout }) => {
     const trimmedMessage = message.trim();
     if (!trimmedMessage || isSending) return;
 
+    // Clear any existing streaming intervals
+    clearAllStreaming();
+
     let currentConversation = activeConversation;
     if (!currentConversation) {
       const newConv = {
@@ -1010,6 +1013,7 @@ const ChatInterface = ({ user, onLogout }) => {
       text: '',
       isUser: false,
       isThinking: true,
+      isStreaming: false,
       timestamp: Date.now()
     };
 
@@ -1081,15 +1085,17 @@ const ChatInterface = ({ user, onLogout }) => {
                           responseData.metadata?.fallback ||
                           responseData.metadata?.tokensUsed === 0;
         
+        // First, update the message with metadata but empty text
         const finalConv = {
           ...updatedConv,
           messages: updatedConv.messages.map(msg => 
             msg.id === aiMessage.id 
               ? { 
                   ...msg, 
-                  text: aiResponseText, 
+                  text: '', // Start with empty text for streaming
                   isThinking: false,
                   isRecovered,
+                  isStreaming: true,
                   category: responseData.metadata?.category,
                   metadata: responseData.metadata
                 }
@@ -1101,7 +1107,10 @@ const ChatInterface = ({ user, onLogout }) => {
         const updatedConversations = conversations.map(c => c.id === currentConversation.id ? finalConv : c);
         setConversations(updatedConversations);
         
-        // Save to cache/storage
+        // Start word-by-word streaming animation
+        streamMessage(aiResponseText, aiMessage.id, currentConversation.id);
+        
+        // Save to cache/storage (will be updated as streaming completes)
         saveConversations(updatedConversations);
         
         // Save to sessionStorage for this specific chat
@@ -1151,7 +1160,7 @@ const ChatInterface = ({ user, onLogout }) => {
       setIsGenerating(false);
       setAbortController(null);
     }
-  }, [message, activeConversation, isSending, user, sessionId, tokensRemaining, userStage]);
+  }, [message, activeConversation, isSending, user, sessionId, tokensRemaining, userStage, streamMessage, clearAllStreaming, conversations, userProfile, saveConversations]);
 
   // Stop generation function
   const stopGeneration = useCallback(() => {
