@@ -659,19 +659,31 @@ const ChatInterface = ({ user, onLogout }) => {
   const textareaRef = useRef(null);
   const resizeTimeoutRef = useRef(null);
 
-  // Word-by-word streaming function
+  // Word-by-word streaming function - FIXED IMPLEMENTATION
   const streamMessage = useCallback((fullText, messageId, conversationId) => {
+    console.log('🎬 streamMessage called:', { fullText, messageId, conversationId }); // DEBUG
+    
     // Clear any existing interval for this message
     if (streamingIntervals.has(messageId)) {
       clearInterval(streamingIntervals.get(messageId));
       streamingIntervals.delete(messageId);
     }
 
+    if (!fullText || !messageId) {
+      console.error('❌ streamMessage: Missing required parameters', { fullText, messageId });
+      return;
+    }
+
     const words = fullText.split(' ');
     let currentIndex = 0;
     
+    console.log('📝 Starting stream with', words.length, 'words'); // DEBUG
+    
     const interval = setInterval(() => {
       if (currentIndex < words.length) {
+        const currentText = words.slice(0, currentIndex + 1).join(' ');
+        console.log(`📝 Word ${currentIndex + 1}/${words.length}:`, currentText); // DEBUG
+        
         setConversations(prev => 
           prev.map(conv => 
             conv.id === conversationId
@@ -681,7 +693,7 @@ const ChatInterface = ({ user, onLogout }) => {
                     msg.id === messageId 
                       ? { 
                           ...msg, 
-                          text: words.slice(0, currentIndex + 1).join(' '),
+                          text: currentText,
                           isThinking: false,
                           isStreaming: true
                         }
@@ -701,7 +713,7 @@ const ChatInterface = ({ user, onLogout }) => {
                   msg.id === messageId 
                     ? { 
                         ...msg, 
-                        text: words.slice(0, currentIndex + 1).join(' '),
+                        text: currentText,
                         isThinking: false,
                         isStreaming: true
                       }
@@ -713,6 +725,8 @@ const ChatInterface = ({ user, onLogout }) => {
         
         currentIndex++;
       } else {
+        console.log('✅ Streaming complete for message:', messageId); // DEBUG
+        
         // Streaming complete
         setConversations(prev => 
           prev.map(conv => 
