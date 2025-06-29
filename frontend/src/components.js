@@ -1566,7 +1566,6 @@ const ChatInterface = ({ user, onLogout }) => {
                                     ? 'bg-[#000000] border-[#000000] text-white border rounded-tl-sm'
                                     : 'bg-[#ffffff] border-[#ffffff] text-[#202123] border rounded-tl-sm'
                                 }
-                                ${msg.isStreaming ? 'animate-pulse' : ''}
                               `}
                               style={!msg.isUser ? getCategoryStyles(msg.category) : {}}
                             >
