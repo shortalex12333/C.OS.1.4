@@ -643,6 +643,9 @@ const ChatInterface = ({ user, onLogout }) => {
   const [abortController, setAbortController] = useState(null);
   const [editingMessage, setEditingMessage] = useState(null);
   
+  // Streaming animation state
+  const [streamingIntervals, setStreamingIntervals] = useState(new Map());
+  
   // User data from cache
   const [userProfile, setUserProfile] = useState(null);
   const [userPatterns, setUserPatterns] = useState(null);
@@ -653,6 +656,114 @@ const ChatInterface = ({ user, onLogout }) => {
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
   const resizeTimeoutRef = useRef(null);
+
+  // Word-by-word streaming function
+  const streamMessage = useCallback((fullText, messageId, conversationId) => {
+    // Clear any existing interval for this message
+    if (streamingIntervals.has(messageId)) {
+      clearInterval(streamingIntervals.get(messageId));
+      streamingIntervals.delete(messageId);
+    }
+
+    const words = fullText.split(' ');
+    let currentIndex = 0;
+    
+    const interval = setInterval(() => {
+      if (currentIndex < words.length) {
+        setConversations(prev => 
+          prev.map(conv => 
+            conv.id === conversationId
+              ? {
+                  ...conv,
+                  messages: conv.messages.map(msg => 
+                    msg.id === messageId 
+                      ? { 
+                          ...msg, 
+                          text: words.slice(0, currentIndex + 1).join(' '),
+                          isThinking: false,
+                          isStreaming: true
+                        }
+                      : msg
+                  )
+                }
+              : conv
+          )
+        );
+        
+        // Update active conversation if it matches
+        setActiveConversation(prev => 
+          prev && prev.id === conversationId
+            ? {
+                ...prev,
+                messages: prev.messages.map(msg => 
+                  msg.id === messageId 
+                    ? { 
+                        ...msg, 
+                        text: words.slice(0, currentIndex + 1).join(' '),
+                        isThinking: false,
+                        isStreaming: true
+                      }
+                    : msg
+                )
+              }
+            : prev
+        );
+        
+        currentIndex++;
+      } else {
+        // Streaming complete
+        setConversations(prev => 
+          prev.map(conv => 
+            conv.id === conversationId
+              ? {
+                  ...conv,
+                  messages: conv.messages.map(msg => 
+                    msg.id === messageId 
+                      ? { ...msg, isStreaming: false }
+                      : msg
+                  )
+                }
+              : conv
+          )
+        );
+        
+        setActiveConversation(prev => 
+          prev && prev.id === conversationId
+            ? {
+                ...prev,
+                messages: prev.messages.map(msg => 
+                  msg.id === messageId 
+                    ? { ...msg, isStreaming: false }
+                    : msg
+                )
+              }
+            : prev
+        );
+        
+        clearInterval(interval);
+        setStreamingIntervals(prev => {
+          const newMap = new Map(prev);
+          newMap.delete(messageId);
+          return newMap;
+        });
+      }
+    }, 40); // 40ms delay between words
+
+    setStreamingIntervals(prev => new Map(prev).set(messageId, interval));
+  }, [streamingIntervals]);
+
+  // Clear all streaming intervals on unmount or new message
+  const clearAllStreaming = useCallback(() => {
+    streamingIntervals.forEach(interval => clearInterval(interval));
+    setStreamingIntervals(new Map());
+  }, [streamingIntervals]);
+
+  // Clear streaming when component unmounts
+  useEffect(() => {
+    return () => {
+      clearAllStreaming();
+    };
+  }, [clearAllStreaming]);
 
   // Load user data from cache on component mount
   useEffect(() => {
