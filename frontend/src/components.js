@@ -1157,7 +1157,7 @@ const ChatInterface = ({ user, onLogout }) => {
         }, 80); // 80ms between words
         
         // Save to cache/storage (will be updated as streaming completes)
-        saveConversations(updatedConversations);
+        saveConversations(conversations.map(c => c.id === currentConversation.id ? finalConv : c));
         
         // Save to sessionStorage for this specific chat
         sessionStorage.setItem(`chat_${currentConversation.id}`, JSON.stringify({
