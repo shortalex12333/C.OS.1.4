@@ -98,30 +98,44 @@ const ChatComponent = ({
   const abortControllerRef = useRef(null);
   const retryTimeoutRef = useRef(null);
 
-  // Word-by-word streaming function
+  // Word-by-word streaming function - FIXED IMPLEMENTATION  
   const streamMessage = useCallback((fullText, messageId) => {
+    console.log('🎬 Chat streamMessage called:', { fullText, messageId }); // DEBUG
+    
     // Clear any existing interval for this message
     if (streamingIntervals.has(messageId)) {
       clearInterval(streamingIntervals.get(messageId));
       streamingIntervals.delete(messageId);
     }
 
+    if (!fullText || !messageId) {
+      console.error('❌ Chat streamMessage: Missing required parameters', { fullText, messageId });
+      return;
+    }
+
     const words = fullText.split(' ');
     let currentIndex = 0;
     
+    console.log('📝 Chat starting stream with', words.length, 'words'); // DEBUG
+    
     const interval = setInterval(() => {
       if (currentIndex < words.length) {
+        const currentText = words.slice(0, currentIndex + 1).join(' ');
+        console.log(`📝 Chat Word ${currentIndex + 1}/${words.length}:`, currentText); // DEBUG
+        
         setMessages(prev => prev.map(msg => 
           msg.id === messageId 
             ? { 
                 ...msg, 
-                text: words.slice(0, currentIndex + 1).join(' '),
+                text: currentText,
                 isStreaming: true
               }
             : msg
         ));
         currentIndex++;
       } else {
+        console.log('✅ Chat streaming complete for message:', messageId); // DEBUG
+        
         // Streaming complete
         setMessages(prev => prev.map(msg => 
           msg.id === messageId 
