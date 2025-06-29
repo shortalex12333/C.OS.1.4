@@ -638,7 +638,6 @@ const ChatInterface = ({ user, onLogout }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [connectionError, setConnectionError] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [onlineUsers, setOnlineUsers] = useState(1);
   const [tokensRemaining, setTokensRemaining] = useState(50000);
   const [userStage, setUserStage] = useState('exploring');
   const [isGenerating, setIsGenerating] = useState(false);
