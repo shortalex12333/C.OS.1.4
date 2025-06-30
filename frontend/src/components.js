@@ -641,9 +641,6 @@ const ChatInterface = ({ user, onLogout }) => {
   const [abortController, setAbortController] = useState(null);
   const [editingMessage, setEditingMessage] = useState(null);
   
-  // Streaming animation state
-  const [streamingIntervals, setStreamingIntervals] = useState(new Map());
-  
   // User data from cache
   const [userProfile, setUserProfile] = useState(null);
   const [userPatterns, setUserPatterns] = useState(null);
