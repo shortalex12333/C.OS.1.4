@@ -1,11 +1,9 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect } from 'react';
 import './styles/fonts.css';
 import './styles/app.css';
 import './styles/chat.css';
+import Components from './components';
 import { performanceMonitor } from './services/performanceMonitor';
-
-// Lazy load components for better initial load
-const Components = lazy(() => import('./components'));
 
 // Error Boundary for production
 class ErrorBoundary extends React.Component {
@@ -164,16 +162,14 @@ function App() {
           </div>
         )}
         
-        <Suspense fallback={<LoadingScreen />}>
-          {!user ? (
-            <Components.AuthScreen onLogin={handleLogin} />
-          ) : (
-            <Components.ChatInterface 
-              user={user} 
-              onLogout={handleLogout}
-            />
-          )}
-        </Suspense>
+        {!user ? (
+          <Components.AuthScreen onLogin={handleLogin} />
+        ) : (
+          <Components.ChatInterface 
+            user={user} 
+            onLogout={handleLogout}
+          />
+        )}
       </div>
     </ErrorBoundary>
   );
