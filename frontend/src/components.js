@@ -1139,7 +1139,7 @@ const ChatInterface = ({ user, onLogout }) => {
       setIsGenerating(false);
       setAbortController(null);
     }
-  }, [message, activeConversation, isSending, user, sessionId, tokensRemaining, userStage, streamMessage, clearAllStreaming, conversations, userProfile, saveConversations, editingMessage]);
+  }, [message, activeConversation, isSending, user, sessionId, tokensRemaining, userStage, streamMessage, conversations, userProfile, saveConversations, editingMessage]);
 
   // Stop generation function
   const stopGeneration = useCallback(() => {
