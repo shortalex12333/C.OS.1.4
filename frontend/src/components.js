@@ -782,6 +782,9 @@ const ChatInterface = ({ user, onLogout }) => {
   useEffect(() => {
     return () => {
       clearAllStreaming();
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
     };
   }, [clearAllStreaming]);
 
