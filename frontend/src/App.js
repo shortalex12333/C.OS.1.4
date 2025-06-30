@@ -1,169 +1,182 @@
-import React, { useState, useEffect } from 'react';
-import './App.css';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import './styles/fonts.css';
+import './styles/app.css';
 import './styles/chat.css';
-import Components from './components';
-import WebhookDebugPage from './WebhookDebugPage';
-import { WEBHOOK_URLS } from './config/webhookConfig';
+import { performanceMonitor } from './services/performanceMonitor';
 
-const { 
-  AuthScreen, 
-  ChatInterface
-} = Components;
+// Lazy load components for better initial load
+const Components = lazy(() => import('./components'));
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Check for debug route
-  if (window.location.pathname === '/webhook-debug') {
-    return <WebhookDebugPage />;
+// Error Boundary for production
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
   }
 
-  // Check for existing session on app load
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('React Error:', error, errorInfo);
+    performanceMonitor.recordError(error, 'React ErrorBoundary');
+    
+    // Send to error tracking service
+    if (window.Sentry) {
+      window.Sentry.captureException(error);
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-celeste-dark-primary flex items-center justify-center p-4">
+          <div className="text-center">
+            <h1 className="text-2xl font-semibold text-celeste-text-primary mb-4">
+              Something went wrong
+            </h1>
+            <p className="text-celeste-text-muted mb-6">
+              We're fixing this issue. Please refresh the page.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-2 bg-celeste-brand-primary text-white rounded-lg hover:bg-celeste-brand-hover"
+            >
+              Refresh Page
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// Loading component
+const LoadingScreen = () => (
+  <div className="min-h-screen bg-celeste-dark-primary flex items-center justify-center">
+    <div className="text-center">
+      <div className="w-16 h-16 border-4 border-celeste-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+      <p className="text-celeste-text-muted">Loading CelesteOS...</p>
+    </div>
+  </div>
+);
+
+function App() {
+  const [user, setUser] = useState(null);
+  const [accessToken, setAccessToken] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [systemHealth, setSystemHealth] = useState('GOOD');
+
+  // Check for saved auth
   useEffect(() => {
-    const checkSession = async () => {
-      const token = localStorage.getItem('celesteos_token');
-      const userData = localStorage.getItem('celesteos_user');
-      
-      if (token && userData) {
-        try {
-          // Verify token with webhook - USES HARDCODED WEBHOOK_URL
-          const response = await fetch(WEBHOOK_URLS.AUTH_VERIFY_TOKEN, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-            mode: 'cors',
-            credentials: 'omit',
-            body: JSON.stringify({ token })
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            // Handle array response format
-            const authData = Array.isArray(data) ? data[0] : data;
-            if (authData && (authData.success || authData.user)) {
-              setUser(JSON.parse(userData));
-              setIsAuthenticated(true);
-            } else {
-              // Invalid token, clear storage
-              localStorage.removeItem('celesteos_token');
-              localStorage.removeItem('celesteos_user');
-            }
-          } else {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-        } catch (error) {
-          console.error('Session verification failed:', error);
-          // For demo purposes, auto-login with mock data if there's stored user data
-          if (userData) {
-            // Check if we need to create a new session (no existing sessionId or session expired)
-            const existingSessionId = sessionStorage.getItem('celesteos_session_id');
-            const sessionCreated = localStorage.getItem('celesteos_session_created');
-            const sessionAge = Date.now() - parseInt(sessionCreated || '0');
-            const maxSessionAge = 24 * 60 * 60 * 1000; // 24 hours
-            
-            if (!existingSessionId || sessionAge > maxSessionAge) {
-              // Generate new session for returning user
-              const newSessionId = generateUniqueSessionId(JSON.parse(userData).id);
-              sessionStorage.setItem('celesteos_session_id', newSessionId);
-              localStorage.setItem('celesteos_session_created', Date.now().toString());
-              console.log('🔑 New session created for returning user:', newSessionId);
-            }
-            
-            setUser(JSON.parse(userData));
-            setIsAuthenticated(true);
-          }
+    const savedAuth = localStorage.getItem('celesteos_auth');
+    if (savedAuth) {
+      try {
+        const { user: savedUser, token } = JSON.parse(savedAuth);
+        if (savedUser && token) {
+          setUser(savedUser);
+          setAccessToken(token);
+          performanceMonitor.recordActiveUser(savedUser.id);
         }
+      } catch (error) {
+        console.error('Failed to restore auth:', error);
+        localStorage.removeItem('celesteos_auth');
+      }
+    }
+    setIsLoading(false);
+  }, []);
+
+  // Monitor system health
+  useEffect(() => {
+    const checkHealth = setInterval(() => {
+      const report = performanceMonitor.getHealthReport();
+      setSystemHealth(report.health);
+      
+      if (report.warnings.length > 0) {
+        console.warn('System warnings:', report.warnings);
       }
       
-      setIsLoading(false);
-    };
+      // Log metrics in dev
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Health Report:', report);
+      }
+    }, 30000); // Check every 30s
 
-    // Quick check, no artificial delay
-    checkSession();
+    return () => clearInterval(checkHealth);
+  }, []);
+
+  // Warn on high memory usage
+  useEffect(() => {
+    if (performance.memory && performance.memory.usedJSHeapSize > 100 * 1048576) {
+      console.warn('⚠️ High memory usage detected. Consider refreshing the page.');
+    }
   }, []);
 
   const handleLogin = (userData, token) => {
-    // Generate unique sessionId for this login session
-    const sessionId = generateUniqueSessionId(userData.id);
-    
     setUser(userData);
-    setIsAuthenticated(true);
-    localStorage.setItem('celesteos_token', token);
-    localStorage.setItem('celesteos_user', JSON.stringify(userData));
+    setAccessToken(token);
     
-    // Store sessionId in sessionStorage (clears when browser tab closes)
-    sessionStorage.setItem('celesteos_session_id', sessionId);
-    localStorage.setItem('celesteos_session_created', Date.now().toString());
+    // Save to localStorage
+    localStorage.setItem('celesteos_auth', JSON.stringify({
+      user: userData,
+      token: token
+    }));
     
-    console.log('🔑 New session created:', sessionId);
+    // Track user
+    performanceMonitor.recordActiveUser(userData.id);
   };
 
-  // Generate truly unique session ID
-  const generateUniqueSessionId = (userId) => {
-    const timestamp = Date.now();
-    const randomComponent = Math.random().toString(36).substring(2, 15);
-    const userComponent = userId.substring(0, 8); // First 8 chars of userId
-    
-    // Create crypto-random component if available
-    let cryptoComponent = '';
-    if (window.crypto && window.crypto.getRandomValues) {
-      const array = new Uint32Array(2);
-      window.crypto.getRandomValues(array);
-      cryptoComponent = Array.from(array, dec => dec.toString(16)).join('');
-    } else {
-      cryptoComponent = Math.random().toString(16).substring(2, 10);
-    }
-    
-    return `session_${userComponent}_${timestamp}_${randomComponent}_${cryptoComponent}`;
-  };
-
-  const handleLogout = async () => {
-    try {
-      const token = localStorage.getItem('celesteos_token');
-      if (token) {
-        await fetch(WEBHOOK_URLS.AUTH_LOGOUT, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          mode: 'cors',
-          credentials: 'omit',
-          body: JSON.stringify({ token })
-        });
-      }
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-    
-    // Clear all session data
-    localStorage.removeItem('celesteos_token');
-    localStorage.removeItem('celesteos_user');
-    localStorage.removeItem('celesteos_session_created');
-    
-    // Clear session-specific data
-    sessionStorage.removeItem('celesteos_session_id');
-    
-    console.log('🔑 Session cleared on logout');
-    
+  const handleLogout = () => {
     setUser(null);
-    setIsAuthenticated(false);
+    setAccessToken(null);
+    localStorage.removeItem('celesteos_auth');
+    localStorage.removeItem(`celesteos_conversations_${user?.id}`);
+    sessionStorage.clear();
+    
+    // Clear caches
+    if ('caches' in window) {
+      caches.keys().then(names => {
+        names.forEach(name => {
+          if (name.includes('celesteos')) {
+            caches.delete(name);
+          }
+        });
+      });
+    }
   };
 
   if (isLoading) {
-    return null; // Simple loading state, no fancy screen
+    return <LoadingScreen />;
   }
 
-  if (!isAuthenticated) {
-    return <AuthScreen onLogin={handleLogin} />;
-  }
-
-  return <ChatInterface user={user} onLogout={handleLogout} />;
+  return (
+    <ErrorBoundary>
+      <div className="App">
+        {/* System Health Warning */}
+        {systemHealth === 'DEGRADED' && (
+          <div className="fixed top-0 left-0 right-0 bg-celeste-system-warning text-black text-center py-2 z-50">
+            <p className="text-sm font-medium">
+              System under heavy load. Response times may be slower.
+            </p>
+          </div>
+        )}
+        
+        <Suspense fallback={<LoadingScreen />}>
+          {!user ? (
+            <Components.AuthScreen onLogin={handleLogin} />
+          ) : (
+            <Components.ChatInterface 
+              user={user} 
+              onLogout={handleLogout}
+            />
+          )}
+        </Suspense>
+      </div>
+    </ErrorBoundary>
+  );
 }
 
 export default App;
