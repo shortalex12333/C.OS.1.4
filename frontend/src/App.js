@@ -153,15 +153,7 @@ function App() {
   return (
     <ErrorBoundary>
       <div className="App">
-        {/* System Health Warning */}
-        {systemHealth === 'DEGRADED' && (
-          <div className="fixed top-0 left-0 right-0 bg-celeste-system-warning text-black text-center py-2 z-50">
-            <p className="text-sm font-medium">
-              System under heavy load. Response times may be slower.
-            </p>
-          </div>
-        )}
-        
+  
         {!user ? (
           <Components.AuthScreen onLogin={handleLogin} />
         ) : (
