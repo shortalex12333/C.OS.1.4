@@ -77,7 +77,11 @@ function App() {
         if (savedUser && token) {
           setUser(savedUser);
           setAccessToken(token);
-          performanceMonitor.recordActiveUser(savedUser.id);
+          try {
+            performanceMonitor.recordActiveUser(savedUser.id);
+          } catch (e) {
+            console.log('Performance monitor not available');
+          }
         }
       } catch (error) {
         console.error('Failed to restore auth:', error);
@@ -90,16 +94,21 @@ function App() {
   // Monitor system health
   useEffect(() => {
     const checkHealth = setInterval(() => {
-      const report = performanceMonitor.getHealthReport();
-      setSystemHealth(report.health);
-      
-      if (report.warnings.length > 0) {
-        console.warn('System warnings:', report.warnings);
-      }
-      
-      // Log metrics in dev
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Health Report:', report);
+      try {
+        const report = performanceMonitor.getHealthReport();
+        setSystemHealth(report.health);
+        
+        if (report.warnings.length > 0) {
+          console.warn('System warnings:', report.warnings);
+        }
+        
+        // Log metrics in dev
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Health Report:', report);
+        }
+      } catch (e) {
+        console.log('Performance monitor not available');
+        setSystemHealth('GOOD'); // Default to good if monitor unavailable
       }
     }, 30000); // Check every 30s
 
@@ -124,7 +133,11 @@ function App() {
     }));
     
     // Track user
-    performanceMonitor.recordActiveUser(userData.id);
+    try {
+      performanceMonitor.recordActiveUser(userData.id);
+    } catch (e) {
+      console.log('Performance monitor not available');
+    }
   };
 
   const handleLogout = () => {
@@ -153,7 +166,15 @@ function App() {
   return (
     <ErrorBoundary>
       <div className="App">
-  
+        {/* System Health Warning */}
+        {systemHealth === 'DEGRADED' && (
+          <div className="fixed top-0 left-0 right-0 bg-celeste-system-warning text-black text-center py-2 z-50">
+            <p className="text-sm font-medium">
+              System under heavy load. Response times may be slower.
+            </p>
+          </div>
+        )}
+        
         {!user ? (
           <Components.AuthScreen onLogin={handleLogin} />
         ) : (
