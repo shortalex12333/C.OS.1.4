@@ -1,7 +1,17 @@
 /* ================================================
-   ELOQUIA FONT FAMILY SETUP
+   FONTS.CSS - Using System Fonts Fallback
    ================================================ */
 
+/* 
+   Eloquia fonts commented out until font files are available.
+   Using Inter + system fonts as fallback.
+   
+   To enable Eloquia fonts later:
+   1. Add font files to /public/fonts/
+   2. Uncomment the @font-face rules below
+*/
+
+/* 
 @font-face {
   font-family: 'Eloquia';
   src: url('/fonts/Eloquia-Thin.woff2') format('woff2'),
@@ -64,3 +74,4 @@
   font-style: normal;
   font-display: swap;
 }
+*/
