@@ -769,21 +769,14 @@ const ChatInterface = ({ user, onLogout }) => {
     setStreamingIntervals(prev => new Map(prev).set(messageId, interval));
   }, [streamingIntervals]);
 
-  // Clear all streaming intervals
-  const clearAllStreaming = useCallback(() => {
-    streamingIntervals.forEach(interval => clearInterval(interval));
-    setStreamingIntervals(new Map());
-  }, [streamingIntervals]);
-
   // Clear streaming when component unmounts
   useEffect(() => {
     return () => {
-      clearAllStreaming();
       if (resizeTimeoutRef.current) {
         clearTimeout(resizeTimeoutRef.current);
       }
     };
-  }, [clearAllStreaming]);
+  }, []);
 
   // Load user data from cache
   useEffect(() => {
@@ -966,9 +959,6 @@ const ChatInterface = ({ user, onLogout }) => {
   const handleSendMessage = useCallback(async () => {
     const trimmedMessage = message.trim();
     if (!trimmedMessage || isSending) return;
-
-    // Clear any existing streaming intervals
-    clearAllStreaming();
 
     let currentConversation = activeConversation;
     if (!currentConversation) {
