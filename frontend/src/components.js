@@ -640,6 +640,7 @@ const ChatInterface = ({ user, onLogout }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [abortController, setAbortController] = useState(null);
   const [editingMessage, setEditingMessage] = useState(null);
+  const [streamingIntervals, setStreamingIntervals] = useState(new Map()); // FIX: Added missing state
   
   // User data from cache
   const [userProfile, setUserProfile] = useState(null);
@@ -769,14 +770,16 @@ const ChatInterface = ({ user, onLogout }) => {
     setStreamingIntervals(prev => new Map(prev).set(messageId, interval));
   }, [streamingIntervals]);
 
-  // Clear streaming when component unmounts
+  // Clear streaming when component unmounts - FIX: Properly clean up intervals
   useEffect(() => {
     return () => {
       if (resizeTimeoutRef.current) {
         clearTimeout(resizeTimeoutRef.current);
       }
+      // Clear all streaming intervals on unmount
+      streamingIntervals.forEach(interval => clearInterval(interval));
     };
-  }, []);
+  }, [streamingIntervals]);
 
   // Load user data from cache
   useEffect(() => {
@@ -928,14 +931,6 @@ const ChatInterface = ({ user, onLogout }) => {
   useEffect(() => {
     handleTextareaResize();
   }, [message, handleTextareaResize]);
-
-  useEffect(() => {
-    return () => {
-      if (resizeTimeoutRef.current) {
-        clearTimeout(resizeTimeoutRef.current);
-      }
-    };
-  }, []);
 
   // Create new conversation
   const createNewConversation = useCallback(() => {
