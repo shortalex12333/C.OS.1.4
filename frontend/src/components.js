@@ -17,7 +17,10 @@ import {
   StopCircle,
   Check,
   Clock,
-  Settings
+  Settings,
+  ChevronDown,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { cacheService } from './services/cacheService';
@@ -25,7 +28,7 @@ import UserProfilePanel from './components/UserProfilePanel';
 import DebugPanel from './components/DebugPanel';
 import { WEBHOOK_CONFIG, WEBHOOK_URLS } from './config/webhookConfig';
 
-// API Configuration - UPDATED to use hardcoded webhook config
+// API Configuration
 const API_CONFIG = {
   baseUrl: WEBHOOK_CONFIG.baseUrl,
   endpoints: {
@@ -79,11 +82,10 @@ class RequestQueue {
 
 const apiQueue = new RequestQueue(3);
 
-// Optimized retry logic with queue - USES HARDCODED WEBHOOK_CONFIG
+// Optimized retry logic with queue
 const sendRequestWithRetry = async (endpoint, payload, options = {}) => {
   return apiQueue.add(async () => {
     const { maxRetries = API_CONFIG.maxRetries, timeout = API_CONFIG.timeout, signal } = options;
-    // CRITICAL: Always use WEBHOOK_CONFIG.baseUrl - NEVER dynamic URLs
     const url = `${WEBHOOK_CONFIG.baseUrl}${endpoint}`;
     let lastError;
     
@@ -94,7 +96,6 @@ const sendRequestWithRetry = async (endpoint, payload, options = {}) => {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
         
-        // Use provided signal or create new one
         const requestSignal = signal || controller.signal;
         
         const response = await fetch(url, {
@@ -117,11 +118,10 @@ const sendRequestWithRetry = async (endpoint, payload, options = {}) => {
         lastError = error;
         
         if (error.name === 'AbortError') {
-          throw error; // Don't retry on user abort
+          throw error;
         }
         
         if (attempt < actualRetries - 1) {
-          // Use longer delay for signup operations (10 seconds vs 1 second)
           const retryDelay = endpoint.includes('signup') ? 10000 : API_CONFIG.retryDelay;
           console.log(`Retrying in ${retryDelay}ms... (attempt ${attempt + 1}/${actualRetries})`);
           await new Promise(resolve => setTimeout(resolve, retryDelay));
@@ -136,7 +136,24 @@ const sendRequestWithRetry = async (endpoint, payload, options = {}) => {
   });
 };
 
-// Auth Screen Component
+// Utility functions
+const copyToClipboard = async (text) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (err) {
+    // Fallback for older browsers
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    return true;
+  }
+};
+
+// Auth Screen Component - Full featured
 const AuthScreen = ({ onLogin }) => {
   const [isSignup, setIsSignup] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState(false);
@@ -171,36 +188,33 @@ const AuthScreen = ({ onLogin }) => {
     if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score += 1;
     else feedback.push('special character');
     
-    // Check for weak patterns
     const weakPasswords = ['password', '12345678', 'qwerty', 'abc123', 'password123'];
     const isWeak = weakPasswords.some(weak => password.toLowerCase().includes(weak));
     
     if (isWeak) {
-      return { strength: 0, text: 'Too weak (common password)', color: 'text-red-500' };
+      return { strength: 0, text: 'Too weak (common password)', color: 'text-celeste-system-error' };
     }
     
     if (score <= 2) {
-      return { strength: score, text: `Weak (needs: ${feedback.slice(0, 2).join(', ')})`, color: 'text-red-500' };
+      return { strength: score, text: `Weak (needs: ${feedback.slice(0, 2).join(', ')})`, color: 'text-celeste-system-error' };
     } else if (score <= 3) {
-      return { strength: score, text: 'Fair', color: 'text-yellow-500' };
+      return { strength: score, text: 'Fair', color: 'text-celeste-system-warning' };
     } else if (score <= 4) {
-      return { strength: score, text: 'Good', color: 'text-green-500' };
+      return { strength: score, text: 'Good', color: 'text-celeste-system-success' };
     } else {
-      return { strength: score, text: 'Strong', color: 'text-green-600' };
+      return { strength: score, text: 'Strong', color: 'text-celeste-system-success' };
     }
   };
 
   const handleSubmit = useCallback(async () => {
     if (isLoading) return;
     
-    // Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setError('Please enter a valid email address');
       return;
     }
     
-    // Validation
     if (isSignup) {
       if (!email || !password || !confirmPassword) {
         setError('Please fill in all fields');
@@ -214,7 +228,6 @@ const AuthScreen = ({ onLogin }) => {
         setError('Password must be at least 8 characters');
         return;
       }
-      // Check for weak passwords
       const weakPasswords = ['password', '12345678', 'qwerty', 'abc123', 'password123'];
       if (weakPasswords.some(weak => password.toLowerCase().includes(weak))) {
         setError('Password too weak. Try something like: YourName2024!@#');
@@ -238,23 +251,20 @@ const AuthScreen = ({ onLogin }) => {
 
       const result = await sendRequestWithRetry(endpoint, payload, { 
         maxRetries: 2, 
-        timeout: isSignup ? 10000 : 5000 // 10 seconds for signup, 5 seconds for login
+        timeout: isSignup ? 10000 : 5000
       });
 
       if (result.success) {
         if (isSignup) {
-          // Handle signup success - new API format
           const responseData = result.data;
           if (responseData.statusCode === 201 && responseData.response?.success) {
             setSignupSuccess(true);
-            // Clear form fields on success
             setDisplayName('');
             setEmail('');
             setPassword('');
             setConfirmPassword('');
             setError('');
             
-            // Auto-redirect to login after 3 seconds
             setTimeout(() => {
               setSignupSuccess(false);
               setIsSignup(false);
@@ -263,7 +273,6 @@ const AuthScreen = ({ onLogin }) => {
             setError('Signup failed. Please try again.');
           }
         } else {
-          // Handle login
           const authData = Array.isArray(result.data) ? result.data[0] : result.data;
           
           if (authData?.user?.id && authData?.access_token) {
@@ -280,11 +289,9 @@ const AuthScreen = ({ onLogin }) => {
           }
         }
       } else {
-        // Handle signup/login errors with new API format
         const errorData = result.data;
         
         if (isSignup) {
-          // Handle signup-specific errors
           if (errorData.statusCode === 400) {
             setError(errorData.response?.error || 'Invalid input. Please check your details.');
           } else if (errorData.statusCode === 422) {
@@ -299,7 +306,6 @@ const AuthScreen = ({ onLogin }) => {
             setError(errorData.response?.error || 'Signup failed. Please try again.');
           }
         } else {
-          // Handle login errors
           if (errorData?.error?.includes('already registered')) {
             setError('This email is already registered. Try logging in.');
           } else {
@@ -326,28 +332,25 @@ const AuthScreen = ({ onLogin }) => {
     setShowConfirmPassword(false);
   };
 
-  // Show success message after signup
   if (signupSuccess) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      <div className="min-h-screen bg-celeste-dark-primary flex items-center justify-center p-4">
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-semibold text-[#202123]">
-              Celeste<span className="bg-gradient-to-r from-[#60A5FA] to-[#2563EB] bg-clip-text text-transparent">OS</span>
+            <h1 className="text-3xl font-semibold text-celeste-text-primary">
+              Celeste<span className="bg-gradient-to-r from-celeste-brand-primary to-celeste-brand-accent bg-clip-text text-transparent">OS</span>
             </h1>
           </div>
           
-          <div className="bg-green-50 border border-green-200 rounded-md p-6 text-center">
+          <div className="bg-celeste-system-success/10 border border-celeste-system-success/30 rounded-md p-6 text-center">
             <div className="mb-4">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+              <div className="w-16 h-16 bg-celeste-system-success/20 rounded-full flex items-center justify-center mx-auto">
+                <Check className="w-8 h-8 text-celeste-system-success" />
               </div>
             </div>
-            <h3 className="text-lg font-semibold text-green-900 mb-2">Account created successfully!</h3>
-            <p className="text-green-700 mb-4">Welcome to CelesteOS! Your account is ready to use.</p>
-            <p className="text-sm text-green-600 mb-6">Redirecting you to login in a few seconds...</p>
+            <h3 className="text-lg font-semibold text-celeste-system-success mb-2">Account created successfully!</h3>
+            <p className="text-celeste-system-success/80 mb-4">Welcome to CelesteOS! Your account is ready to use.</p>
+            <p className="text-sm text-celeste-system-success/60 mb-6">Redirecting you to login in a few seconds...</p>
             
             <button
               onClick={() => {
@@ -356,7 +359,7 @@ const AuthScreen = ({ onLogin }) => {
                 setEmail('');
                 setPassword('');
               }}
-              className="bg-[#2563EB] hover:bg-[#1e40af] text-white px-6 py-2 rounded-lg transition-colors"
+              className="bg-celeste-brand-primary hover:bg-celeste-brand-hover text-white px-6 py-2 rounded-lg transition-colors"
             >
               Continue to Login
             </button>
@@ -367,13 +370,13 @@ const AuthScreen = ({ onLogin }) => {
   }
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-celeste-dark-primary flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-semibold text-[#202123]">
-            Celeste<span className="bg-gradient-to-r from-[#60A5FA] to-[#2563EB] bg-clip-text text-transparent">OS</span>
+          <h1 className="text-3xl font-semibold text-celeste-text-primary">
+            Celeste<span className="bg-gradient-to-r from-celeste-brand-primary to-celeste-brand-accent bg-clip-text text-transparent">OS</span>
           </h1>
-          <p className="text-[#6e6e80] mt-2">Your success inevitability engine</p>
+          <p className="text-celeste-text-muted mt-2">Your success inevitability engine</p>
         </div>
 
         <div className="space-y-4">
@@ -386,7 +389,7 @@ const AuthScreen = ({ onLogin }) => {
               onKeyDown={(e) => {
                 if (e.key === 'Enter') document.getElementById('email-input')?.focus();
               }}
-              className="w-full px-3 py-3 bg-white border border-[#e5e5e5] rounded-md text-[#202123] placeholder-[#6e6e80] focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
+              className="w-full px-3 py-3 bg-celeste-dark-tertiary border border-celeste-dark-hover rounded-md text-celeste-text-primary placeholder-celeste-text-muted focus:outline-none focus:ring-2 focus:ring-celeste-brand-primary focus:border-transparent transition-all"
               disabled={isLoading}
             />
           )}
@@ -400,66 +403,99 @@ const AuthScreen = ({ onLogin }) => {
             onKeyDown={(e) => {
               if (e.key === 'Enter') document.getElementById('password-input')?.focus();
             }}
-            className="w-full px-3 py-3 bg-white border border-[#e5e5e5] rounded-md text-[#202123] placeholder-[#6e6e80] focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
+            className="w-full px-3 py-3 bg-celeste-dark-tertiary border border-celeste-dark-hover rounded-md text-celeste-text-primary placeholder-celeste-text-muted focus:outline-none focus:ring-2 focus:ring-celeste-brand-primary focus:border-transparent transition-all"
             autoComplete="email"
             disabled={isLoading}
           />
           
-          <input
-            id="password-input"
-            type="password"
-            placeholder={isSignup ? "Password (8+ characters)" : "Password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                if (isSignup) {
-                  document.getElementById('confirm-password-input')?.focus();
-                } else {
-                  handleSubmit();
-                }
-              }
-            }}
-            className="w-full px-3 py-3 bg-white border border-[#e5e5e5] rounded-md text-[#202123] placeholder-[#6e6e80] focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
-            autoComplete={isSignup ? "new-password" : "current-password"}
-            disabled={isLoading}
-          />
-
-          {isSignup && (
+          <div className="relative">
             <input
-              id="confirm-password-input"
-              type="password"
-              placeholder="Confirm password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              id="password-input"
+              type={showPassword ? "text" : "password"}
+              placeholder={isSignup ? "Password (8+ characters)" : "Password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSubmit();
+                if (e.key === 'Enter') {
+                  if (isSignup) {
+                    document.getElementById('confirm-password-input')?.focus();
+                  } else {
+                    handleSubmit();
+                  }
+                }
               }}
-              className="w-full px-3 py-3 bg-white border border-[#e5e5e5] rounded-md text-[#202123] placeholder-[#6e6e80] focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
-              autoComplete="new-password"
+              className="w-full px-3 py-3 pr-10 bg-celeste-dark-tertiary border border-celeste-dark-hover rounded-md text-celeste-text-primary placeholder-celeste-text-muted focus:outline-none focus:ring-2 focus:ring-celeste-brand-primary focus:border-transparent transition-all"
+              autoComplete={isSignup ? "new-password" : "current-password"}
               disabled={isLoading}
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-celeste-text-muted hover:text-celeste-text-secondary transition-colors"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+
+          {isSignup && password && (
+            <div className="text-xs">
+              <span className={getPasswordStrength(password).color}>
+                {getPasswordStrength(password).text}
+              </span>
+            </div>
+          )}
+
+          {isSignup && (
+            <div className="relative">
+              <input
+                id="confirm-password-input"
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirm password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSubmit();
+                }}
+                className="w-full px-3 py-3 pr-10 bg-celeste-dark-tertiary border border-celeste-dark-hover rounded-md text-celeste-text-primary placeholder-celeste-text-muted focus:outline-none focus:ring-2 focus:ring-celeste-brand-primary focus:border-transparent transition-all"
+                autoComplete="new-password"
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-celeste-text-muted hover:text-celeste-text-secondary transition-colors"
+              >
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           )}
 
           {error && (
-            <div className="flex items-center gap-2 text-red-500 text-sm">
-              <AlertCircle size={16} />
-              {error}
+            <div className="flex items-start gap-2 text-celeste-system-error text-sm bg-celeste-system-error/10 border border-celeste-system-error/30 rounded-md p-3">
+              <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
+              <span className="whitespace-pre-wrap">{error}</span>
             </div>
           )}
 
           <button
             onClick={handleSubmit}
             disabled={isLoading || !email || !password || (isSignup && !confirmPassword)}
-            className="w-full bg-gradient-to-r from-[#60A5FA] to-[#2563EB] text-white py-3 rounded-md font-medium hover:opacity-90 transition-opacity disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full bg-gradient-to-r from-celeste-brand-primary to-celeste-brand-accent text-white py-3 rounded-md font-semibold hover:opacity-90 transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-lg"
           >
-            {isLoading ? 'Processing...' : (isSignup ? 'Create Account' : 'Begin Your Journey')}
+            {isLoading ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Processing...
+              </div>
+            ) : (
+              isSignup ? 'Create Account' : 'Begin Your Journey'
+            )}
           </button>
 
           <div className="text-center">
             <button
               onClick={toggleMode}
-              className="text-sm text-[#6e6e80] hover:text-[#202123] transition-colors"
+              className="text-sm text-celeste-text-muted hover:text-celeste-text-secondary transition-colors"
               disabled={isLoading}
             >
               {isSignup ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
@@ -471,34 +507,19 @@ const AuthScreen = ({ onLogin }) => {
   );
 };
 
-// Utility functions for message actions
-const copyToClipboard = async (text) => {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch (err) {
-    // Fallback for older browsers
-    const textArea = document.createElement('textarea');
-    textArea.value = text;
-    document.body.appendChild(textArea);
-    textArea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textArea);
-    return true;
-  }
-};
-
-// Typing Indicator Component - Enhanced for streaming
-const TypingIndicator = ({ isDarkMode, isStreaming = false }) => (
-  <div className="flex items-center space-x-1 p-2">
-    <div className="flex space-x-1">
-      <div className={`w-2 h-2 rounded-full animate-pulse ${isDarkMode ? 'bg-gray-400' : 'bg-gray-400'}`}></div>
-      <div className={`w-2 h-2 rounded-full animate-pulse ${isDarkMode ? 'bg-gray-400' : 'bg-gray-400'}`} style={{animationDelay: '0.2s'}}></div>
-      <div className={`w-2 h-2 rounded-full animate-pulse ${isDarkMode ? 'bg-gray-400' : 'bg-gray-400'}`} style={{animationDelay: '0.4s'}}></div>
+// Typing Indicator Component
+const TypingIndicator = () => (
+  <div className="message-wrapper assistant">
+    <div className="message-content">
+      <div className="message-avatar assistant">C</div>
+      <div className="message-text">
+        <div className="typing-indicator">
+          <span className="typing-dot"></span>
+          <span className="typing-dot"></span>
+          <span className="typing-dot"></span>
+        </div>
+      </div>
     </div>
-    <span className={`text-sm ml-2 ${isDarkMode ? 'text-white' : 'text-gray-500'}`}>
-      {isStreaming ? 'CelesteOS is responding...' : 'CelesteOS is thinking...'}
-    </span>
   </div>
 );
 
@@ -523,10 +544,10 @@ const ErrorMessage = ({ error, onRetry, onDismiss }) => {
   }, [error?.retryAfter]);
 
   const getErrorStyles = () => {
-    if (error?.type === 'token_limit') return 'bg-amber-50 border-amber-200 text-amber-800';
-    if (error?.type === 'rate_limit') return 'bg-red-50 border-red-200 text-red-800';
-    if (error?.type === 'success') return 'bg-green-50 border-green-200 text-green-800';
-    return 'bg-gray-50 border-gray-200 text-gray-800';
+    if (error?.type === 'token_limit') return 'bg-celeste-system-warning/10 border-celeste-system-warning/30 text-celeste-system-warning';
+    if (error?.type === 'rate_limit') return 'bg-celeste-system-error/10 border-celeste-system-error/30 text-celeste-system-error';
+    if (error?.type === 'success') return 'bg-celeste-system-success/10 border-celeste-system-success/30 text-celeste-system-success';
+    return 'bg-celeste-dark-tertiary border-celeste-dark-hover text-celeste-text-secondary';
   };
 
   return (
@@ -551,14 +572,14 @@ const ErrorMessage = ({ error, onRetry, onDismiss }) => {
         {countdown === 0 && onRetry && (
           <button 
             onClick={onRetry}
-            className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-3 py-1 text-xs bg-celeste-brand-primary text-white rounded hover:bg-celeste-brand-hover transition-colors"
           >
             Retry Now
           </button>
         )}
         <button 
           onClick={onDismiss}
-          className="px-3 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700"
+          className="px-3 py-1 text-xs bg-celeste-dark-hover text-celeste-text-secondary rounded hover:bg-celeste-dark-active transition-colors"
         >
           Dismiss
         </button>
@@ -568,7 +589,7 @@ const ErrorMessage = ({ error, onRetry, onDismiss }) => {
 };
 
 // Message Actions Component
-const MessageActions = ({ message, onCopy, onEdit, onRegenerate, isLastAiMessage, isDarkMode }) => {
+const MessageActions = ({ message, onCopy, onEdit, onRegenerate, isLastAiMessage }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -581,46 +602,22 @@ const MessageActions = ({ message, onCopy, onEdit, onRegenerate, isLastAiMessage
   };
 
   return (
-    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 mt-2">
-      <button
-        onClick={handleCopy}
-        className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
-          isDarkMode 
-            ? 'text-white hover:text-white hover:bg-[#333]'
-            : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-        }`}
-        title="Copy message"
-      >
-        {copied ? <Check size={12} /> : <Copy size={12} />}
+    <div className="message-actions">
+      <button onClick={handleCopy} className="action-button">
+        {copied ? <Check size={14} /> : <Copy size={14} />}
         {copied ? 'Copied!' : 'Copy'}
       </button>
       
-      {!message.isUser && (
-        <button
-          onClick={() => onEdit(message)}
-          className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
-            isDarkMode 
-              ? 'text-white hover:text-white hover:bg-[#333]'
-              : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-          }`}
-          title="Edit message"
-        >
-          <Edit3 size={12} />
+      {message.isUser && (
+        <button onClick={() => onEdit(message)} className="action-button">
+          <Edit3 size={14} />
           Edit
         </button>
       )}
       
       {!message.isUser && isLastAiMessage && (
-        <button
-          onClick={() => onRegenerate(message)}
-          className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
-            isDarkMode 
-              ? 'text-white hover:text-white hover:bg-[#333]'
-              : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-          }`}
-          title="Regenerate response"
-        >
-          <RefreshCw size={12} />
+        <button onClick={() => onRegenerate(message)} className="action-button">
+          <RefreshCw size={14} />
           Regenerate
         </button>
       )}
@@ -628,7 +625,7 @@ const MessageActions = ({ message, onCopy, onEdit, onRegenerate, isLastAiMessage
   );
 };
 
-// Chat Interface Component
+// Main Chat Interface Component - COMPLETE VERSION
 const ChatInterface = ({ user, onLogout }) => {
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
@@ -637,7 +634,7 @@ const ChatInterface = ({ user, onLogout }) => {
   const [isSending, setIsSending] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [connectionError, setConnectionError] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const [tokensRemaining, setTokensRemaining] = useState(50000);
   const [userStage, setUserStage] = useState('exploring');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -658,27 +655,29 @@ const ChatInterface = ({ user, onLogout }) => {
   const textareaRef = useRef(null);
   const resizeTimeoutRef = useRef(null);
 
-  // Word-by-word streaming function - EMERGENCY FIX
-  const streamMessage = useCallback((fullText, messageId, conversationId) => {
-    console.log('🚨 EMERGENCY streamMessage called:', { fullText, messageId, conversationId });
-    
-    // CRITICAL: Validate input parameters
-    if (!fullText || !messageId || !conversationId) {
-      console.error('❌ CRITICAL: Missing parameters for streaming', { fullText, messageId, conversationId });
-      // EMERGENCY: Set text immediately if streaming fails
-      setActiveConversation(prev => 
-        prev ? {
-          ...prev,
-          messages: prev.messages.map(msg => 
-            msg.id === messageId 
-              ? { ...msg, text: fullText || 'Error: No response text', isThinking: false, isStreaming: false }
-              : msg
-          )
-        } : prev
-      );
-      return;
+  // Get session ID
+  const sessionId = sessionStorage.getItem('celesteos_session_id') || `session_${user.id}_${Date.now()}`;
+  
+  // Set session ID if not exists
+  useEffect(() => {
+    if (!sessionStorage.getItem('celesteos_session_id')) {
+      sessionStorage.setItem('celesteos_session_id', sessionId);
     }
-    
+  }, [sessionId]);
+
+  // Dark mode management
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      document.documentElement.removeAttribute('data-theme');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  }, [isDarkMode]);
+
+  // Word-by-word streaming function - ENHANCED
+  const streamMessage = useCallback((fullText, messageId, conversationId) => {
     // Clear any existing interval for this message
     if (streamingIntervals.has(messageId)) {
       clearInterval(streamingIntervals.get(messageId));
@@ -687,30 +686,11 @@ const ChatInterface = ({ user, onLogout }) => {
     const words = fullText.split(' ');
     let currentIndex = 0;
     
-    console.log('📝 EMERGENCY: Starting stream with', words.length, 'words:', words);
-    
-    // EMERGENCY: If no words, set text immediately
-    if (words.length === 0) {
-      console.error('❌ CRITICAL: No words to stream');
-      setActiveConversation(prev => 
-        prev ? {
-          ...prev,
-          messages: prev.messages.map(msg => 
-            msg.id === messageId 
-              ? { ...msg, text: fullText, isThinking: false, isStreaming: false }
-              : msg
-          )
-        } : prev
-      );
-      return;
-    }
-    
     const interval = setInterval(() => {
       if (currentIndex < words.length) {
         const currentText = words.slice(0, currentIndex + 1).join(' ');
-        console.log(`📝 EMERGENCY Word ${currentIndex + 1}/${words.length}:`, currentText);
         
-        // Update BOTH conversations and activeConversation
+        // Update both conversations and activeConversation
         setConversations(prev => 
           prev.map(conv => 
             conv.id === conversationId
@@ -751,9 +731,7 @@ const ChatInterface = ({ user, onLogout }) => {
         
         currentIndex++;
       } else {
-        console.log('✅ EMERGENCY: Streaming complete for message:', messageId);
-        
-        // FINAL: Mark streaming as complete
+        // Mark streaming as complete
         setConversations(prev => 
           prev.map(conv => 
             conv.id === conversationId
@@ -789,12 +767,12 @@ const ChatInterface = ({ user, onLogout }) => {
           return newMap;
         });
       }
-    }, 100); // SLOWER: 100ms between words to debug
+    }, 50); // 50ms between words
 
     setStreamingIntervals(prev => new Map(prev).set(messageId, interval));
   }, [streamingIntervals]);
 
-  // Clear all streaming intervals on unmount or new message
+  // Clear all streaming intervals
   const clearAllStreaming = useCallback(() => {
     streamingIntervals.forEach(interval => clearInterval(interval));
     setStreamingIntervals(new Map());
@@ -807,7 +785,7 @@ const ChatInterface = ({ user, onLogout }) => {
     };
   }, [clearAllStreaming]);
 
-  // Load user data from cache on component mount
+  // Load user data from cache
   useEffect(() => {
     const loadUserData = async () => {
       if (!user?.id) return;
@@ -908,14 +886,13 @@ const ChatInterface = ({ user, onLogout }) => {
     }
   }, [user?.id]);
 
-  // Get session ID from sessionStorage
-  const sessionId = sessionStorage.getItem('celesteos_session_id');
-
+  // Sorted conversations
   const sortedConversations = useMemo(() => 
     [...conversations].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)),
     [conversations]
   );
 
+  // Mobile sidebar handling
   useEffect(() => {
     if (!sidebarOpen) return;
 
@@ -931,6 +908,7 @@ const ChatInterface = ({ user, onLogout }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [sidebarOpen]);
 
+  // Auto-scroll to bottom
   useEffect(() => {
     if (messagesEndRef.current) {
       requestAnimationFrame(() => {
@@ -939,6 +917,7 @@ const ChatInterface = ({ user, onLogout }) => {
     }
   }, [activeConversation?.messages?.length]);
 
+  // Textarea auto-resize
   const handleTextareaResize = useCallback(() => {
     if (resizeTimeoutRef.current) {
       clearTimeout(resizeTimeoutRef.current);
@@ -965,6 +944,7 @@ const ChatInterface = ({ user, onLogout }) => {
     };
   }, []);
 
+  // Create new conversation
   const createNewConversation = useCallback(() => {
     const newConv = {
       id: `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -982,6 +962,7 @@ const ChatInterface = ({ user, onLogout }) => {
     saveConversations(updatedConversations);
   }, [conversations, saveConversations]);
 
+  // Send message
   const handleSendMessage = useCallback(async () => {
     const trimmedMessage = message.trim();
     if (!trimmedMessage || isSending) return;
@@ -1038,6 +1019,7 @@ const ChatInterface = ({ user, onLogout }) => {
     );
 
     setMessage('');
+    setEditingMessage(null);
 
     // Create abort controller for this request
     const controller = new AbortController();
@@ -1049,32 +1031,23 @@ const ChatInterface = ({ user, onLogout }) => {
         userName: user.name || user.displayName,
         message: trimmedMessage,
         chatId: currentConversation.id,
-        sessionId: sessionId || `session_${user.id}_${Date.now()}`,
+        sessionId: sessionId,
         timestamp: new Date().toISOString()
       }, { maxRetries: 1, timeout: 30000, signal: controller.signal });
       
       if (result.success) {
-        // STOP pulsing animation immediately
-        setIsSending(false);
-        setIsGenerating(false);
-        
         // Handle array response format
         const responseData = Array.isArray(result.data) ? result.data[0] : result.data;
-        
-        console.log('🔍 Webhook Response Data:', responseData); // DEBUG
         
         if (!responseData) {
           throw new Error('Empty response from server');
         }
         
-        // Extract data from new response format
+        // Extract data from response
         const aiResponseText = responseData.response || 
           responseData.message || 
           responseData.text ||
           "I'm processing your request. Let me help you transform your patterns into profits.";
-        
-        // SIMPLE STREAMING IMPLEMENTATION - REPLACE COMPLEX VERSION
-        console.log('🔍 AI Response Text:', aiResponseText); // DEBUG
         
         // Update token information from metadata
         if (responseData.metadata) {
@@ -1100,15 +1073,15 @@ const ChatInterface = ({ user, onLogout }) => {
                           responseData.metadata?.fallback ||
                           responseData.metadata?.tokensUsed === 0;
         
-        // STEP 1: Add empty message to UI immediately
+        // Update conversation to remove thinking state
         const finalConv = {
           ...updatedConv,
           messages: updatedConv.messages.map(msg => 
             msg.id === aiMessage.id 
               ? { 
                   ...msg, 
-                  text: '', // Start with empty text
-                  isThinking: false, // STOP thinking animation
+                  text: '',
+                  isThinking: false,
                   isRecovered,
                   isStreaming: true,
                   category: responseData.metadata?.category,
@@ -1123,60 +1096,14 @@ const ChatInterface = ({ user, onLogout }) => {
           prev.map(c => c.id === currentConversation.id ? finalConv : c)
         );
         
-        // STEP 2: Start simple word-by-word streaming
-        const words = aiResponseText.split(' ');
-        let wordIndex = 0;
+        // Start streaming the response
+        streamMessage(aiResponseText, aiMessage.id, currentConversation.id);
         
-        console.log('🚀 Starting SIMPLE streaming with', words.length, 'words:', words);
-        
-        const streamInterval = setInterval(() => {
-          if (wordIndex < words.length) {
-            const currentText = words.slice(0, wordIndex + 1).join(' ');
-            console.log(`📝 SIMPLE Word ${wordIndex + 1}/${words.length}: "${currentText}"`);
-            
-            // SIMPLE: Update only activeConversation
-            setActiveConversation(prev => {
-              if (!prev) return prev;
-              return {
-                ...prev,
-                messages: prev.messages.map(msg => 
-                  msg.id === aiMessage.id 
-                    ? { ...msg, text: currentText, isStreaming: true }
-                    : msg
-                )
-              };
-            });
-            
-            wordIndex++;
-          } else {
-            console.log('✅ SIMPLE streaming complete!');
-            
-            // FINAL: Mark streaming complete
-            setActiveConversation(prev => {
-              if (!prev) return prev;
-              const finalConv = {
-                ...prev,
-                messages: prev.messages.map(msg => 
-                  msg.id === aiMessage.id 
-                    ? { ...msg, text: aiResponseText, isStreaming: false }
-                    : msg
-                )
-              };
-              
-              // Update conversations with final result
-              setConversations(prevConv => 
-                prevConv.map(c => c.id === prev.id ? finalConv : c)
-              );
-              
-              return finalConv;
-            });
-            
-            clearInterval(streamInterval);
-          }
-        }, 80); // 80ms between words
-        
-        // Save to cache/storage (will be updated as streaming completes)
-        saveConversations(conversations.map(c => c.id === currentConversation.id ? finalConv : c));
+        // Save conversations
+        const updatedConversations = conversations.map(c => 
+          c.id === currentConversation.id ? finalConv : c
+        );
+        saveConversations(updatedConversations);
         
         // Save to sessionStorage for this specific chat
         sessionStorage.setItem(`chat_${currentConversation.id}`, JSON.stringify({
@@ -1225,7 +1152,7 @@ const ChatInterface = ({ user, onLogout }) => {
       setIsGenerating(false);
       setAbortController(null);
     }
-  }, [message, activeConversation, isSending, user, sessionId, tokensRemaining, userStage, streamMessage, clearAllStreaming, conversations, userProfile, saveConversations]);
+  }, [message, activeConversation, isSending, user, sessionId, tokensRemaining, userStage, streamMessage, clearAllStreaming, conversations, userProfile, saveConversations, editingMessage]);
 
   // Stop generation function
   const stopGeneration = useCallback(() => {
@@ -1310,6 +1237,7 @@ const ChatInterface = ({ user, onLogout }) => {
     return categoryStyles[category] || {};
   };
 
+  // Delete conversation
   const deleteConversation = useCallback((convId, e) => {
     e?.stopPropagation();
     const updatedConversations = conversations.filter(c => c.id !== convId);
@@ -1324,60 +1252,35 @@ const ChatInterface = ({ user, onLogout }) => {
   }, [conversations, activeConversation, saveConversations]);
 
   return (
-    <div className={`flex h-screen ${isDarkMode ? 'dark bg-[#343541]' : 'bg-white'}`}>
-      {/* Mobile menu button */}
-      <button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="fixed top-4 left-4 z-50 p-2 rounded-md hover:bg-[#f7f7f8] md:hidden"
-        aria-label="Toggle menu"
-      >
-        {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
-      </button>
-
+    <div className="chat-container">
       {/* Sidebar */}
-      <div
-        id="sidebar"
-        className={`${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } fixed md:relative md:translate-x-0 z-40 w-[260px] h-full transition-transform duration-200 ease-in-out flex flex-col ${
-          isDarkMode ? 'bg-[#202123]' : 'bg-[#f7f7f8]'
-        }`}
-      >
-        {/* Logo and Users Online */}
-        <div className={`p-4 border-b mt-14 md:mt-0 ${isDarkMode ? 'border-[#444654]' : 'border-[#e5e5e5]'}`}>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-[#60A5FA] to-[#2563EB] rounded-md flex items-center justify-center">
+      <div id="sidebar" className={`sidebar ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+        {/* Logo */}
+        <div className="p-4 border-b border-celeste-dark-hover">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-to-r from-celeste-brand-primary to-celeste-brand-accent rounded-md flex items-center justify-center">
               <span className="text-white font-bold text-sm">C</span>
             </div>
-            <h2 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-[#202123]'}`}>
-              Celeste<span className="bg-gradient-to-r from-[#60A5FA] to-[#2563EB] bg-clip-text text-transparent">OS</span>
+            <h2 className="text-lg font-semibold text-celeste-text-primary">
+              Celeste<span className="bg-gradient-to-r from-celeste-brand-primary to-celeste-brand-accent bg-clip-text text-transparent">OS</span>
             </h2>
           </div>
-          <div className={`text-sm ${isDarkMode ? 'text-[#d1d5db]' : 'text-[#6e6e80]'}`}>
+          <div className="text-sm text-celeste-text-muted mt-1">
             Transform your patterns into profits
           </div>
         </div>
 
         {/* New chat button */}
-        <div className="p-2">
-          <button
-            onClick={createNewConversation}
-            className={`flex items-center gap-3 w-full rounded-md border px-3 py-3 text-sm transition-colors ${
-              isDarkMode 
-                ? 'border-[#444654] text-white hover:bg-[#2a2b32]'
-                : 'border-[#e5e5e5] text-[#202123] hover:bg-[#e5e5e5]'
-            }`}
-          >
-            <Plus size={16} />
-            New chat
-          </button>
-        </div>
+        <button onClick={createNewConversation} className="new-chat-btn">
+          <Plus size={16} />
+          New chat
+        </button>
 
         {/* Conversations list */}
         <div className="flex-1 overflow-y-auto">
-          <div className="px-2 pb-2">
+          <div className="pb-2">
             {sortedConversations.length === 0 ? (
-              <div className={`text-center text-sm mt-8 px-4 ${isDarkMode ? 'text-[#d1d5db]' : 'text-[#6e6e80]'}`}>
+              <div className="text-center text-sm mt-8 px-4 text-celeste-text-muted">
                 Your transformation journey begins with your first conversation
               </div>
             ) : (
@@ -1388,19 +1291,13 @@ const ChatInterface = ({ user, onLogout }) => {
                     setActiveConversation(conv);
                     setSidebarOpen(false);
                   }}
-                  className={`group relative flex items-center gap-3 w-full rounded-md px-3 py-3 text-sm transition-colors cursor-pointer ${
-                    activeConversation?.id === conv.id
-                      ? (isDarkMode ? 'bg-[#2a2b32]' : 'bg-[#e5e5e5]')
-                      : (isDarkMode ? 'hover:bg-[#2a2b32]' : 'hover:bg-[#e5e5e5]')
-                  }`}
+                  className={`conversation-item group ${activeConversation?.id === conv.id ? 'active' : ''}`}
                 >
                   <MessageSquare size={16} className="flex-shrink-0" />
-                  <span className="flex-1 text-left truncate">{conv.title}</span>
+                  <span className="flex-1 truncate">{conv.title}</span>
                   <button
                     onClick={(e) => deleteConversation(conv.id, e)}
-                    className={`opacity-0 group-hover:opacity-100 p-1 rounded transition-opacity ${
-                      isDarkMode ? 'hover:bg-[#444654]' : 'hover:bg-[#d5d5d5]'
-                    }`}
+                    className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-celeste-dark-active transition-all"
                     aria-label="Delete conversation"
                   >
                     <Trash2 size={14} />
@@ -1412,48 +1309,33 @@ const ChatInterface = ({ user, onLogout }) => {
         </div>
 
         {/* Bottom section */}
-        <div className={`border-t ${isDarkMode ? 'border-[#444654]' : 'border-[#e5e5e5]'}`}>
+        <div className="border-t border-celeste-dark-hover">
           {/* Theme toggle */}
-          <div className="p-2">
-            <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className={`flex items-center gap-3 w-full rounded-md px-3 py-3 text-sm transition-colors ${
-                isDarkMode 
-                  ? 'text-white hover:bg-[#2a2b32]'
-                  : 'text-[#202123] hover:bg-[#e5e5e5]'
-              }`}
-            >
-              {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
-              <span className="flex-1 text-left">{isDarkMode ? 'Light mode' : 'Dark mode'}</span>
-            </button>
-          </div>
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-celeste-text-secondary hover:bg-celeste-dark-hover transition-colors"
+          >
+            {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+            <span className="flex-1 text-left">{isDarkMode ? 'Light mode' : 'Dark mode'}</span>
+          </button>
           
           {/* User section */}
-          <div className="p-2 pt-0">
-            <button
-              onClick={() => setShowProfilePanel(true)}
-              className={`flex items-center gap-3 w-full rounded-md px-3 py-3 text-sm transition-colors mb-2 ${
-                isDarkMode 
-                  ? 'text-white hover:bg-[#2a2b32]'
-                  : 'text-[#202123] hover:bg-[#e5e5e5]'
-              }`}
-            >
-              <Settings size={16} />
-              <span className="flex-1 text-left">Profile & Data</span>
-            </button>
-            <button
-              onClick={onLogout}
-              className={`flex items-center gap-3 w-full rounded-md px-3 py-3 text-sm transition-colors ${
-                isDarkMode 
-                  ? 'text-white hover:bg-[#2a2b32]'
-                  : 'text-[#202123] hover:bg-[#e5e5e5]'
-              }`}
-            >
-              <User size={16} />
-              <span className="flex-1 text-left truncate">{user.email}</span>
-              <LogOut size={16} />
-            </button>
-          </div>
+          <button
+            onClick={() => setShowProfilePanel(true)}
+            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-celeste-text-secondary hover:bg-celeste-dark-hover transition-colors"
+          >
+            <Settings size={16} />
+            <span className="flex-1 text-left">Profile & Data</span>
+          </button>
+          
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-celeste-text-secondary hover:bg-celeste-dark-hover transition-colors"
+          >
+            <User size={16} />
+            <span className="flex-1 text-left truncate">{user.email}</span>
+            <LogOut size={16} />
+          </button>
         </div>
       </div>
 
@@ -1466,31 +1348,40 @@ const ChatInterface = ({ user, onLogout }) => {
         />
       )}
 
+      {/* Mobile menu toggle */}
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="fixed top-4 left-4 z-50 p-2 rounded-md bg-celeste-dark-secondary hover:bg-celeste-dark-hover md:hidden"
+        aria-label="Toggle menu"
+      >
+        {sidebarOpen ? <X size={24} className="text-celeste-text-primary" /> : <Menu size={24} className="text-celeste-text-primary" />}
+      </button>
+
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col">
+      <div className="chat-main">
         {/* Header with token counter and user info */}
-        <div className={`border-b p-4 py-3 ${isDarkMode ? 'bg-[#242424] border-[#444654]' : 'bg-white border-[#e5e5e5]'}`}>
-          <div className="flex items-center justify-between max-w-4xl mx-auto">
+        <div className="border-b border-celeste-dark-hover p-4">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
             {/* Token display */}
             <div className="flex items-center gap-4">
               <div className="md:hidden">
-                <h1 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-[#202123]'}`}>
-                  Celeste<span className="bg-gradient-to-r from-[#60A5FA] to-[#2563EB] bg-clip-text text-transparent">OS</span>
+                <h1 className="text-xl font-semibold text-celeste-text-primary">
+                  Celeste<span className="bg-gradient-to-r from-celeste-brand-primary to-celeste-brand-accent bg-clip-text text-transparent">OS</span>
                 </h1>
               </div>
               <div className="hidden md:flex items-center gap-3">
-                <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-[#202123]'}`}>
+                <span className="text-sm font-medium text-celeste-text-secondary">
                   {tokensRemaining.toLocaleString()} tokens today
                 </span>
-                <div className={`w-24 h-2 rounded-full overflow-hidden ${isDarkMode ? 'bg-[#444654]' : 'bg-gray-200'}`}>
+                <div className="w-24 h-2 rounded-full overflow-hidden bg-celeste-dark-hover">
                   <div 
-                    className="h-full bg-gradient-to-r from-[#60A5FA] to-[#2563EB] transition-all duration-300"
+                    className="h-full bg-gradient-to-r from-celeste-brand-primary to-celeste-brand-accent transition-all duration-300"
                     style={{ width: `${Math.max(0, (tokensRemaining / 50000) * 100)}%` }}
                   />
                 </div>
                 {cacheLoading && (
-                  <div className={`text-xs flex items-center gap-1 ${isDarkMode ? 'text-white' : 'text-[#6e6e80]'}`}>
-                    <div className="w-3 h-3 border border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  <div className="text-xs flex items-center gap-1 text-celeste-text-muted">
+                    <div className="w-3 h-3 border border-celeste-brand-primary border-t-transparent rounded-full animate-spin"></div>
                     Loading...
                   </div>
                 )}
@@ -1499,8 +1390,8 @@ const ChatInterface = ({ user, onLogout }) => {
             
             {/* User info */}
             <div className="flex items-center gap-2">
-              <span className={`text-sm capitalize ${isDarkMode ? 'text-white' : 'text-[#6e6e80]'}`}>{userStage}</span>
-              <span className={`hidden md:inline text-sm font-medium ${isDarkMode ? 'text-white' : 'text-[#202123]'}`}>
+              <span className="text-sm capitalize text-celeste-text-muted">{userStage}</span>
+              <span className="hidden md:inline text-sm font-medium text-celeste-text-secondary">
                 {userProfile?.display_name || user.name || user.displayName}
               </span>
               {/* Cache refresh button */}
@@ -1522,7 +1413,7 @@ const ChatInterface = ({ user, onLogout }) => {
                     setCacheLoading(false);
                   }
                 }}
-                className={`p-1 transition-colors ${isDarkMode ? 'text-white hover:text-white' : 'text-[#6e6e80] hover:text-[#202123]'}`}
+                className="p-1 transition-colors text-celeste-text-muted hover:text-celeste-text-secondary"
                 title="Refresh user data"
               >
                 <RefreshCw size={14} className={cacheLoading ? 'animate-spin' : ''} />
@@ -1532,14 +1423,14 @@ const ChatInterface = ({ user, onLogout }) => {
         </div>
 
         {/* Messages container */}
-        <div className={`flex-1 overflow-y-auto ${isDarkMode ? 'bg-[#242424]' : 'bg-white'}`}>
+        <div className="messages-container">
           {!activeConversation || activeConversation.messages?.length === 0 ? (
             <div className="h-full flex items-center justify-center p-4">
               <div className="text-center max-w-2xl mx-auto">
-                <h1 className={`text-3xl md:text-4xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-[#202123]'}`}>
-                  Celeste<span className="bg-gradient-to-r from-[#60A5FA] to-[#2563EB] bg-clip-text text-transparent">OS</span>
+                <h1 className="text-4xl font-semibold mb-4 text-celeste-text-primary">
+                  Celeste<span className="bg-gradient-to-r from-celeste-brand-primary to-celeste-brand-accent bg-clip-text text-transparent">OS</span>
                 </h1>
-                <p className={`mb-8 ${isDarkMode ? 'text-white' : 'text-[#6e6e80]'}`}>Your success inevitability engine</p>
+                <p className="mb-8 text-celeste-text-muted">Your success inevitability engine</p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
                   {[
                     'Show me my success patterns',
@@ -1552,11 +1443,7 @@ const ChatInterface = ({ user, onLogout }) => {
                         setMessage(prompt);
                         textareaRef.current?.focus();
                       }}
-                      className={`p-4 rounded-md border text-sm transition-colors text-left ${
-                        isDarkMode 
-                          ? 'border-[#444654] text-white hover:bg-[#000000]'
-                          : 'border-[#e5e5e5] text-[#202123] hover:bg-[#f7f7f8]'
-                      }`}
+                      className="p-4 rounded-md border border-celeste-dark-hover text-sm transition-all text-left text-celeste-text-secondary hover:bg-celeste-dark-hover hover:text-celeste-text-primary hover:border-celeste-dark-active"
                     >
                       {prompt}
                     </button>
@@ -1571,115 +1458,89 @@ const ChatInterface = ({ user, onLogout }) => {
                   index === activeConversation.messages.length - 1;
                 
                 return (
-                  <div
-                    key={msg.id}
-                    className={`group py-6 ${
-                      msg.isUser 
-                        ? (isDarkMode ? 'bg-[#242424]' : 'bg-white')
-                        : (isDarkMode ? 'bg-[#242424]' : 'bg-[#f7f7f8]')
-                    }`}
-                  >
-                    <div className="max-w-4xl mx-auto px-4">
-                      {msg.isThinking ? (
-                        <TypingIndicator isDarkMode={isDarkMode} isStreaming={msg.isStreaming} />
-                      ) : (
-                        <div className={`flex gap-4 ${msg.isUser ? 'justify-end' : 'justify-start'}`}>
-                          {/* Avatar */}
-                          {!msg.isUser && (
-                            <div className="flex-shrink-0">
-                              <div className="w-8 h-8 bg-[#2563EB] text-white rounded-sm flex items-center justify-center font-medium">
-                                C
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Message content */}
-                          <div className={`flex-1 max-w-[85%] ${msg.isUser ? 'max-w-[70%]' : ''}`}>
-                            <div 
-                              className={`
-                                px-4 py-3 rounded-lg transition-all duration-200
-                                ${msg.isUser 
-                                  ? 'bg-[#2563eb] text-white rounded-tr-sm ml-auto'
-                                  : isDarkMode 
-                                    ? 'bg-[#000000] border-[#000000] text-white border rounded-tl-sm'
-                                    : 'bg-[#ffffff] border-[#ffffff] text-[#202123] border rounded-tl-sm'
-                                }
-                              `}
-                              style={!msg.isUser ? getCategoryStyles(msg.category) : {}}
-                            >
-                              <div className={`prose prose-sm max-w-none ${
-                                msg.isUser 
-                                  ? 'prose-invert' 
-                                  : isDarkMode 
-                                    ? 'prose-invert' 
-                                    : ''
-                              }`}>
-                                <ReactMarkdown
-                                  components={{
-                                    p: ({children}) => <p className="mb-2 last:mb-0">{children}</p>,
-                                    strong: ({children}) => <strong className="font-semibold">{children}</strong>,
-                                    em: ({children}) => <em className="italic">{children}</em>,
-                                    code: ({children}) => (
-                                      <code className={`px-1 py-0.5 rounded text-sm ${
-                                        msg.isUser 
-                                          ? 'bg-blue-800' 
-                                          : isDarkMode 
-                                            ? 'bg-[#333] text-white' 
-                                            : 'bg-gray-100 text-gray-800'
-                                      }`}>
-                                        {children}
-                                      </code>
-                                    ),
-                                    pre: ({children}) => (
-                                      <pre className={`p-3 rounded-lg overflow-x-auto text-sm ${
-                                        msg.isUser 
-                                          ? 'bg-blue-800' 
-                                          : isDarkMode 
-                                            ? 'bg-[#333] text-white' 
-                                            : 'bg-gray-100 text-gray-800'
-                                      }`}>
-                                        {children}
-                                      </pre>
-                                    ),
-                                  }}
-                                >
-                                  {msg.text}
-                                </ReactMarkdown>
-                                {/* Streaming cursor */}
-                                {msg.isStreaming && (
-                                  <span className="inline-block w-2 h-4 bg-current ml-1 animate-pulse"></span>
+                  <div key={msg.id}>
+                    <div className={`message-wrapper ${msg.isUser ? 'user' : 'assistant'}`}>
+                      <div className="message-content">
+                        {/* Avatar */}
+                        <div className={`message-avatar ${msg.isUser ? 'user' : 'assistant'}`}>
+                          {msg.isUser ? (user.name?.[0]?.toUpperCase() || user.displayName?.[0]?.toUpperCase() || 'U') : 'C'}
+                        </div>
+                        
+                        {/* Message text */}
+                        <div className="message-text">
+                          {msg.isThinking ? (
+                            <TypingIndicator />
+                          ) : (
+                            <>
+                              <div className={`${msg.category ? `category-${msg.category}` : ''} ${msg.isStreaming ? 'message-streaming' : ''}`}>
+                                {msg.isUser ? (
+                                  <div className="message-bubble user">
+                                    {msg.text}
+                                  </div>
+                                ) : (
+                                  <div className="markdown-content">
+                                    <ReactMarkdown
+                                      components={{
+                                        p: ({children}) => <p className="mb-4 last:mb-0">{children}</p>,
+                                        h1: ({children}) => <h1 className="text-chat-2xl font-semibold mb-4 mt-6 first:mt-0 pb-2 border-b border-celeste-dark-hover">{children}</h1>,
+                                        h2: ({children}) => <h2 className="text-chat-xl font-semibold mb-3 mt-5 first:mt-0">{children}</h2>,
+                                        h3: ({children}) => <h3 className="text-chat-lg font-semibold mb-2 mt-4 first:mt-0">{children}</h3>,
+                                        ul: ({children}) => <ul className="list-disc pl-6 mb-4 space-y-2">{children}</ul>,
+                                        ol: ({children}) => <ol className="list-decimal pl-6 mb-4 space-y-2">{children}</ol>,
+                                        li: ({children}) => <li className="leading-relaxed">{children}</li>,
+                                        strong: ({children}) => <strong className="font-semibold text-celeste-text-primary">{children}</strong>,
+                                        em: ({children}) => <em className="italic">{children}</em>,
+                                        code: ({inline, children}) => 
+                                          inline ? (
+                                            <code className="px-1.5 py-0.5 bg-celeste-dark-tertiary text-celeste-text-primary rounded text-sm font-mono">{children}</code>
+                                          ) : (
+                                            <code className="block">{children}</code>
+                                          ),
+                                        pre: ({children}) => (
+                                          <pre className="bg-celeste-dark-secondary border border-celeste-dark-hover rounded-lg p-4 mb-4 overflow-x-auto">
+                                            {children}
+                                          </pre>
+                                        ),
+                                        blockquote: ({children}) => (
+                                          <blockquote className="border-l-3 border-celeste-brand-primary pl-4 my-4 italic text-celeste-text-muted">
+                                            {children}
+                                          </blockquote>
+                                        ),
+                                        hr: () => <hr className="my-6 border-celeste-dark-hover" />,
+                                        a: ({href, children}) => (
+                                          <a href={href} className="text-celeste-brand-primary hover:text-celeste-brand-hover underline" target="_blank" rel="noopener noreferrer">
+                                            {children}
+                                          </a>
+                                        ),
+                                      }}
+                                    >
+                                      {msg.text}
+                                    </ReactMarkdown>
+                                  </div>
                                 )}
                               </div>
-                            </div>
-                            
-                            {/* Message actions - hide during streaming */}
-                            {!msg.isThinking && !msg.isStreaming && (
-                              <MessageActions
-                                message={msg}
-                                onCopy={handleCopyMessage}
-                                onEdit={handleEditMessage}
-                                onRegenerate={handleRegenerateMessage}
-                                isLastAiMessage={isLastAiMessage}
-                                isDarkMode={isDarkMode}
-                              />
-                            )}
-                          </div>
-                          
-                          {/* User avatar - keeping same styling as requested */}
-                          {msg.isUser && (
-                            <div className="flex-shrink-0">
-                              <div className={`w-8 h-8 rounded-sm flex items-center justify-center font-medium ${
-                                isDarkMode 
-                                  ? 'bg-[#444654] border border-[#555] text-white'
-                                  : 'bg-white border border-[#e5e5e5] text-[#202123]'
-                              }`}>
-                                {user.name?.[0]?.toUpperCase() || 'U'}
-                              </div>
-                            </div>
+                              
+                              {/* Message actions */}
+                              {!msg.isThinking && !msg.isStreaming && (
+                                <MessageActions
+                                  message={msg}
+                                  onCopy={handleCopyMessage}
+                                  onEdit={handleEditMessage}
+                                  onRegenerate={handleRegenerateMessage}
+                                  isLastAiMessage={isLastAiMessage}
+                                />
+                              )}
+                            </>
                           )}
                         </div>
-                      )}
+                      </div>
                     </div>
+                    
+                    {/* Add separator after each message group */}
+                    {index < activeConversation.messages.length - 1 && 
+                     activeConversation.messages[index + 1].isUser !== msg.isUser && (
+                      <hr className="message-separator" />
+                    )}
                   </div>
                 );
               })}
@@ -1691,11 +1552,22 @@ const ChatInterface = ({ user, onLogout }) => {
         {/* Error messages */}
         {error && (
           <div className="mx-4 mb-2">
-            <ErrorMessage 
-              error={error}
-              onRetry={() => setError(null)}
-              onDismiss={() => setError(null)}
-            />
+            <div className="max-w-4xl mx-auto">
+              <ErrorMessage 
+                error={error}
+                onRetry={() => {
+                  setError(null);
+                  if (activeConversation?.messages?.length > 0) {
+                    const lastUserMessage = [...activeConversation.messages].reverse().find(m => m.isUser);
+                    if (lastUserMessage) {
+                      setMessage(lastUserMessage.text);
+                      setTimeout(handleSendMessage, 100);
+                    }
+                  }
+                }}
+                onDismiss={() => setError(null)}
+              />
+            </div>
           </div>
         )}
 
@@ -1705,7 +1577,7 @@ const ChatInterface = ({ user, onLogout }) => {
             <div className="max-w-4xl mx-auto">
               <button
                 onClick={stopGeneration}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-celeste-system-error text-white rounded-lg hover:bg-celeste-system-error/90 transition-colors"
               >
                 <StopCircle size={16} />
                 Stop generating
@@ -1715,13 +1587,15 @@ const ChatInterface = ({ user, onLogout }) => {
         )}
 
         {/* Input area */}
-        <div className={`border-t p-4 ${isDarkMode ? 'bg-[#242424] border-[#444654]' : 'bg-white border-[#e5e5e5]'}`}>
-          <div className="max-w-4xl mx-auto">
-            <div className={`relative flex items-end gap-2 rounded-lg border shadow-sm focus-within:ring-1 focus-within:ring-[#2563EB] ${
-              isDarkMode 
-                ? 'border-[#555] bg-[#242424] focus-within:border-[#2563EB]'
-                : 'border-[#e5e5e5] bg-white focus-within:border-[#2563EB]'
-            }`}>
+        <div className="input-container">
+          <div className="input-wrapper">
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSendMessage();
+              }}
+              className="input-form"
+            >
               <textarea
                 ref={textareaRef}
                 value={message}
@@ -1742,40 +1616,29 @@ const ChatInterface = ({ user, onLogout }) => {
                   editingMessage 
                     ? "Edit your message..." 
                     : activeConversation 
-                    ? "Ask anything about your business..." 
+                    ? "Send a message..." 
                     : "Start your transformation..."
                 }
-                className={`flex-1 resize-none bg-transparent px-4 py-3 focus:outline-none min-h-[24px] max-h-[200px] overflow-y-auto ${
-                  isDarkMode 
-                    ? 'text-white placeholder-[#888]'
-                    : 'text-[#202123] placeholder-[#6e6e80]'
-                }`}
+                className="chat-input"
                 rows={1}
                 disabled={isSending}
-                style={{ height: 'auto' }}
                 onInput={handleTextareaResize}
               />
               <button
-                onClick={() => {
-                  if (editingMessage) {
-                    setEditingMessage(null);
-                  }
-                  handleSendMessage();
-                }}
+                type="submit"
                 disabled={!message.trim() || isSending}
-                className="mb-3 mr-3 p-2 rounded-md text-white bg-gradient-to-r from-[#60A5FA] to-[#2563EB] disabled:opacity-40 disabled:cursor-not-allowed transition-opacity hover:opacity-90"
-                aria-label={editingMessage ? "Update message" : "Send message"}
+                className="send-button"
               >
                 {isSending ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <div className="loading-spinner" />
                 ) : (
                   <Send size={16} />
                 )}
               </button>
-            </div>
+            </form>
             
             {editingMessage && (
-              <div className={`mt-2 flex items-center gap-2 text-sm ${isDarkMode ? 'text-white' : 'text-[#6e6e80]'}`}>
+              <div className="mt-2 flex items-center gap-2 text-sm text-celeste-text-muted">
                 <Edit3 size={14} />
                 <span>Editing message</span>
                 <button
@@ -1783,16 +1646,17 @@ const ChatInterface = ({ user, onLogout }) => {
                     setEditingMessage(null);
                     setMessage('');
                   }}
-                  className="text-[#2563EB] hover:text-[#1d4ed8]"
+                  className="text-celeste-brand-primary hover:text-celeste-brand-hover"
                 >
                   Cancel
                 </button>
               </div>
             )}
+            
+            <div className="token-counter">
+              CelesteOS transforms patterns into profits • {tokensRemaining.toLocaleString()} tokens remaining
+            </div>
           </div>
-          <p className={`text-xs text-center mt-2 max-w-4xl mx-auto ${isDarkMode ? 'text-white' : 'text-[#6e6e80]'}`}>
-            CelesteOS transforms patterns into profits • {tokensRemaining.toLocaleString()} tokens remaining
-          </p>
         </div>
       </div>
       
@@ -1809,7 +1673,7 @@ const ChatInterface = ({ user, onLogout }) => {
   );
 };
 
-// Export components in the format App.js expects
+// Export components
 const Components = {
   AuthScreen,
   ChatInterface
