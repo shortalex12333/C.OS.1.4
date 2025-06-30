@@ -1092,9 +1092,6 @@ const ChatInterface = ({ user, onLogout }) => {
         };
 
         setActiveConversation(finalConv);
-        setConversations(prev => 
-          prev.map(c => c.id === currentConversation.id ? finalConv : c)
-        );
         
         // Start streaming the response
         streamMessage(aiResponseText, aiMessage.id, currentConversation.id);
