@@ -1058,23 +1058,34 @@ const ChatInterface = ({ user, onLogout }) => {
                           responseData.metadata?.fallback ||
                           responseData.metadata?.tokensUsed === 0;
         
-        // Update conversation to remove thinking state
-        const finalConv = {
+        // Update conversation to remove thinking state BEFORE streaming
+        const preStreamConv = {
           ...updatedConv,
           messages: updatedConv.messages.map(msg => 
             msg.id === aiMessage.id 
               ? { 
                   ...msg, 
                   text: '',
-                  isThinking: false,
+                  isThinking: false,  // Stop showing typing indicator
                   isRecovered,
-                  isStreaming: true,
+                  isStreaming: false,  // Not streaming yet
                   category: responseData.metadata?.category,
                   metadata: responseData.metadata
                 }
               : msg
           )
         };
+
+        // Update state to hide typing indicator immediately
+        setActiveConversation(preStreamConv);
+        setConversations(prev => 
+          prev.map(c => c.id === currentConversation.id ? preStreamConv : c)
+        );
+
+        // Small delay to ensure UI updates
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const finalConv = preStreamConv;
 
         setActiveConversation(finalConv);
         
