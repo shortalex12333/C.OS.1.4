@@ -996,7 +996,7 @@ const ChatInterface = ({ user, onLogout }) => {
     };
 
     const aiMessage = {
-      id: `msg_${Date.now()}_ai`,
+      id: `msg_${Date.now()}_ai_${Math.random().toString(36).substr(2, 9)}`,
       text: '',
       isUser: false,
       isThinking: true,
