@@ -70,7 +70,7 @@ const Message = React.memo(({ message, isUser, category, confidence, responseTim
               : 'bg-gray-100 text-gray-900 mr-4'
           }`}
           style={{ 
-            fontSize: window.innerWidth < 640 ? '14px' : '15px',
+            fontSize: window.innerWidth < 640 ? '18px' : '20px',
             lineHeight: '1.6'
           }}
         >
@@ -507,7 +507,7 @@ const ModernChatInterface = ({ user, apiEndpoint = WEBHOOK_URLS.TEXT_CHAT_FAST }
                 disabled={isLoading}
                 className="w-full px-4 py-3 border border-gray-300 rounded-2xl resize-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500 transition-colors"
                 style={{ 
-                  fontSize: window.innerWidth < 640 ? '14px' : '15px',
+                  fontSize: window.innerWidth < 640 ? '18px' : '20px',
                   lineHeight: '1.6',
                   minHeight: '48px',
                   maxHeight: '96px'
