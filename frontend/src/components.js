@@ -27,6 +27,7 @@ import { cacheService } from './services/cacheService';
 import UserProfilePanel from './components/UserProfilePanel';
 import DebugPanel from './components/DebugPanel';
 import { WEBHOOK_CONFIG, WEBHOOK_URLS } from './config/webhookConfig';
+import { SolutionCard } from './components/SolutionCard';
 
 // API Configuration
 const API_CONFIG = {
@@ -1028,26 +1029,62 @@ const ChatInterface = ({ user, onLogout }) => {
           throw new Error('Empty response from server');
         }
         
-        // Extract data from new response format
-        const aiResponseText = responseData.response?.answer || 
-          responseData.response || 
-          responseData.message || 
-          responseData.text ||
-          "I'm processing your request. Let me help you transform your patterns into profits.";
+        // Handle both old maritime format and new yacht AI format
+        let aiResponseText, solutions, responseSources, confidence, processingTime, metadata;
         
-        // Extract additional response fields
+        // Check if this is the new yacht AI format with nested response object
+        if (responseData.response && typeof responseData.response === 'object' && responseData.response.success !== undefined) {
+          // New yacht AI format
+          const yachtResponse = responseData.response;
+          aiResponseText = yachtResponse.message || "I'm analyzing your yacht systems...";
+          solutions = yachtResponse.solutions || [];
+          responseSources = yachtResponse.sources || [];
+          confidence = yachtResponse.confidence_score;
+          metadata = yachtResponse.metadata || {};
+          processingTime = metadata.processing_time_ms;
+          
+          // Extract yacht-specific fields
+          const queryId = yachtResponse.query_id;
+          const yachtId = metadata.yacht_id;
+          const intent = metadata.intent;
+          const entitiesFound = metadata.entities_found;
+          const patternsIdentified = metadata.patterns_identified;
+          const tokensUsed = metadata.tokens_used;
+          const searchPerformed = metadata.search_performed;
+          const documentsFound = metadata.documents_found;
+          
+        } else if (responseData.response?.answer) {
+          // Old maritime format with response.answer
+          aiResponseText = responseData.response.answer;
+          solutions = [];
+          responseSources = responseData.response?.sources || [];
+          confidence = responseData.metadata?.confidence;
+          processingTime = responseData.metrics?.processing_time_ms;
+          metadata = responseData.metadata || {};
+          
+        } else {
+          // Fallback for other formats
+          aiResponseText = responseData.response || 
+            responseData.message || 
+            responseData.text ||
+            "I'm processing your request. Let me help you with your yacht systems.";
+          solutions = [];
+          responseSources = [];
+          confidence = responseData.metadata?.confidence;
+          processingTime = responseData.metrics?.processing_time_ms;
+          metadata = responseData.metadata || {};
+        }
+        
+        // Extract additional response fields (keeping backward compatibility)
         const responseItems = responseData.response?.items || [];
-        const responseSources = responseData.response?.sources || [];
         const responseReferences = responseData.response?.references || [];
         const responseSummary = responseData.response?.summary || '';
         
-        // Extract metadata from new format
-        const queryId = responseData.query_id;
-        const conversationId = responseData.conversation_id;
-        const intentType = responseData.intent_type;
-        const searchStrategy = responseData.search_strategy || responseData.metadata?.search_strategy;
-        const confidence = responseData.metadata?.confidence;
-        const processingTime = responseData.metrics?.processing_time_ms;
+        // Extract metadata from various formats
+        const queryId = responseData.query_id || responseData.response?.query_id;
+        const conversationId = responseData.conversation_id || metadata.conversation_id;
+        const intentType = responseData.intent_type || metadata.intent;
+        const searchStrategy = responseData.search_strategy || metadata.search_strategy;
         
         // Update token information from metadata (keeping backward compatibility)
         if (responseData.metadata) {
@@ -1096,7 +1133,10 @@ const ChatInterface = ({ user, onLogout }) => {
                   items: responseItems,
                   sources: responseSources,
                   references: responseReferences,
-                  summary: responseSummary
+                  summary: responseSummary,
+                  // Add yacht AI solution cards
+                  solutions: solutions,
+                  yachtMetadata: metadata
                 }
               : msg
           )
@@ -1538,6 +1578,27 @@ const ChatInterface = ({ user, onLogout }) => {
                                   </div>
                                 )}
                               </div>
+                              
+                              {/* Display Solution Cards for yacht AI responses */}
+                              {!msg.isUser && !msg.isThinking && msg.solutions && msg.solutions.length > 0 && (
+                                <div style={{ marginTop: '16px' }}>
+                                  <div style={{ 
+                                    fontSize: '14px', 
+                                    fontWeight: '600', 
+                                    marginBottom: '12px',
+                                    color: '#374151'
+                                  }}>
+                                    📋 Solutions Found ({msg.solutions.length}):
+                                  </div>
+                                  {msg.solutions.map((solution, idx) => (
+                                    <SolutionCard 
+                                      key={solution.id || idx} 
+                                      solution={solution} 
+                                      index={idx}
+                                    />
+                                  ))}
+                                </div>
+                              )}
                               
                               {/* Display additional response metadata for AI messages */}
                               {!msg.isUser && !msg.isThinking && (
