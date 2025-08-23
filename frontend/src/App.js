@@ -3,6 +3,7 @@ import './styles/fonts.css';
 import './styles/app.css';
 import './styles/chat.css';
 import Components from './components';
+import AskAlexPage from './AskAlexPage';
 import { performanceMonitor } from './services/performanceMonitor';
 
 // Error Boundary for production
@@ -67,6 +68,7 @@ function App() {
   const [accessToken, setAccessToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [systemHealth, setSystemHealth] = useState('GOOD');
+  const [currentPage, setCurrentPage] = useState('chat'); // 'chat' or 'askAlex'
 
   // Check for saved auth
   useEffect(() => {
@@ -169,10 +171,18 @@ function App() {
         {!user ? (
           <Components.AuthScreen onLogin={handleLogin} />
         ) : (
-          <Components.ChatInterface 
-            user={user} 
-            onLogout={handleLogout}
-          />
+          currentPage === 'askAlex' ? (
+            <AskAlexPage 
+              user={user}
+              onBack={() => setCurrentPage('chat')}
+            />
+          ) : (
+            <Components.ChatInterface 
+              user={user} 
+              onLogout={handleLogout}
+              onAskAlex={() => setCurrentPage('askAlex')}
+            />
+          )
         )}
       </div>
     </ErrorBoundary>

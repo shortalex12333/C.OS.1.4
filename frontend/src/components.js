@@ -627,7 +627,7 @@ const MessageActions = ({ message, onCopy, onEdit, onRegenerate, isLastAiMessage
 };
 
 // Main Chat Interface Component - COMPLETE VERSION
-const ChatInterface = ({ user, onLogout }) => {
+const ChatInterface = ({ user, onLogout, onAskAlex }) => {
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
   const [message, setMessage] = useState('');
@@ -1420,9 +1420,17 @@ const ChatInterface = ({ user, onLogout }) => {
               </div>
             </div>
             
-            {/* User info */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm capitalize text-celeste-text-muted">{userStage}</span>
+            {/* User info and Ask Alex link */}
+            <div className="flex items-center gap-4">
+              {/* Ask Alex FAQ Link */}
+              <button
+                onClick={onAskAlex}
+                className="flex items-center gap-2 px-3 py-1.5 bg-celeste-dark-secondary hover:bg-celeste-dark-hover rounded-lg transition-colors"
+                title="Ask Alex - FAQ"
+              >
+                <span className="text-sm font-medium text-celeste-brand-primary">Ask Alex</span>
+              </button>
+              
               <span className="hidden md:inline text-sm font-medium text-celeste-text-secondary">
                 {userProfile?.display_name || user.name || user.displayName}
               </span>

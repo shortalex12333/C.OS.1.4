@@ -1,0 +1,68 @@
+Note: Unnecessary use of -X or --request, POST is already inferred.
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0* Host api.celeste7.ai:443 was resolved.
+* IPv6: (none)
+* IPv4: 46.62.139.129
+*   Trying 46.62.139.129:443...
+* Connected to api.celeste7.ai (46.62.139.129) port 443
+* ALPN: curl offers h2,http/1.1
+* (304) (OUT), TLS handshake, Client hello (1):
+} [320 bytes data]
+*  CAfile: /etc/ssl/cert.pem
+*  CApath: none
+* (304) (IN), TLS handshake, Server hello (2):
+{ [122 bytes data]
+* (304) (IN), TLS handshake, Unknown (8):
+{ [19 bytes data]
+* (304) (IN), TLS handshake, Certificate (11):
+{ [2586 bytes data]
+* (304) (IN), TLS handshake, CERT verify (15):
+{ [264 bytes data]
+* (304) (IN), TLS handshake, Finished (20):
+{ [52 bytes data]
+* (304) (OUT), TLS handshake, Finished (20):
+} [52 bytes data]
+* SSL connection using TLSv1.3 / AEAD-AES256-GCM-SHA384 / [blank] / UNDEF
+* ALPN: server accepted h2
+* Server certificate:
+*  subject: CN=api.celeste7.ai
+*  start date: Aug 22 10:41:51 2025 GMT
+*  expire date: Nov 20 10:41:50 2025 GMT
+*  subjectAltName: host "api.celeste7.ai" matched cert's "api.celeste7.ai"
+*  issuer: C=US; O=Let's Encrypt; CN=R12
+*  SSL certificate verify ok.
+* using HTTP/2
+* [HTTP/2] [1] OPENED stream for https://api.celeste7.ai/webhook/text-chat-fast
+* [HTTP/2] [1] [:method: POST]
+* [HTTP/2] [1] [:scheme: https]
+* [HTTP/2] [1] [:authority: api.celeste7.ai]
+* [HTTP/2] [1] [:path: /webhook/text-chat-fast]
+* [HTTP/2] [1] [user-agent: curl/8.7.1]
+* [HTTP/2] [1] [content-type: application/json]
+* [HTTP/2] [1] [accept: application/json]
+* [HTTP/2] [1] [content-length: 225]
+> POST /webhook/text-chat-fast HTTP/2
+> Host: api.celeste7.ai
+> User-Agent: curl/8.7.1
+> Content-Type: application/json
+> Accept: application/json
+> Content-Length: 225
+> 
+} [225 bytes data]
+* upload completely sent off: 225 bytes
+100   225    0     0  100   225      0    194  0:00:01  0:00:01 --:--:--   194100   225    0     0  100   225      0    104  0:00:02  0:00:02 --:--:--   104< HTTP/2 200 
+< server: nginx/1.18.0 (Ubuntu)
+< date: Sat, 23 Aug 2025 18:03:54 GMT
+< content-type: application/json; charset=utf-8
+< content-length: 2302
+< access-control-allow-origin: *
+< access-control-allow-methods: POST, OPTIONS
+< access-control-allow-headers: Content-Type
+< etag: W/"8fe-gqD8WAXPDCrMJ4KxVIamfVsveX0"
+< vary: Accept-Encoding
+< 
+{ [2302 bytes data]
+100  2527  100  2302  100   225    901     88  0:00:02  0:00:02 --:--:--   989100  2527  100  2302  100   225    901     88  0:00:02  0:00:02 --:--:--   989
+* Connection #0 to host api.celeste7.ai left intact
+{"success":true,"query_id":"qry_1755972232423_yrajqgi","conversation_id":"conv_1755972232423","response":{"items":["001-043-140: Mounting Bracket for 19inch MFD"],"sources":["Verified Parts Database"],"references":["001-043-140"],"summary":"Found 1 relevant parts with documentation","answer":"📦 **Found 1 Maritime Parts**\n\n**[001-043-140](https://vivovcnaapmcfxxfhzxk.supabase.co/functions/v1/fetch-manufacturer-intelligence?part_number=001-043-140&manufacturer_name=Furuno&document_type=all&auto_generate=true)**\n• Manufacturer: Furuno\n• Description: Mounting Bracket for 19inch MFD\n• Location: Installation Hardware\n• Price: $245\n• [📄 View Documentation](https://vivovcnaapmcfxxfhzxk.supabase.co/functions/v1/fetch-manufacturer-intelligence?part_number=001-043-140&manufacturer_name=Furuno&document_type=all&auto_generate=true)\n"},"metadata":{"search_strategy":"equipment_diagnosis","confidence":0.9,"parts_found":1,"intent_type":"technical_query","detected":{"fault_codes":[],"equipment":["main engine"],"parts":[],"symptoms":[]}},"metrics":{"processing_time_ms":1957,"processing_time_s":"1.96","data_sources_queried":3},"storage_data":{"query_text":"Where is the main engine kept?","response_text":"{\"items\":[\"001-043-140: Mounting Bracket for 19inch MFD\"],\"sources\":[\"Verified Parts Database\"],\"references\":[\"001-043-140\"],\"summary\":\"Found 1 relevant parts with documentation\",\"answer\":\"📦 **Found 1 Maritime Parts**\\n\\n**[001-043-140](https://vivovcnaapmcfxxfhzxk.supabase.co/functions/v1/fetch-manufacturer-intelligence?part_number=001-043-140&manufacturer_name=Furuno&document_type=all&auto_generate=true)**\\n• Manufacturer: Furuno\\n• Description: Mounting Bracket for 19inch MFD\\n• Location: Installation Hardware\\n• Price: $245\\n• [📄 View Documentation](https://vivovcnaapmcfxxfhzxk.supabase.co/functions/v1/fetch-manufacturer-intelligence?part_number=001-043-140&manufacturer_name=Furuno&document_type=all&auto_generate=true)\\n\"}","ai_reply_summary":"Located 1 parts with auto-documentation links","sources":["Verified Parts Database"],"confidence_score":0.9},"yacht_info":{"yacht_id":"yacht_demo_001","department":"engineering","user_id":"demo_user"},"timestamp":"2025-08-23T18:03:54.381Z","api_version":"v3.2-production"}
