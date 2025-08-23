@@ -4,10 +4,17 @@ import React, { useState } from 'react';
 export function SolutionCard({ solution, index }) {
   const [isExpanded, setIsExpanded] = useState(false);
   
+  // Validate solution object
+  if (!solution) {
+    console.warn('SolutionCard: No solution provided');
+    return null;
+  }
+  
   // Get confidence color
   const getConfidenceColor = (score) => {
-    if (score >= 0.8) return '#22c55e'; // green
-    if (score >= 0.5) return '#f59e0b'; // amber
+    const numScore = typeof score === 'number' ? score : 0.5;
+    if (numScore >= 0.8) return '#22c55e'; // green
+    if (numScore >= 0.5) return '#f59e0b'; // amber
     return '#ef4444'; // red
   };
 
@@ -74,21 +81,28 @@ export function SolutionCard({ solution, index }) {
                 Steps:
               </h4>
               <ul style={{ marginLeft: '20px' }}>
-                {solution.steps.map((step, idx) => (
-                  <li key={idx} style={{ 
-                    marginBottom: '8px',
-                    fontSize: '14px',
-                    color: '#374151'
-                  }}>
-                    {/* Step type icon */}
-                    {step.type === 'warning' && '⚠️ '}
-                    {step.type === 'tip' && '💡 '}
-                    {step.type === 'normal' && '✓ '}
-                    <span style={{ fontWeight: step.isBold ? 'bold' : 'normal' }}>
-                      {step.text}
-                    </span>
-                  </li>
-                ))}
+                {solution.steps.map((step, idx) => {
+                  // Handle both string and object step formats
+                  const stepText = typeof step === 'string' ? step : (step.text || '');
+                  const stepType = typeof step === 'object' ? step.type : 'normal';
+                  const isBold = typeof step === 'object' ? step.isBold : false;
+                  
+                  return (
+                    <li key={idx} style={{ 
+                      marginBottom: '8px',
+                      fontSize: '14px',
+                      color: '#374151'
+                    }}>
+                      {/* Step type icon */}
+                      {stepType === 'warning' && '⚠️ '}
+                      {stepType === 'tip' && '💡 '}
+                      {stepType === 'normal' && '✓ '}
+                      <span style={{ fontWeight: isBold ? 'bold' : 'normal' }}>
+                        {stepText}
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}

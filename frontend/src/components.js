@@ -1032,9 +1032,21 @@ const ChatInterface = ({ user, onLogout }) => {
         // Handle both old maritime format and new yacht AI format
         let aiResponseText, solutions, responseSources, confidence, processingTime, metadata;
         
+        // Log the raw response for debugging
+        console.log('🔍 Webhook Response Structure:', {
+          hasResponse: !!responseData.response,
+          responseType: typeof responseData.response,
+          hasSuccess: responseData.response?.success,
+          hasSolutions: !!(responseData.response?.solutions),
+          solutionsCount: responseData.response?.solutions?.length || 0,
+          hasMessage: !!(responseData.response?.message || responseData.message),
+          rawData: responseData
+        });
+        
         // Check if this is the new yacht AI format with nested response object
         if (responseData.response && typeof responseData.response === 'object' && responseData.response.success !== undefined) {
           // New yacht AI format
+          console.log('✅ Detected Yacht AI format with solutions');
           const yachtResponse = responseData.response;
           aiResponseText = yachtResponse.message || "I'm analyzing your yacht systems...";
           solutions = yachtResponse.solutions || [];
@@ -1042,6 +1054,11 @@ const ChatInterface = ({ user, onLogout }) => {
           confidence = yachtResponse.confidence_score;
           metadata = yachtResponse.metadata || {};
           processingTime = metadata.processing_time_ms;
+          
+          // Log solution cards if present
+          if (solutions.length > 0) {
+            console.log(`📋 Found ${solutions.length} solution card(s):`, solutions);
+          }
           
           // Extract yacht-specific fields
           const queryId = yachtResponse.query_id;
