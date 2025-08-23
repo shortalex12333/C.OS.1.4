@@ -10,6 +10,26 @@ export function SolutionCard({ solution, index }) {
     return null;
   }
   
+  // Log the full solution object for debugging
+  console.log(`📋 Solution Card ${index + 1} Data:`, {
+    id: solution.id,
+    title: solution.title,
+    confidence_score: solution.confidence_score,
+    source: solution.source,
+    steps: solution.steps,
+    procedure_link: solution.procedure_link,
+    // Any additional fields that might come from yacht AI
+    equipment: solution.equipment,
+    fault_codes: solution.fault_codes,
+    parts_required: solution.parts_required,
+    estimated_time: solution.estimated_time,
+    difficulty: solution.difficulty,
+    tools_required: solution.tools_required,
+    safety_warnings: solution.safety_warnings,
+    // Full raw solution object
+    raw: solution
+  });
+  
   // Get confidence color
   const getConfidenceColor = (score) => {
     const numScore = typeof score === 'number' ? score : 0.5;
@@ -125,6 +145,64 @@ export function SolutionCard({ solution, index }) {
               </a>
             </div>
           )}
+
+          {/* Additional yacht-specific fields */}
+          {(solution.equipment || solution.fault_codes || solution.parts_required || solution.tools_required) && (
+            <div style={{ 
+              marginTop: '12px', 
+              paddingTop: '12px',
+              borderTop: '1px solid #e5e7eb'
+            }}>
+              {solution.equipment && (
+                <div style={{ marginBottom: '8px', fontSize: '13px' }}>
+                  <strong>Equipment:</strong> {Array.isArray(solution.equipment) ? solution.equipment.join(', ') : solution.equipment}
+                </div>
+              )}
+              {solution.fault_codes && (
+                <div style={{ marginBottom: '8px', fontSize: '13px' }}>
+                  <strong>Fault Codes:</strong> {Array.isArray(solution.fault_codes) ? solution.fault_codes.join(', ') : solution.fault_codes}
+                </div>
+              )}
+              {solution.parts_required && (
+                <div style={{ marginBottom: '8px', fontSize: '13px' }}>
+                  <strong>Parts Required:</strong> {Array.isArray(solution.parts_required) ? solution.parts_required.join(', ') : solution.parts_required}
+                </div>
+              )}
+              {solution.tools_required && (
+                <div style={{ marginBottom: '8px', fontSize: '13px' }}>
+                  <strong>Tools Required:</strong> {Array.isArray(solution.tools_required) ? solution.tools_required.join(', ') : solution.tools_required}
+                </div>
+              )}
+              {solution.estimated_time && (
+                <div style={{ marginBottom: '8px', fontSize: '13px' }}>
+                  <strong>Estimated Time:</strong> {solution.estimated_time}
+                </div>
+              )}
+              {solution.difficulty && (
+                <div style={{ marginBottom: '8px', fontSize: '13px' }}>
+                  <strong>Difficulty:</strong> {solution.difficulty}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Debug: Show ALL fields in the solution object */}
+          <div style={{ 
+            marginTop: '16px', 
+            paddingTop: '16px',
+            borderTop: '1px solid #e5e7eb',
+            fontSize: '11px',
+            color: '#6b7280',
+            backgroundColor: '#f9fafb',
+            padding: '8px',
+            borderRadius: '4px',
+            fontFamily: 'monospace',
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-all'
+          }}>
+            <strong>DEBUG - Raw JSON:</strong><br/>
+            {JSON.stringify(solution, null, 2)}
+          </div>
 
           {/* MVP Feedback placeholder */}
           <div style={{ 
