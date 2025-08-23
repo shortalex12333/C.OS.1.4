@@ -782,79 +782,44 @@ const ChatInterface = ({ user, onLogout }) => {
     };
   }, [streamingIntervals]);
 
-  // Load user data from cache
+  // Load user data from cache - DISABLED for yacht AI
   useEffect(() => {
     const loadUserData = async () => {
       if (!user?.id) return;
       
-      setCacheLoading(true);
-      console.log('🔄 Loading user data from cache...');
+      // YACHT AI: Skip cache loading - not needed
+      console.log('🚢 Yacht AI Mode: Cache disabled, using direct webhook responses only');
+      setCacheLoading(false);
       
-      try {
-        // Preload session data in background
-        cacheService.preloadUserSession(user.id);
-        
-        // Load critical user data
-        const [profileData, patternsData, businessData] = await Promise.all([
-          cacheService.getUserProfile(user.id),
-          cacheService.getUserPatterns(user.id),
-          cacheService.getBusinessMetrics(user.id, 'finance')
-        ]);
-        
-        if (profileData?.data) {
-          setUserProfile(profileData.data[0] || null);
-          console.log('✅ User profile loaded from cache');
-        }
-        
-        if (patternsData?.data) {
-          setUserPatterns(patternsData.data);
-          console.log('✅ User patterns loaded from cache');
-        }
-        
-        if (businessData?.data) {
-          setBusinessMetrics(businessData.data);
-          console.log('✅ Business metrics loaded from cache');
-        }
-        
-        // Update user stage and tokens from profile if available
-        if (profileData?.data?.[0]) {
-          const profile = profileData.data[0];
-          setUserStage(profile.stage || 'exploring');
-          setTokensRemaining(profile.tokens_remaining || 50000);
-        }
-        
-      } catch (error) {
-        console.error('❌ Error loading user data from cache:', error);
-      } finally {
-        setCacheLoading(false);
-      }
+      // Set default values without cache calls
+      setUserStage('active');
+      setTokensRemaining(50000);
+      setUserProfile(null);
+      setUserPatterns([]);
+      setBusinessMetrics([]);
+      
+      // For yacht AI, all data comes from yacht-specific webhooks
+      // No need for /get-data endpoint
     };
     
     loadUserData();
   }, [user?.id]);
 
-  // Load saved conversations with cache integration
+  // Load saved conversations - YACHT AI: Using localStorage only
   useEffect(() => {
     const loadSavedConversations = async () => {
       if (!user?.id) return;
       
       try {
-        // Try to load conversation history from cache
-        const conversationData = await cacheService.getCachedData(user.id, 'user_conversations');
-        
-        if (conversationData?.data) {
-          setConversations(conversationData.data);
-          console.log('✅ Conversations loaded from cache');
-        } else {
-          // Fallback to localStorage if cache fails
-          const saved = localStorage.getItem(`celesteos_conversations_${user.id}`);
-          if (saved) {
-            try {
-              const parsed = JSON.parse(saved);
-              setConversations(parsed);
-            } catch (e) {
-              console.error('Failed to parse saved conversations:', e);
-            }
+        // YACHT AI: Skip cache, use localStorage directly
+        const saved = localStorage.getItem(`celesteos_conversations_${user.id}`);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            setConversations(parsed);
+            console.log('🚢 Yacht AI: Conversations loaded from localStorage');
+          } catch (e) {
+            console.error('Failed to parse saved conversations:', e);
           }
         }
       } catch (error) {
@@ -865,22 +830,13 @@ const ChatInterface = ({ user, onLogout }) => {
     loadSavedConversations();
   }, [user?.id]);
 
-  // Save conversations to cache and localStorage
+  // Save conversations - YACHT AI: localStorage only
   const saveConversations = useCallback(async (newConversations) => {
     if (!user?.id) return;
     
-    // Save to localStorage immediately (fast, reliable)
+    // YACHT AI: Save to localStorage only (no cache)
     localStorage.setItem(`celesteos_conversations_${user.id}`, JSON.stringify(newConversations));
-    
-    // Update cache in background (don't block UI)
-    try {
-      await cacheService.updateCacheAfterModification(user.id, 'user_conversations', {
-        data: newConversations,
-        updated_at: new Date().toISOString()
-      });
-    } catch (error) {
-      console.log('⚠️ Failed to update conversation cache:', error);
-    }
+    console.log('🚢 Yacht AI: Conversations saved to localStorage');
   }, [user?.id]);
 
   // Sorted conversations
