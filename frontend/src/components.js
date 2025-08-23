@@ -28,6 +28,7 @@ import UserProfilePanel from './components/UserProfilePanel';
 import DebugPanel from './components/DebugPanel';
 import { WEBHOOK_CONFIG, WEBHOOK_URLS } from './config/webhookConfig';
 import { SolutionCard } from './components/SolutionCard';
+import { GuidedPrompts } from './components/GuidedPrompts';
 
 // API Configuration
 const API_CONFIG = {
@@ -1470,12 +1471,12 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
                 <h1 className="text-4xl font-semibold mb-4 text-celeste-text-primary">
                   Celeste<span className="bg-gradient-to-r from-celeste-brand-primary to-celeste-brand-accent bg-clip-text text-transparent">OS</span>
                 </h1>
-                <p className="mb-8 text-celeste-text-muted">Your success inevitability engine</p>
+                <p className="mb-8 text-celeste-text-muted">Your intelligent yacht operations assistant</p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
                   {[
-                    'Show me my success patterns',
-                    'What\'s blocking my $10k month?',
-                    'Make my next move obvious'
+                    'Show fault code 110-00 solutions',
+                    'Find hydraulic pump maintenance guide',
+                    'Check generator troubleshooting steps'
                   ].map((prompt) => (
                     <button
                       key={prompt}
