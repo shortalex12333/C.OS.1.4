@@ -1028,13 +1028,28 @@ const ChatInterface = ({ user, onLogout }) => {
           throw new Error('Empty response from server');
         }
         
-        // Extract data from response
-        const aiResponseText = responseData.response || 
+        // Extract data from new response format
+        const aiResponseText = responseData.response?.answer || 
+          responseData.response || 
           responseData.message || 
           responseData.text ||
           "I'm processing your request. Let me help you transform your patterns into profits.";
         
-        // Update token information from metadata
+        // Extract additional response fields
+        const responseItems = responseData.response?.items || [];
+        const responseSources = responseData.response?.sources || [];
+        const responseReferences = responseData.response?.references || [];
+        const responseSummary = responseData.response?.summary || '';
+        
+        // Extract metadata from new format
+        const queryId = responseData.query_id;
+        const conversationId = responseData.conversation_id;
+        const intentType = responseData.intent_type;
+        const searchStrategy = responseData.search_strategy || responseData.metadata?.search_strategy;
+        const confidence = responseData.metadata?.confidence;
+        const processingTime = responseData.metrics?.processing_time_ms;
+        
+        // Update token information from metadata (keeping backward compatibility)
         if (responseData.metadata) {
           setTokensRemaining(responseData.metadata.tokensRemaining || tokensRemaining);
           setUserStage(responseData.metadata.stage || userStage);
@@ -1070,7 +1085,18 @@ const ChatInterface = ({ user, onLogout }) => {
                   isRecovered,
                   isStreaming: false,  // Not streaming yet
                   category: responseData.metadata?.category,
-                  metadata: responseData.metadata
+                  metadata: responseData.metadata,
+                  // Add new response fields
+                  queryId: queryId,
+                  conversationId: conversationId,
+                  intentType: intentType,
+                  searchStrategy: searchStrategy,
+                  confidence: confidence,
+                  processingTime: processingTime,
+                  items: responseItems,
+                  sources: responseSources,
+                  references: responseReferences,
+                  summary: responseSummary
                 }
               : msg
           )
@@ -1512,6 +1538,81 @@ const ChatInterface = ({ user, onLogout }) => {
                                   </div>
                                 )}
                               </div>
+                              
+                              {/* Display additional response metadata for AI messages */}
+                              {!msg.isUser && !msg.isThinking && (
+                                <>
+                                  {/* Suggested items/actions */}
+                                  {msg.items && msg.items.length > 0 && (
+                                    <div className="mt-3 space-y-2">
+                                      <div className="text-xs text-celeste-text-muted mb-1">Suggestions:</div>
+                                      <div className="flex flex-wrap gap-2">
+                                        {msg.items.map((item, idx) => (
+                                          <button
+                                            key={idx}
+                                            onClick={() => {
+                                              setMessage(item);
+                                              textareaRef.current?.focus();
+                                            }}
+                                            className="px-3 py-1.5 text-sm bg-celeste-dark-tertiary hover:bg-celeste-dark-hover rounded-lg transition-colors text-celeste-text-secondary hover:text-celeste-text-primary"
+                                          >
+                                            {item}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Sources and references */}
+                                  {((msg.sources && msg.sources.length > 0) || (msg.references && msg.references.length > 0)) && (
+                                    <div className="mt-3 text-xs text-celeste-text-muted">
+                                      {msg.sources && msg.sources.length > 0 && (
+                                        <div className="mb-1">
+                                          <span className="font-medium">Sources:</span> {msg.sources.join(', ')}
+                                        </div>
+                                      )}
+                                      {msg.references && msg.references.length > 0 && (
+                                        <div>
+                                          <span className="font-medium">References:</span>
+                                          {msg.references.map((ref, idx) => (
+                                            <span key={idx}> [{idx + 1}] {ref}</span>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                  
+                                  {/* Response metadata */}
+                                  {(msg.intentType || msg.searchStrategy || msg.processingTime) && (
+                                    <div className="mt-2 flex flex-wrap gap-3 text-xs text-celeste-text-muted">
+                                      {msg.intentType && (
+                                        <span className="flex items-center gap-1">
+                                          <span className="w-1.5 h-1.5 bg-celeste-brand-primary rounded-full"></span>
+                                          Intent: {msg.intentType}
+                                        </span>
+                                      )}
+                                      {msg.searchStrategy && (
+                                        <span className="flex items-center gap-1">
+                                          <span className="w-1.5 h-1.5 bg-celeste-system-success rounded-full"></span>
+                                          Strategy: {msg.searchStrategy}
+                                        </span>
+                                      )}
+                                      {msg.confidence && (
+                                        <span className="flex items-center gap-1">
+                                          <span className="w-1.5 h-1.5 bg-celeste-system-info rounded-full"></span>
+                                          Confidence: {(msg.confidence * 100).toFixed(0)}%
+                                        </span>
+                                      )}
+                                      {msg.processingTime && (
+                                        <span className="flex items-center gap-1">
+                                          <span className="w-1.5 h-1.5 bg-celeste-text-muted rounded-full"></span>
+                                          {msg.processingTime}ms
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                                </>
+                              )}
                               
                               {/* Message actions */}
                               {!msg.isThinking && !msg.isStreaming && (
