@@ -108,278 +108,437 @@ export function UpdateUXInput({
 
   return (
     <div 
+      className="flex flex-col query_input_container"
       style={{
         maxWidth: isMobile ? '390px' : '760px',
         margin: '0 auto',
         padding: isMobile ? '16px' : '24px'
       }}
     >
-      {/* Search Type Selector */}
-      <div 
-        style={{
-          marginBottom: '12px'
-        }}
-      >
-        <div style={{ position: 'relative', display: 'inline-block' }}>
-          <button
-            onClick={() => setIsMobileControlsOpen(!isMobileControlsOpen)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '8px 12px',
-              backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
-              border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)'}`,
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-              color: isDarkMode ? 'rgba(246, 247, 251, 0.8)' : '#374151',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              background: 'transparent'
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)';
-            }}
-          >
-            <CurrentIcon 
-              style={{
-                width: '16px',
-                height: '16px',
-                color: isDarkMode ? 'var(--opulent-gold, #c8a951)' : '#2563eb'
-              }}
-            />
-            <span style={{ fontWeight: 500 }}>{currentType?.title}</span>
-            <ChevronDown 
-              style={{
-                width: '14px',
-                height: '14px',
-                transform: isMobileControlsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                transition: 'transform 0.2s'
-              }}
-            />
-          </button>
+      {/* Search Type Indicator */}
+      <div className="flex items-center justify-center mb-2">
+        <div 
+          className="flex items-center gap-2 px-3 py-1 rounded-full text-xs transition-all duration-200 search_type_indicator"
+          style={{
+            backgroundColor: isDarkMode 
+              ? 'rgba(246, 247, 251, 0.08)' 
+              : 'rgba(24, 24, 24, 0.06)',
+            color: isDarkMode ? 'rgba(246, 247, 251, 0.8)' : '#6b7280',
+            fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)'}`
+          }}
+        >
+          {(() => {
+            const currentType = searchTypes.find(type => type.id === selectedSearchType);
+            const IconComponent = currentType?.icon || Ship;
+            return (
+              <>
+                <IconComponent style={{ width: '12px', height: '12px' }} />
+                <span>{currentType?.title || 'Yacht Search'}</span>
+              </>
+            );
+          })()}
+        </div>
+      </div>
 
-          {/* Search Type Dropdown */}
-          {isMobileControlsOpen && (
+
+      {/* Input Form - Binds to: metadata.user_query */}
+      <form onSubmit={handleSubmit} className="relative user_query_form">
+        <div 
+          className="flex items-center gap-3 p-4 border rounded-lg shadow-sm transition-all duration-200 focus-within:ring-2 focus-within:border-transparent query_input_wrapper"
+          style={{
+            borderRadius: isMobile ? '16px' : '20px',
+            minHeight: '56px',
+            boxShadow: isDarkMode 
+              ? '0 4px 12px rgba(0, 0, 0, 0.25)' 
+              : '0 4px 12px rgba(0, 0, 0, 0.05)',
+            background: isDarkMode 
+              ? 'rgba(15, 11, 18, 0.95)' 
+              : 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            borderColor: isDarkMode 
+              ? 'rgba(255, 255, 255, 0.12)' 
+              : 'rgba(0, 0, 0, 0.1)',
+            focusWithin: {
+              '--tw-ring-color': isDarkMode 
+                ? 'rgba(200, 169, 81, 0.35)' 
+                : 'rgba(0, 112, 255, 0.35)'
+            }
+          }}
+        >
+          {/* Desktop: Full Control Layout */}
+          {!isMobile && (
             <>
-              {/* Backdrop */}
+              {/* Search Type Selector Icons */}
+              <div className="flex items-center gap-1 search_type_selector">
+                {searchTypes.map((searchType) => {
+                  const IconComponent = searchType.icon;
+                  const isSelected = selectedSearchType === searchType.id;
+                  
+                  return (
+                    <button
+                      key={searchType.id}
+                      type="button"
+                      onClick={() => handleSearchTypeSelect(searchType.id)}
+                      className="flex items-center justify-center p-2 rounded-lg transition-all duration-200 search_type_button"
+                      style={{
+                        width: '36px',
+                        height: '36px',
+                        color: isSelected 
+                          ? isDarkMode 
+                            ? 'var(--opulent-gold, #c8a951)' 
+                            : '#181818' 
+                          : isDarkMode 
+                            ? 'rgba(246, 247, 251, 0.7)' 
+                            : '#6b7280',
+                        backgroundColor: isSelected 
+                          ? isDarkMode 
+                            ? 'rgba(200, 169, 81, 0.12)' 
+                            : 'rgba(24, 24, 24, 0.08)' 
+                          : 'transparent',
+                        fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                        borderRadius: '8px'
+                      }}
+                      title={searchType.title}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.color = isDarkMode ? '#f6f7fb' : '#374151';
+                          e.currentTarget.style.backgroundColor = isDarkMode 
+                            ? 'rgba(246, 247, 251, 0.08)' 
+                            : 'rgba(107, 114, 128, 0.1)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.color = isDarkMode 
+                            ? 'rgba(246, 247, 251, 0.7)' 
+                            : '#6b7280';
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }
+                      }}
+                    >
+                      <IconComponent 
+                        style={{
+                          width: '16px',
+                          height: '16px',
+                          strokeWidth: isSelected ? '2.5' : '2'
+                        }}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Separator */}
               <div 
-                style={{
-                  position: 'fixed',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  zIndex: 40
-                }}
-                onClick={() => setIsMobileControlsOpen(false)}
+                className="w-px search_separator" 
+                style={{ 
+                  height: '20px',
+                  margin: '0 4px',
+                  backgroundColor: isDarkMode 
+                    ? 'rgba(255, 255, 255, 0.12)' 
+                    : 'rgba(0, 0, 0, 0.1)'
+                }} 
               />
-              
-              <div 
+
+              {/* Attachment Button */}
+              <button
+                type="button"
+                onClick={handleAttachment}
+                className="flex items-center justify-center p-2 rounded-lg transition-all duration-200 attachment_button"
                 style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  right: 0,
-                  marginTop: '4px',
-                  backgroundColor: isDarkMode ? 'rgba(15, 11, 18, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                  backdropFilter: 'blur(16px)',
-                  WebkitBackdropFilter: 'blur(16px)',
-                  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)'}`,
-                  borderRadius: '12px',
-                  boxShadow: isDarkMode 
-                    ? '0 8px 32px rgba(0, 0, 0, 0.4)' 
-                    : '0 8px 32px rgba(0, 0, 0, 0.12)',
-                  zIndex: 50,
-                  minWidth: '280px'
+                  width: '36px',
+                  height: '36px',
+                  color: isDarkMode ? 'rgba(246, 247, 251, 0.7)' : '#6b7280',
+                  borderRadius: '8px'
+                }}
+                title="Attach file"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = isDarkMode ? '#f6f7fb' : '#374151';
+                  e.currentTarget.style.backgroundColor = isDarkMode 
+                    ? 'rgba(246, 247, 251, 0.08)' 
+                    : 'rgba(107, 114, 128, 0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = isDarkMode ? 'rgba(246, 247, 251, 0.7)' : '#6b7280';
+                  e.currentTarget.style.backgroundColor = 'transparent';
                 }}
               >
-                <div 
+                <Paperclip style={{ width: '20px', height: '20px' }} />
+              </button>
+            </>
+          )}
+
+          {/* Mobile: Collapsed Folder System */}
+          {isMobile && (
+            <div className="relative mobile_controls_container">
+              <button
+                type="button"
+                onClick={() => setIsMobileControlsOpen(!isMobileControlsOpen)}
+                className="flex items-center justify-center p-2 rounded-lg transition-all duration-200 mobile_controls_button"
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  color: isDarkMode ? 'rgba(246, 247, 251, 0.7)' : '#6b7280',
+                  backgroundColor: isMobileControlsOpen 
+                    ? isDarkMode 
+                      ? 'rgba(246, 247, 251, 0.12)' 
+                      : 'rgba(24, 24, 24, 0.08)'
+                    : 'transparent',
+                  borderRadius: '8px'
+                }}
+                title="Chat controls"
+              >
+                <Settings 
                   style={{
-                    padding: '12px 16px',
-                    borderBottom: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'}`,
-                    fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    color: isDarkMode ? 'var(--headline, #f6f7fb)' : '#1f2937'
+                    width: '16px',
+                    height: '16px',
+                    transform: isMobileControlsOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s'
                   }}
-                >
-                  Search Intent
-                </div>
-                
-                <div style={{ padding: '8px 0' }}>
-                  {searchTypes.map((type) => {
-                    const TypeIcon = type.icon;
-                    const isSelected = selectedSearchType === type.id;
-                    
-                    return (
-                      <button
-                        key={type.id}
-                        onClick={() => handleSearchTypeSelect(type.id)}
+                />
+              </button>
+
+              {/* Mobile Controls Dropdown */}
+              {isMobileControlsOpen && (
+                <>
+                  {/* Backdrop */}
+                  <div 
+                    className="fixed inset-0 z-40 mobile_controls_backdrop"
+                    onClick={() => setIsMobileControlsOpen(false)}
+                  />
+                  
+                  {/* Dropdown Content */}
+                  <div 
+                    className="absolute bottom-full left-0 mb-2 rounded-xl shadow-lg border backdrop-blur-lg z-50 mobile_controls_dropdown"
+                    style={{
+                      backgroundColor: isDarkMode 
+                        ? 'rgba(15, 11, 18, 1.0)' 
+                        : 'rgba(255, 255, 255, 1.0)',
+                      backdropFilter: 'blur(16px)',
+                      WebkitBackdropFilter: 'blur(16px)',
+                      border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)'}`,
+                      boxShadow: isDarkMode 
+                        ? '0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2)' 
+                        : '0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06)',
+                      minWidth: '280px',
+                      maxWidth: '320px'
+                    }}
+                  >
+                    {/* Search Type Options */}
+                    <div className="py-2 mobile_search_options">
+                      <div 
+                        className="px-4 py-2 text-xs font-medium"
                         style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          width: '100%',
-                          padding: '12px 16px',
-                          backgroundColor: isSelected 
-                            ? isDarkMode 
-                              ? 'rgba(200, 169, 81, 0.12)' 
-                              : 'rgba(0, 112, 255, 0.08)'
-                            : 'transparent',
-                          border: 'none',
-                          textAlign: 'left',
-                          cursor: 'pointer',
-                          transition: 'background-color 0.2s',
-                          gap: '12px'
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!isSelected) {
-                            e.target.style.backgroundColor = isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isSelected) {
-                            e.target.style.backgroundColor = 'transparent';
-                          }
+                          color: isDarkMode ? 'rgba(246, 247, 251, 0.6)' : '#9ca3af',
+                          fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                         }}
                       >
-                        <TypeIcon 
-                          style={{
-                            width: '18px',
-                            height: '18px',
-                            color: isSelected 
-                              ? isDarkMode ? 'var(--opulent-gold, #c8a951)' : '#2563eb'
-                              : isDarkMode ? 'rgba(246, 247, 251, 0.7)' : '#6b7280'
-                          }}
-                        />
-                        <div style={{ flex: 1 }}>
+                        Search Type
+                      </div>
+                      {searchTypes.map((searchType) => {
+                        const IconComponent = searchType.icon;
+                        const isSelected = selectedSearchType === searchType.id;
+                        
+                        return (
+                          <button
+                            key={searchType.id}
+                            onClick={() => handleSearchTypeSelect(searchType.id)}
+                            className="flex items-center w-full px-4 py-3 transition-all duration-200 mobile_search_option"
+                            style={{
+                              backgroundColor: isSelected 
+                                ? isDarkMode 
+                                  ? 'rgba(200, 169, 81, 0.12)' 
+                                  : 'rgba(0, 112, 255, 0.08)'
+                                : 'transparent',
+                              color: isDarkMode ? 'var(--headline, #f6f7fb)' : '#1f2937',
+                              border: 'none',
+                              cursor: 'pointer'
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isSelected) {
+                                e.currentTarget.style.backgroundColor = isDarkMode 
+                                  ? 'rgba(246, 247, 251, 0.06)' 
+                                  : 'rgba(0, 0, 0, 0.03)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isSelected) {
+                                e.currentTarget.style.backgroundColor = 'transparent';
+                              } else {
+                                e.currentTarget.style.backgroundColor = isDarkMode 
+                                  ? 'rgba(200, 169, 81, 0.12)' 
+                                  : 'rgba(0, 112, 255, 0.08)';
+                              }
+                            }}
+                          >
+                            <div className="flex items-center gap-3 flex-1">
+                              <IconComponent 
+                                style={{
+                                  width: '20px',
+                                  height: '20px',
+                                  color: isSelected 
+                                    ? isDarkMode 
+                                      ? 'var(--opulent-gold, #c8a951)' 
+                                      : '#2563eb'
+                                    : isDarkMode 
+                                      ? 'rgba(246, 247, 251, 0.7)' 
+                                      : '#6b7280'
+                                }}
+                              />
+                              <div className="flex flex-col items-start flex-1">
+                                <div 
+                                  className="font-medium"
+                                  style={{
+                                    fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                                    fontSize: '15px',
+                                    fontWeight: 500,
+                                    lineHeight: '20px',
+                                    color: isSelected 
+                                      ? isDarkMode 
+                                        ? 'var(--opulent-gold, #c8a951)' 
+                                        : '#2563eb'
+                                      : 'inherit'
+                                  }}
+                                >
+                                  {searchType.title}
+                                </div>
+                                <div 
+                                  className="text-sm"
+                                  style={{
+                                    fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                                    fontSize: '13px',
+                                    lineHeight: '18px',
+                                    color: isDarkMode 
+                                      ? 'rgba(246, 247, 251, 0.65)' 
+                                      : '#6b7280',
+                                    marginTop: '2px'
+                                  }}
+                                >
+                                  {searchType.description}
+                                </div>
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Additional Controls */}
+                    <div className="py-2 border-t mobile_additional_controls"
+                      style={{
+                        borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'
+                      }}
+                    >
+                      <div 
+                        className="px-4 py-2 text-xs font-medium"
+                        style={{
+                          color: isDarkMode ? 'rgba(246, 247, 251, 0.6)' : '#9ca3af',
+                          fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+                        }}
+                      >
+                        Actions
+                      </div>
+                      
+                      {/* Attachment Button */}
+                      <button
+                        onClick={handleAttachment}
+                        className="flex items-center w-full px-4 py-3 transition-all duration-200 mobile_attachment_button"
+                        style={{
+                          backgroundColor: 'transparent',
+                          color: isDarkMode ? 'var(--headline, #f6f7fb)' : '#1f2937',
+                          border: 'none',
+                          cursor: 'pointer'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = isDarkMode 
+                            ? 'rgba(246, 247, 251, 0.06)' 
+                            : 'rgba(0, 0, 0, 0.03)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }}
+                      >
+                        <div className="flex items-center gap-3 flex-1">
+                          <Paperclip style={{
+                            width: '20px', 
+                            height: '20px',
+                            color: isDarkMode ? 'rgba(246, 247, 251, 0.7)' : '#6b7280'
+                          }} />
                           <div 
+                            className="font-medium"
                             style={{
                               fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                               fontSize: '15px',
                               fontWeight: 500,
-                              color: isSelected 
-                                ? isDarkMode ? 'var(--opulent-gold, #c8a951)' : '#2563eb'
-                                : isDarkMode ? 'var(--headline, #f6f7fb)' : '#1f2937'
+                              lineHeight: '20px'
                             }}
                           >
-                            {type.title}
-                          </div>
-                          <div 
-                            style={{
-                              fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                              fontSize: '13px',
-                              color: isDarkMode ? 'rgba(246, 247, 251, 0.6)' : '#6b7280',
-                              marginTop: '2px'
-                            }}
-                          >
-                            {type.description}
+                            Attach File
                           </div>
                         </div>
                       </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           )}
-        </div>
-      </div>
 
-      {/* Main Input Area */}
-      <form onSubmit={handleSubmit}>
-        <div 
-          style={{
-            display: 'flex',
-            alignItems: 'flex-end',
-            gap: '8px',
-            padding: '16px',
-            backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.03)' : '#ffffff',
-            border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)'}`,
-            borderRadius: '16px',
-            boxShadow: isDarkMode 
-              ? '0 4px 16px rgba(0, 0, 0, 0.2)' 
-              : '0 4px 16px rgba(0, 0, 0, 0.06)',
-            minHeight: '56px'
-          }}
-        >
-          {/* Attachment Button */}
-          <button
-            type="button"
-            onClick={handleAttachment}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '32px',
-              height: '32px',
-              backgroundColor: 'transparent',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              color: isDarkMode ? 'rgba(246, 247, 251, 0.6)' : '#6b7280',
-              transition: 'all 0.2s',
-              flexShrink: 0
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)';
-              e.target.style.color = isDarkMode ? 'rgba(246, 247, 251, 0.8)' : '#374151';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = 'transparent';
-              e.target.style.color = isDarkMode ? 'rgba(246, 247, 251, 0.6)' : '#6b7280';
-            }}
-          >
-            <Paperclip style={{ width: '18px', height: '18px' }} />
-          </button>
-
-          {/* Text Input */}
+          {/* Text Input - Binds to: metadata.user_query */}
           <textarea
             value={message}
             onChange={handleMessageChange}
             onKeyDown={handleKeyDown}
             placeholder={getCurrentPlaceholder()}
             disabled={isSending}
-            rows={1}
+            className={`flex-1 resize-none bg-transparent border-none outline-none user_query_input ${
+              isDarkMode ? 'placeholder:text-white/55' : 'placeholder:text-gray-500'
+            }`}
             style={{
-              flex: 1,
-              border: 'none',
-              outline: 'none',
-              resize: 'none',
-              backgroundColor: 'transparent',
-              fontSize: '16px',
-              lineHeight: '24px',
-              fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
               color: isDarkMode ? 'var(--headline, #f6f7fb)' : '#1f2937',
+              fontSize: isMobile ? '16px' : '16px',
+              lineHeight: isMobile ? '22px' : '24px',
+              fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
               minHeight: '24px',
-              maxHeight: '120px',
-              overflow: 'auto'
+              maxHeight: '120px'
             }}
+            rows={1}
           />
 
-          {/* Send Button */}
+          {/* Send Button - Binds to: metadata.query_submission */}
           <button
             type="submit"
             disabled={!message.trim() || isSending}
+            className="flex items-center justify-center p-2 rounded-lg text-white transition-all duration-200 hover:scale-105 active:scale-95 disabled:cursor-not-allowed query_submit_button"
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '32px',
-              height: '32px',
-              backgroundColor: message.trim() && !isSending 
-                ? isDarkMode ? 'var(--opulent-gold, #c8a951)' : '#2563eb'
-                : isDarkMode ? 'rgba(246, 247, 251, 0.2)' : '#d1d5db',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: message.trim() && !isSending ? 'pointer' : 'not-allowed',
-              transition: 'all 0.2s',
-              flexShrink: 0
+              width: '36px',
+              height: '36px',
+              opacity: message.trim() ? 1 : 0.5,
+              backgroundColor: message.trim() && !isSending
+                ? isDarkMode 
+                  ? 'var(--opulent-gold, #c8a951)' 
+                  : '#2563eb'
+                : isDarkMode 
+                  ? 'rgba(200, 169, 81, 0.3)' 
+                  : 'rgba(107, 114, 128, 0.3)',
+              borderRadius: '8px'
+            }}
+            title="Send message"
+            onMouseEnter={(e) => {
+              if (message.trim()) {
+                e.currentTarget.style.backgroundColor = isDarkMode 
+                  ? '#e0c46e' 
+                  : '#1d4ed8';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (message.trim()) {
+                e.currentTarget.style.backgroundColor = isDarkMode 
+                  ? 'var(--opulent-gold, #c8a951)' 
+                  : '#2563eb';
+              }
             }}
           >
             {isSending ? (
@@ -394,7 +553,7 @@ export function UpdateUXInput({
                 }}
               />
             ) : (
-              <Send style={{ width: '16px', height: '16px' }} />
+              <Send style={{ width: '20px', height: '20px' }} />
             )}
           </button>
         </div>
