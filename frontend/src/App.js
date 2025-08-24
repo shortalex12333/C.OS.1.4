@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './styles/fonts.css';
 import './styles/app.css';
 import './styles/chat.css';
-import './styles/design-tokens.css'; // Phase 2: Design tokens from static site
-import './styles/mobile-optimization.css'; // Phase 3: Mobile optimization
+import { DESIGN_TOKENS } from './styles/design-system.js'; // Clean white design system
 import Components from './components';
 import AskAlexPage from './AskAlexPage';
 import { performanceMonitor } from './services/performanceMonitor';
@@ -188,7 +187,12 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <div className="App">
+      <div className="App" style={{
+        backgroundColor: DESIGN_TOKENS.colors.background,
+        fontFamily: DESIGN_TOKENS.typography.family,
+        color: DESIGN_TOKENS.colors.text.primary,
+        minHeight: '100vh'
+      }}>
         {/* Phase 2: Animated Intro */}
         {showIntro && (
           <AnimatedIntro
