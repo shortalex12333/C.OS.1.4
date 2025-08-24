@@ -1,0 +1,19 @@
+/* Font imports MUST come first */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom CSS variables for any remaining legacy styles */
+:root {
+  --font-size: 14px;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Ensure full height layout */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}

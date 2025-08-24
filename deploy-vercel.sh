@@ -1,59 +1,110 @@
 #!/bin/bash
 
-# Vercel Deployment Script for CelesteOS Chat Interface
-# This script prepares and deploys the frontend to Vercel
+# =================================
+# Deploy to Vercel Script
+# =================================
 
-echo "🚀 Starting CelesteOS Vercel Deployment..."
+set -e
 
-# Check if we're in the right directory
-if [ ! -f "vercel.json" ]; then
-    echo "❌ Error: vercel.json not found. Please run this script from the project root."
-    exit 1
-fi
+echo "🚀 Deploying CelesteOS ChatGPT Clone to Vercel..."
+
+# Colors for output
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+print_status() { echo -e "${BLUE}[INFO]${NC} $1"; }
+print_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
+print_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
+print_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 # Check if Vercel CLI is installed
 if ! command -v vercel &> /dev/null; then
-    echo "📦 Installing Vercel CLI..."
+    print_status "Installing Vercel CLI..."
     npm install -g vercel
+    print_success "Vercel CLI installed!"
 fi
 
-# Navigate to frontend directory and test build
-cd frontend
-
-# Install dependencies
-echo "📦 Installing frontend dependencies..."
-npm install
-
-# Build the project
-echo "🔨 Building frontend for production..."
-npm run build
-
-# Check if build was successful
-if [ ! -d "build" ]; then
-    echo "❌ Build failed! Please check the build logs."
+# Check if this is a Git repository
+if [ ! -d ".git" ]; then
+    print_error "This must be a Git repository to deploy to Vercel!"
+    echo "Initialize Git with:"
+    echo "  git init"
+    echo "  git add ."
+    echo "  git commit -m 'Initial commit'"
     exit 1
 fi
 
-echo "✅ Build successful! Checking build output..."
-ls -la build/
+# Check for uncommitted changes
+if ! git diff --quiet || ! git diff --cached --quiet; then
+    print_warning "You have uncommitted changes!"
+    echo "Commit your changes first:"
+    echo "  git add ."
+    echo "  git commit -m 'Deploy: Production configuration'"
+    exit 1
+fi
 
-# Go back to root
-cd ..
+# Verify environment setup
+print_status "Checking environment configuration..."
+
+if [ ! -f ".env.production" ]; then
+    print_error ".env.production file not found!"
+    echo "Create it with your production environment variables."
+    exit 1
+fi
+
+if [ ! -f "vercel.json" ]; then
+    print_error "vercel.json configuration not found!"
+    exit 1
+fi
+
+# Test build before deployment
+print_status "Testing production build..."
+if ! npm run build:prod > /dev/null 2>&1; then
+    print_error "Production build failed! Fix build errors before deploying."
+    exit 1
+fi
+print_success "Build test passed!"
 
 # Deploy to Vercel
-echo "🚀 Deploying to Vercel..."
-vercel --prod
+print_status "Deploying to Vercel..."
 
+# Check if project is linked to Vercel
+if [ ! -f ".vercel/project.json" ]; then
+    print_status "First-time deployment - linking project..."
+    vercel --confirm
+else
+    print_status "Deploying to existing Vercel project..."
+    vercel --prod --confirm
+fi
+
+print_success "🎉 Deployment complete!"
+
+# Get deployment URL
+if [ -f ".vercel/project.json" ]; then
+    PROJECT_ID=$(cat .vercel/project.json | grep -o '"projectId":"[^"]*' | cut -d'"' -f4)
+    ORG_ID=$(cat .vercel/project.json | grep -o '"orgId":"[^"]*' | cut -d'"' -f4)
+    
+    if [ ! -z "$PROJECT_ID" ]; then
+        echo ""
+        print_success "Your app is live!"
+        echo "🌐 Production URL: https://your-project-name.vercel.app"
+        echo ""
+    fi
+fi
+
+echo "📋 Post-deployment checklist:"
+echo "1. ✅ Update Microsoft OAuth redirect URI in Azure Portal"
+echo "2. ✅ Test OAuth flow on production"
+echo "3. ✅ Configure environment variables in Vercel dashboard"
+echo "4. ✅ Set up custom domain (optional)"
+echo "5. ✅ Enable analytics and monitoring"
 echo ""
-echo "✅ Deployment complete!"
+
+print_warning "Important: Update your OAuth redirect URI in Azure Portal to:"
+echo "https://your-app.vercel.app/api/auth/callback"
 echo ""
-echo "📋 Next Steps:"
-echo "1. Set environment variables in Vercel dashboard:"
-echo "   - REACT_APP_BACKEND_URL=https://api.celeste7.ai"
-echo "   - WDS_SOCKET_PORT=443"
-echo ""
-echo "2. Configure CORS on your backend to allow the Vercel domain"
-echo ""
-echo "3. Test the deployed application"
-echo ""
-echo "🎉 Your CelesteOS chat interface is now live on Vercel!"
+
+print_success "Deployment successful! 🚀"

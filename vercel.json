@@ -1,11 +1,71 @@
 {
-  "buildCommand": "cd frontend && yarn install && yarn build",
-  "outputDirectory": "frontend/build",
-  "framework": null,
+  "version": 2,
+  "name": "celesteos-chatgpt-clone",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "functions": {
+    "api/auth/callback.ts": {
+      "runtime": "@vercel/node@18.x",
+      "maxDuration": 30
+    }
+  },
+  "env": {
+    "MICROSOFT_CLIENT_ID": "@microsoft-client-id",
+    "MICROSOFT_TENANT_ID": "@microsoft-tenant-id",
+    "MICROSOFT_CLIENT_SECRET": "@microsoft-client-secret"
+  },
+  "build": {
+    "env": {
+      "VITE_APP_ENVIRONMENT": "production"
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/oauth/callback",
+      "destination": "/api/auth/callback",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "source": "/auth/callback",
+      "destination": "/api/auth/callback"
     }
   ]
 }
