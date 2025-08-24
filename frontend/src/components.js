@@ -33,6 +33,11 @@ import { EnhancedEmptyState } from './components/UIEnhancements';
 import ConversationCard from './components/ConversationCard';
 // Phase 1: Removed EnhancedSolutionCard - webhook doesn't return solutions
 import './styles/enhancements.css';
+import { CleanChatInput } from './components/CleanChatInput';
+import { CleanHeader } from './components/CleanHeader';
+import { CleanSidebar } from './components/CleanSidebar';
+import { CleanMessages } from './components/CleanMessages';
+import { DESIGN_TOKENS } from './styles/design-system';
 import { logWebhookResponse } from './utils/webhookLogger'; // Phase 1: Logging
 import AnimatedIntro from './pages/AnimatedIntro'; // Phase 2: Animated intro
 import AskAlex from './pages/AskAlex'; // Phase 2: Ask Alex FAQ
@@ -1295,430 +1300,99 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
   }, [conversations, activeConversation, saveConversations]);
 
   return (
-    <div className="chat-container">
-      {/* Sidebar */}
-      <div id="sidebar" className={`sidebar ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
-        {/* Logo */}
-        <div className="p-4 border-b border-border">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-md flex items-center justify-center">
-              <span className="text-white font-bold text-sm">C</span>
-            </div>
-            <h2 className="text-lg font-semibold text-text-primary">
-              Celeste<span className="bg-gradient-to-r from-blue-500 to-blue-600 bg-clip-text text-transparent">OS</span>
-            </h2>
-          </div>
-          <div className="text-sm text-text-muted mt-1">
-            Transform your patterns into profits
-          </div>
-        </div>
-
-        {/* New chat button */}
-        <button onClick={createNewConversation} className="new-chat-btn">
-          <Plus size={16} />
-          New chat
-        </button>
-
-        {/* Conversations list */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="pb-2">
-            {sortedConversations.length === 0 ? (
-              <div className="text-center text-sm mt-8 px-4 text-text-muted">
-                Your transformation journey begins with your first conversation
-              </div>
-            ) : (
-              sortedConversations.map((conv) => (
-                <div
-                  key={conv.id}
-                  onClick={() => {
-                    setActiveConversation(conv);
-                    setSidebarOpen(false);
-                  }}
-                  className={`conversation-item group ${activeConversation?.id === conv.id ? 'active' : ''}`}
-                >
-                  <MessageSquare size={16} className="flex-shrink-0" />
-                  <span className="flex-1 truncate">{conv.title}</span>
-                  <button
-                    onClick={(e) => deleteConversation(conv.id, e)}
-                    className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-celeste-dark-active transition-all"
-                    aria-label="Delete conversation"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Bottom section */}
-        <div className="border-t border-border">
-          {/* Theme toggle */}
-          <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-text-secondary hover:bg-background border border-border rounded-md shadow-sm hover:bg-glass-hover transition-colors"
-          >
-            {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
-            <span className="flex-1 text-left">{isDarkMode ? 'Light mode' : 'Dark mode'}</span>
-          </button>
-          
-          {/* User section */}
-          <button
-            onClick={() => setShowProfilePanel(true)}
-            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-text-secondary hover:bg-background border border-border rounded-md shadow-sm hover:bg-glass-hover transition-colors"
-          >
-            <Settings size={16} />
-            <span className="flex-1 text-left">Profile & Data</span>
-          </button>
-          
-          <button
-            onClick={onLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-text-secondary hover:bg-background border border-border rounded-md shadow-sm hover:bg-glass-hover transition-colors"
-          >
-            <User size={16} />
-            <span className="flex-1 text-left truncate">{user.email}</span>
-            <LogOut size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* Sidebar overlay for mobile */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-
-      {/* Mobile menu toggle */}
-      <button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="sidebar-toggle fixed top-4 left-4 z-50 p-2 rounded-md bg-background border border-border rounded-md shadow-sm hover:bg-background border border-border rounded-md shadow-sm hover:bg-glass-hover md:hidden"
-        aria-label="Toggle menu"
-      >
-        {sidebarOpen ? <X size={24} className="text-text-primary" /> : <Menu size={24} className="text-text-primary" />}
-      </button>
+    <div style={{ display: 'flex', height: '100vh', backgroundColor: DESIGN_TOKENS.colors.background }}>
+      {/* Clean Sidebar */}
+      <CleanSidebar
+        user={user}
+        conversations={sortedConversations}
+        activeConversation={activeConversation}
+        onNewConversation={createNewConversation}
+        onSelectConversation={(conv) => {
+          setActiveConversation(conv);
+          setSidebarOpen(false);
+        }}
+        onDeleteConversation={(convId) => deleteConversation(convId)}
+        onProfileClick={() => setShowProfilePanel(true)}
+        onLogout={onLogout}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        isDarkMode={isDarkMode}
+        setIsDarkMode={setIsDarkMode}
+      />
 
       {/* Main chat area */}
-      <div className="chat-main">
-        {/* Header with token counter and user info */}
-        <div className="border-b border-border p-4">
-          <div className="max-w-4xl mx-auto flex items-center justify-between">
-            {/* Token display */}
-            <div className="flex items-center gap-4">
-              <div className="md:hidden">
-                <h1 className="text-xl font-semibold text-text-primary">
-                  Celeste<span className="bg-gradient-to-r from-blue-500 to-blue-600 bg-clip-text text-transparent">OS</span>
-                </h1>
-              </div>
-              <div className="token-display hidden md:flex items-center gap-3">
-                <span className="text-sm font-medium text-text-secondary">
-                  {tokensRemaining.toLocaleString()} tokens today
-                </span>
-                <div className="w-24 h-2 rounded-full overflow-hidden bg-background border border-border rounded-md shadow-sm hover:bg-glass-hover">
-                  <div 
-                    className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300"
-                    style={{ width: `${Math.max(0, (tokensRemaining / 50000) * 100)}%` }}
-                  />
-                </div>
-                {cacheLoading && (
-                  <div className="text-xs flex items-center gap-1 text-text-muted">
-                    <div className="w-3 h-3 border border-celeste-brand-primary border-t-transparent rounded-full animate-spin"></div>
-                    Loading...
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            {/* User info and Ask Alex link */}
-            <div className="flex items-center gap-4">
-              {/* Ask Alex FAQ Link */}
-              <button
-                onClick={onAskAlex}
-                className="flex items-center gap-2 px-3 py-1.5 bg-background border border-border rounded-md shadow-sm hover:bg-background border border-border rounded-md shadow-sm hover:bg-glass-hover rounded-lg transition-colors"
-                title="Ask Alex - FAQ"
-              >
-                <span className="text-sm font-medium text-accent">Ask Alex</span>
-              </button>
-              
-              <span className="hidden md:inline text-sm font-medium text-text-secondary">
-                {userProfile?.display_name || user.name || user.displayName}
-              </span>
-              {/* Cache refresh button */}
-              <button
-                onClick={async () => {
-                  setCacheLoading(true);
-                  try {
-                    await cacheService.refreshUserData(user.id);
-                    // Reload user data
-                    const profileData = await cacheService.getUserProfile(user.id, false);
-                    if (profileData?.data?.[0]) {
-                      setUserProfile(profileData.data[0]);
-                      setUserStage(profileData.data[0].stage || 'exploring');
-                      setTokensRemaining(profileData.data[0].tokens_remaining || 50000);
-                    }
-                  } catch (error) {
-                    console.error('Failed to refresh cache:', error);
-                  } finally {
-                    setCacheLoading(false);
-                  }
-                }}
-                className="p-1 transition-colors text-text-muted hover:text-text-secondary"
-                title="Refresh user data"
-              >
-                <RefreshCw size={14} className={cacheLoading ? 'animate-spin' : ''} />
-              </button>
-            </div>
+      <div style={{ 
+        flex: 1,
+        backgroundColor: DESIGN_TOKENS.colors.background,
+        display: 'flex',
+        flexDirection: 'column',
+        marginLeft: sidebarOpen || window.innerWidth >= 768 ? '280px' : '0'
+      }}>
+        {/* Clean Header */}
+        <CleanHeader 
+          user={user}
+          activeConversation={activeConversation}
+          isSending={isSending}
+          selectedModel="power"
+        />
+        
+        {/* Token status bar */}
+        <div style={{
+          padding: `${DESIGN_TOKENS.spacing.sm} ${DESIGN_TOKENS.spacing.lg}`,
+          borderBottom: `1px solid ${DESIGN_TOKENS.colors.border}`,
+          backgroundColor: DESIGN_TOKENS.colors.backgroundSecondary,
+          textAlign: 'center'
+        }}>
+          <div style={{
+            fontSize: DESIGN_TOKENS.typography.sizes.caption,
+            color: DESIGN_TOKENS.colors.text.secondary,
+            fontFamily: DESIGN_TOKENS.typography.family
+          }}>
+            CelesteOS transforms patterns into profits • {tokensRemaining.toLocaleString()} tokens remaining
           </div>
         </div>
 
-        {/* Messages container */}
-        <div className="messages-container">
-          {!activeConversation || activeConversation.messages?.length === 0 ? (
+        {/* Clean Messages */}
+        <CleanMessages
+          messages={activeConversation?.messages || []}
+          user={user}
+          isGenerating={isGenerating}
+          onCopyMessage={handleCopyMessage}
+          onEditMessage={handleEditMessage}
+          onRegenerateMessage={handleRegenerateMessage}
+          messagesEndRef={messagesEndRef}
+        />
+        
+        {(!activeConversation || activeConversation.messages?.length === 0) && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%',
+            textAlign: 'center',
+            padding: DESIGN_TOKENS.spacing.xl
+          }}>
             <EnhancedEmptyState 
               onPromptSelect={(prompt) => {
                 setMessage(prompt);
                 setTimeout(() => handleSendMessage(), 100);
               }}
-              isDarkMode={isDarkMode}
+              isDarkMode={false}
             />
-          ) : (
-            <div className="pb-32">
-              {activeConversation.messages.map((msg, index) => {
-                const isLastAiMessage = !msg.isUser && 
-                  index === activeConversation.messages.length - 1;
-                
-                return (
-                  <div key={msg.id}>
-                    <div className={`message-wrapper ${msg.isUser ? 'user' : 'assistant'}`}>
-                      <div className="message-content">
-                        {/* Avatar */}
-                        <div className={`message-avatar ${msg.isUser ? 'user' : 'assistant'}`}>
-                          {msg.isUser ? (user.name?.[0]?.toUpperCase() || user.displayName?.[0]?.toUpperCase() || 'U') : 'C'}
-                        </div>
-                        
-                        {/* Message text */}
-                        <div className="message-text">
-                          {msg.isThinking ? (
-                            <TypingIndicator />
-                          ) : (
-                            <>
-                              <div className={`${msg.category ? `category-${msg.category}` : ''} ${msg.isStreaming ? 'message-streaming' : ''}`}>
-                                {msg.isUser ? (
-                                  <div className="message-bubble user">
-                                    {msg.text}
-                                  </div>
-                                ) : (
-                                  <div className="markdown-content">
-                                    <ReactMarkdown
-                                      components={{
-                                        p: ({children}) => <p className="mb-4 last:mb-0">{children}</p>,
-                                        h1: ({children}) => <h1 className="text-chat-2xl font-semibold mb-4 mt-6 first:mt-0 pb-2 border-b border-border">{children}</h1>,
-                                        h2: ({children}) => <h2 className="text-chat-xl font-semibold mb-3 mt-5 first:mt-0">{children}</h2>,
-                                        h3: ({children}) => <h3 className="text-chat-lg font-semibold mb-2 mt-4 first:mt-0">{children}</h3>,
-                                        ul: ({children}) => <ul className="list-disc pl-6 mb-4 space-y-2">{children}</ul>,
-                                        ol: ({children}) => <ol className="list-decimal pl-6 mb-4 space-y-2">{children}</ol>,
-                                        li: ({children}) => <li className="leading-relaxed">{children}</li>,
-                                        strong: ({children}) => <strong className="font-semibold text-text-primary">{children}</strong>,
-                                        em: ({children}) => <em className="italic">{children}</em>,
-                                        code: ({inline, children}) => 
-                                          inline ? (
-                                            <code className="px-1.5 py-0.5 bg-input-bg border border-input-border rounded-sm text-text-primary rounded text-sm font-mono">{children}</code>
-                                          ) : (
-                                            <code className="block">{children}</code>
-                                          ),
-                                        pre: ({children}) => (
-                                          <pre className="bg-background border border-border rounded-md shadow-sm border border-border rounded-lg p-4 mb-4 overflow-x-auto">
-                                            {children}
-                                          </pre>
-                                        ),
-                                        blockquote: ({children}) => (
-                                          <blockquote className="border-l-3 border-celeste-brand-primary pl-4 my-4 italic text-text-muted">
-                                            {children}
-                                          </blockquote>
-                                        ),
-                                        hr: () => <hr className="my-6 border-border" />,
-                                        a: ({href, children}) => (
-                                          <a href={href} className="text-accent hover:text-celeste-brand-hover underline" target="_blank" rel="noopener noreferrer">
-                                            {children}
-                                          </a>
-                                        ),
-                                      }}
-                                    >
-                                      {msg.text}
-                                    </ReactMarkdown>
-                                  </div>
-                                )}
-                              </div>
-                              
-                              {/* Display Enhanced Solution Cards for yacht AI responses */}
-                              {!msg.isUser && !msg.isThinking && msg.solutions && msg.solutions.length > 0 && (
-                                <div style={{ marginTop: '16px' }}>
-                                  <div style={{ 
-                                    fontSize: '16px', 
-                                    fontWeight: '600', 
-                                    marginBottom: '16px',
-                                    color: isDarkMode ? '#f6f7fb' : '#1f2937',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px'
-                                  }}>
-                                    <span style={{
-                                      display: 'inline-flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      width: '24px',
-                                      height: '24px',
-                                      borderRadius: '50%',
-                                      background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                                      fontSize: '14px'
-                                    }}>
-                                      {msg.solutions.length}
-                                    </span>
-                                    Solutions Found
-                                  </div>
-                                  {msg.solutions.map((solution, idx) => (
-                                    <SolutionCard 
-                                      key={solution.id || idx} 
-                                      solution={solution}
-                                      index={idx}
-                                    />
-                                  ))}
-                                </div>
-                              )}
-                              
-                              {/* Display ConversationCard for AI messages with structured response data */}
-                              {!msg.isUser && !msg.isThinking && 
-                               (msg.items || msg.sources || msg.confidence) && (
-                                <div style={{ marginTop: '24px' }}>
-                                  <ConversationCard 
-                                    response={{
-                                      answer: msg.text,
-                                      items: msg.items || [],
-                                      sources: msg.sources || [],
-                                      metadata: {
-                                        confidence: msg.confidence
-                                      },
-                                      metrics: {
-                                        processing_time_ms: msg.processingTime
-                                      }
-                                    }}
-                                    index={0}
-                                    isDarkMode={isDarkMode}
-                                  />
-                                </div>
-                              )}
-                              
-                              {/* Display additional response metadata for AI messages */}
-                              {!msg.isUser && !msg.isThinking && 
-                               !(msg.items || msg.sources || msg.confidence) && (
-                                <>
-                                  {/* Suggested items/actions */}
-                                  {msg.items && msg.items.length > 0 && (
-                                    <div className="mt-3 space-y-2">
-                                      <div className="text-xs text-text-muted mb-1">Suggestions:</div>
-                                      <div className="flex flex-wrap gap-2">
-                                        {msg.items.map((item, idx) => (
-                                          <button
-                                            key={idx}
-                                            onClick={() => {
-                                              setMessage(item);
-                                              textareaRef.current?.focus();
-                                            }}
-                                            className="px-3 py-1.5 text-sm bg-input-bg border border-input-border rounded-sm hover:bg-background border border-border rounded-md shadow-sm hover:bg-glass-hover rounded-lg transition-colors text-text-secondary hover:text-text-primary"
-                                          >
-                                            {item}
-                                          </button>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-                                  
-                                  {/* Sources and references */}
-                                  {((msg.sources && msg.sources.length > 0) || (msg.references && msg.references.length > 0)) && (
-                                    <div className="mt-3 text-xs text-text-muted">
-                                      {msg.sources && msg.sources.length > 0 && (
-                                        <div className="mb-1">
-                                          <span className="font-medium">Sources:</span> {msg.sources.join(', ')}
-                                        </div>
-                                      )}
-                                      {msg.references && msg.references.length > 0 && (
-                                        <div>
-                                          <span className="font-medium">References:</span>
-                                          {msg.references.map((ref, idx) => (
-                                            <span key={idx}> [{idx + 1}] {ref}</span>
-                                          ))}
-                                        </div>
-                                      )}
-                                    </div>
-                                  )}
-                                  
-                                  {/* Response metadata */}
-                                  {(msg.intentType || msg.searchStrategy || msg.processingTime) && (
-                                    <div className="mt-2 flex flex-wrap gap-3 text-xs text-text-muted">
-                                      {msg.intentType && (
-                                        <span className="flex items-center gap-1">
-                                          <span className="w-1.5 h-1.5 bg-accent rounded-full"></span>
-                                          Intent: {msg.intentType}
-                                        </span>
-                                      )}
-                                      {msg.searchStrategy && (
-                                        <span className="flex items-center gap-1">
-                                          <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                                          Strategy: {msg.searchStrategy}
-                                        </span>
-                                      )}
-                                      {msg.confidence && (
-                                        <span className="flex items-center gap-1">
-                                          <span className="w-1.5 h-1.5 bg-celeste-system-info rounded-full"></span>
-                                          Confidence: {(msg.confidence * 100).toFixed(0)}%
-                                        </span>
-                                      )}
-                                      {msg.processingTime && (
-                                        <span className="flex items-center gap-1">
-                                          <span className="w-1.5 h-1.5 bg-celeste-text-muted rounded-full"></span>
-                                          {msg.processingTime}ms
-                                        </span>
-                                      )}
-                                    </div>
-                                  )}
-                                </>
-                              )}
-                              
-                              {/* Message actions */}
-                              {!msg.isThinking && !msg.isStreaming && (
-                                <MessageActions
-                                  message={msg}
-                                  onCopy={handleCopyMessage}
-                                  onEdit={handleEditMessage}
-                                  onRegenerate={handleRegenerateMessage}
-                                  isLastAiMessage={isLastAiMessage}
-                                />
-                              )}
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Add separator after each message group */}
-                    {index < activeConversation.messages.length - 1 && 
-                     activeConversation.messages[index + 1].isUser !== msg.isUser && (
-                      <hr className="message-separator" />
-                    )}
-                  </div>
-                );
-              })}
-              <div ref={messagesEndRef} />
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Error messages */}
         {error && (
-          <div className="mx-4 mb-2">
-            <div className="max-w-4xl mx-auto">
+          <div style={{ 
+            padding: DESIGN_TOKENS.spacing.md,
+            margin: DESIGN_TOKENS.spacing.md,
+            backgroundColor: DESIGN_TOKENS.colors.error,
+            color: '#ffffff',
+            borderRadius: DESIGN_TOKENS.radius.md,
+            border: `1px solid ${DESIGN_TOKENS.colors.border}`
+          }}>
+            <div style={{ maxWidth: '760px', margin: '0 auto' }}>
               <ErrorMessage 
                 error={error}
                 onRetry={() => {
@@ -1739,91 +1413,70 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
 
         {/* Stop generation button */}
         {isGenerating && (
-          <div className="mx-4 mb-2">
-            <div className="max-w-4xl mx-auto">
-              <button
-                onClick={stopGeneration}
-                className="flex items-center gap-2 px-4 py-2 bg-celeste-system-error text-white rounded-lg hover:bg-celeste-system-error/90 transition-colors"
-              >
-                <StopCircle size={16} />
-                Stop generating
-              </button>
-            </div>
+          <div style={{
+            padding: DESIGN_TOKENS.spacing.md,
+            textAlign: 'center'
+          }}>
+            <button
+              onClick={stopGeneration}
+              style={{
+                ...DESIGN_TOKENS.createStyles?.button?.primary || {},
+                backgroundColor: DESIGN_TOKENS.colors.error,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: DESIGN_TOKENS.spacing.sm
+              }}
+            >
+              <StopCircle size={16} />
+              Stop generating
+            </button>
           </div>
         )}
 
-        {/* Input area */}
-        <div className="chat-input-container input-container">
-          <div className="input-wrapper">
-            <form 
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSendMessage();
+        {/* Clean Input area - Using UPDATE UX template */}
+        <CleanChatInput
+          onSendMessage={handleSendMessage}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          isSending={isSending}
+          placeholder={
+            editingMessage 
+              ? "Edit your message..." 
+              : activeConversation 
+              ? "Send a message..." 
+              : "Start your transformation..."
+          }
+        />
+            
+        {editingMessage && (
+          <div style={{
+            marginTop: DESIGN_TOKENS.spacing.sm,
+            display: 'flex',
+            alignItems: 'center',
+            gap: DESIGN_TOKENS.spacing.sm,
+            fontSize: DESIGN_TOKENS.typography.sizes.body,
+            color: DESIGN_TOKENS.colors.text.muted,
+            padding: `0 ${DESIGN_TOKENS.spacing.lg}`
+          }}>
+            <Edit3 size={14} />
+            <span>Editing message</span>
+            <button
+              onClick={() => {
+                setEditingMessage(null);
+                setMessage('');
               }}
-              className="input-form"
+              style={{
+                color: DESIGN_TOKENS.colors.accent,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                textDecoration: 'underline'
+              }}
             >
-              <textarea
-                ref={textareaRef}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    if (editingMessage) {
-                      // Handle edit submission
-                      setEditingMessage(null);
-                      handleSendMessage();
-                    } else {
-                      handleSendMessage();
-                    }
-                  }
-                }}
-                placeholder={
-                  editingMessage 
-                    ? "Edit your message..." 
-                    : activeConversation 
-                    ? "Send a message..." 
-                    : "Start your transformation..."
-                }
-                className="chat-input"
-                rows={1}
-                disabled={isSending}
-                onInput={handleTextareaResize}
-              />
-              <button
-                type="submit"
-                disabled={!message.trim() || isSending}
-                className="send-button"
-              >
-                {isSending ? (
-                  <div className="loading-spinner" />
-                ) : (
-                  <Send size={16} />
-                )}
-              </button>
-            </form>
-            
-            {editingMessage && (
-              <div className="mt-2 flex items-center gap-2 text-sm text-text-muted">
-                <Edit3 size={14} />
-                <span>Editing message</span>
-                <button
-                  onClick={() => {
-                    setEditingMessage(null);
-                    setMessage('');
-                  }}
-                  className="text-accent hover:text-celeste-brand-hover"
-                >
-                  Cancel
-                </button>
-              </div>
-            )}
-            
-            <div className="token-counter">
-              CelesteOS transforms patterns into profits • {tokensRemaining.toLocaleString()} tokens remaining
-            </div>
+              Cancel
+            </button>
           </div>
-        </div>
+        )}
       </div>
       
       {/* User Profile Panel */}
@@ -1834,7 +1487,7 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
       />
       
       {/* Debug Panel for Webhook Debugging */}
-      <DebugPanel isDarkMode={isDarkMode} />
+      <DebugPanel isDarkMode={false} />
     </div>
   );
 };
