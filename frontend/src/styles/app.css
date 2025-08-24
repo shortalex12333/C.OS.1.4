@@ -79,25 +79,35 @@
   --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.4);
 }
 
-/* Light Mode Variables */
+/* Light Mode Variables - Static Site Glassmorphism Theme */
 [data-theme="light"] {
-  --bg-primary: #FFFFFF;
-  --bg-secondary: #F7F7F8;
-  --bg-tertiary: #E5E5E5;
-  --bg-hover: #E5E5E5;
-  --bg-active: #D5D5D5;
+  /* Glassmorphism backgrounds */
+  --bg-primary: rgba(255, 255, 255, 0.1);
+  --bg-secondary: rgba(255, 255, 255, 0.05);
+  --bg-tertiary: rgba(255, 255, 255, 0.15);
+  --bg-hover: rgba(255, 255, 255, 0.2);
+  --bg-active: rgba(255, 255, 255, 0.25);
   
-  --border-primary: #E5E5E5;
-  --border-secondary: #D5D5D5;
+  /* Glass borders */
+  --border-primary: rgba(255, 255, 255, 0.2);
+  --border-secondary: rgba(255, 255, 255, 0.3);
   
-  --text-primary: #202123;
-  --text-secondary: #374151;
-  --text-muted: #6E6E80;
-  --text-disabled: #9CA3AF;
+  /* Dark text on glass */
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-disabled: #94a3b8;
   
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  /* Professional shadows */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Light mode body - Static site gradient background */
+[data-theme="light"] body {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: var(--text-primary);
 }
 
 /* ================================================

@@ -4,7 +4,6 @@ import './styles/app.css';
 import './styles/chat.css';
 import './styles/design-tokens.css'; // Phase 2: Design tokens from static site
 import './styles/mobile-optimization.css'; // Phase 3: Mobile optimization
-import './styles/static-site-theme.css'; // Phase 3: Critical fix - Static site theme override
 import Components from './components';
 import AskAlexPage from './AskAlexPage';
 import { performanceMonitor } from './services/performanceMonitor';

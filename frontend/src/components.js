@@ -643,7 +643,7 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
   const [isSending, setIsSending] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [connectionError, setConnectionError] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false); // Default to light mode to match static site
   const [tokensRemaining, setTokensRemaining] = useState(50000);
   const [userStage, setUserStage] = useState('exploring');
   const [isGenerating, setIsGenerating] = useState(false);
