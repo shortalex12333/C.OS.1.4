@@ -7,6 +7,21 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Light Mode Glass Colors (Default)
+        'celeste-glass': {
+          'primary': 'rgba(255, 255, 255, 0.1)',
+          'secondary': 'rgba(255, 255, 255, 0.05)',
+          'tertiary': 'rgba(255, 255, 255, 0.15)',
+          'hover': 'rgba(255, 255, 255, 0.2)',
+          'active': 'rgba(255, 255, 255, 0.25)',
+        },
+        // Light Mode Text Colors
+        'celeste-text': {
+          'primary': '#1e293b',     // Dark slate
+          'secondary': '#475569',   // Slate
+          'muted': '#64748b',       // Gray slate
+          'disabled': '#94a3b8',    // Light slate
+        },
         // Dark Mode Background Colors
         'celeste-dark': {
           'primary': '#0A0A0B',     // Deep space black
@@ -15,8 +30,8 @@ module.exports = {
           'hover': '#27272A',       // Graphite hover
           'active': '#3F3F46',      // Active state
         },
-        // Dark Mode Text Colors
-        'celeste-text': {
+        // Dark Mode Text Colors (keep for dark mode)
+        'celeste-text-dark': {
           'primary': '#FAFAFA',     // Pure white
           'secondary': '#E4E4E7',   // Pearl
           'muted': '#A1A1AA',       // Ash
@@ -88,6 +103,13 @@ module.exports = {
           '30%': { transform: 'translateY(-10px)', opacity: '1' }
         }
       },
+      backdropFilter: {
+        'glass': 'blur(16px) saturate(1.5)',
+        'glass-heavy': 'blur(32px) saturate(1.8)',
+      },
+      backgroundImage: {
+        'gradient-glass': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      },
       boxShadow: {
         'dark-sm': '0 2px 4px rgba(0, 0, 0, 0.5)',
         'dark-md': '0 4px 12px rgba(0, 0, 0, 0.6)',
@@ -96,5 +118,22 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('tailwindcss/plugin')(({ addUtilities }) => {
+      addUtilities({
+        '.backdrop-blur-glass': {
+          'backdrop-filter': 'blur(16px) saturate(1.5)',
+        },
+        '.backdrop-blur-glass-heavy': {
+          'backdrop-filter': 'blur(32px) saturate(1.8)',
+        },
+        '.glass-card': {
+          'background': 'rgba(255, 255, 255, 0.1)',
+          'backdrop-filter': 'blur(16px) saturate(1.5)',
+          'border': '1px solid rgba(255, 255, 255, 0.2)',
+          'box-shadow': '0 4px 16px rgba(0, 0, 0, 0.12)',
+        },
+      })
+    })
+  ],
 }
