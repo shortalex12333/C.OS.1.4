@@ -2,14 +2,9 @@ import React, { useState, useEffect } from 'react';
 import './styles/fonts.css';
 import './styles/app.css';
 import './styles/chat.css';
-import './styles/design-tokens.css'; // Phase 2: Design tokens from static site
-import './styles/mobile-optimization.css'; // Phase 3: Mobile optimization
 import Components from './components';
 import AskAlexPage from './AskAlexPage';
 import { performanceMonitor } from './services/performanceMonitor';
-import AnimatedIntro from './pages/AnimatedIntro'; // Phase 2: Animated intro
-import AskAlex from './pages/AskAlex'; // Phase 2: New Ask Alex implementation
-import TutorialOverlay from './components/TutorialOverlay'; // Phase 3: Tutorial overlay
 
 // Error Boundary for production
 class ErrorBoundary extends React.Component {
@@ -74,25 +69,9 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [systemHealth, setSystemHealth] = useState('GOOD');
   const [currentPage, setCurrentPage] = useState('chat'); // 'chat' or 'askAlex'
-  const [showIntro, setShowIntro] = useState(false); // Phase 2: Animated intro
-  const [showAskAlex, setShowAskAlex] = useState(false); // Phase 2: Ask Alex modal
-  const [showTutorial, setShowTutorial] = useState(false); // Phase 3: Tutorial overlay
 
-  // Check for saved auth and intro state
+  // Check for saved auth
   useEffect(() => {
-    // Phase 2: Check if user has seen intro
-    const hasSeenIntro = localStorage.getItem('hasSeenIntro');
-    if (!hasSeenIntro && !user) {
-      setShowIntro(true);
-    }
-    
-    // Phase 3: Check if user has completed tutorial
-    const hasCompletedTutorial = localStorage.getItem('hasCompletedTutorial');
-    if (!hasCompletedTutorial && user) {
-      // Show tutorial after user logs in for the first time
-      setTimeout(() => setShowTutorial(true), 1000);
-    }
-    
     const savedAuth = localStorage.getItem('celesteos_auth');
     if (savedAuth) {
       try {
@@ -188,39 +167,10 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <div className="App">
-        {/* Phase 2: Animated Intro */}
-        {showIntro && (
-          <AnimatedIntro
-            isVisible={showIntro}
-            onComplete={() => {
-              setShowIntro(false);
-              localStorage.setItem('hasSeenIntro', 'true');
-            }}
-            isDarkMode={false}
-          />
-        )}
-        
-        {/* Phase 2: Ask Alex Modal */}
-        {showAskAlex && (
-          <AskAlex
-            isDarkMode={false}
-            onClose={() => setShowAskAlex(false)}
-          />
-        )}
-        
-        {/* Phase 3: Tutorial Overlay */}
-        {showTutorial && user && (
-          <TutorialOverlay
-            isVisible={showTutorial}
-            onComplete={() => setShowTutorial(false)}
-            isDarkMode={false}
-          />
-        )}
-        
-        {!showIntro && !user ? (
+      <div className="App">  
+        {!user ? (
           <Components.AuthScreen onLogin={handleLogin} />
-        ) : !showIntro && user ? (
+        ) : (
           currentPage === 'askAlex' ? (
             <AskAlexPage 
               user={user}
@@ -230,10 +180,10 @@ function App() {
             <Components.ChatInterface 
               user={user} 
               onLogout={handleLogout}
-              onAskAlex={() => setShowAskAlex(true)} // Phase 2: Use new Ask Alex
+              onAskAlex={() => setCurrentPage('askAlex')}
             />
           )
-        ) : null}
+        )}
       </div>
     </ErrorBoundary>
   );

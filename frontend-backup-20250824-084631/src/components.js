@@ -29,13 +29,9 @@ import DebugPanel from './components/DebugPanel';
 import { WEBHOOK_CONFIG, WEBHOOK_URLS } from './config/webhookConfig';
 import { SolutionCard } from './components/SolutionCard';
 import { GuidedPrompts } from './components/GuidedPrompts';
-import { EnhancedEmptyState } from './components/UIEnhancements';
-import ConversationCard from './components/ConversationCard';
-// Phase 1: Removed EnhancedSolutionCard - webhook doesn't return solutions
+import { EnhancedEmptyState, EnhancedInputArea, renderEnhancedMessage } from './components/UIEnhancements';
+import { EnhancedSolutionCard } from './components/EnhancedSolutionCard';
 import './styles/enhancements.css';
-import { logWebhookResponse } from './utils/webhookLogger'; // Phase 1: Logging
-import AnimatedIntro from './pages/AnimatedIntro'; // Phase 2: Animated intro
-import AskAlex from './pages/AskAlex'; // Phase 2: Ask Alex FAQ
 
 // API Configuration
 const API_CONFIG = {
@@ -996,9 +992,6 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
         // Handle both old maritime format and new yacht AI format
         let aiResponseText, solutions, responseSources, confidence, processingTime, metadata;
         
-        // Phase 1: Log webhook response for analysis
-        logWebhookResponse(responseData);
-        
         // Log the raw response for debugging
         console.log('🔍 Webhook Response Structure:', {
           hasResponse: !!responseData.response,
@@ -1394,7 +1387,7 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
       {/* Mobile menu toggle */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="sidebar-toggle fixed top-4 left-4 z-50 p-2 rounded-md bg-celeste-dark-secondary hover:bg-celeste-dark-hover md:hidden"
+        className="fixed top-4 left-4 z-50 p-2 rounded-md bg-celeste-dark-secondary hover:bg-celeste-dark-hover md:hidden"
         aria-label="Toggle menu"
       >
         {sidebarOpen ? <X size={24} className="text-celeste-text-primary" /> : <Menu size={24} className="text-celeste-text-primary" />}
@@ -1412,7 +1405,7 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
                   Celeste<span className="bg-gradient-to-r from-celeste-brand-primary to-celeste-brand-accent bg-clip-text text-transparent">OS</span>
                 </h1>
               </div>
-              <div className="token-display hidden md:flex items-center gap-3">
+              <div className="hidden md:flex items-center gap-3">
                 <span className="text-sm font-medium text-celeste-text-secondary">
                   {tokensRemaining.toLocaleString()} tokens today
                 </span>
@@ -1579,40 +1572,18 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
                                     Solutions Found
                                   </div>
                                   {msg.solutions.map((solution, idx) => (
-                                    <SolutionCard 
+                                    <EnhancedSolutionCard 
                                       key={solution.id || idx} 
                                       solution={solution}
-                                      index={idx}
+                                      isDarkMode={theme === 'dark'}
+                                      isMobile={window.innerWidth < 768}
                                     />
                                   ))}
                                 </div>
                               )}
                               
-                              {/* Display ConversationCard for AI messages with structured response data */}
-                              {!msg.isUser && !msg.isThinking && 
-                               (msg.items || msg.sources || msg.confidence) && (
-                                <div style={{ marginTop: '24px' }}>
-                                  <ConversationCard 
-                                    response={{
-                                      answer: msg.text,
-                                      items: msg.items || [],
-                                      sources: msg.sources || [],
-                                      metadata: {
-                                        confidence: msg.confidence
-                                      },
-                                      metrics: {
-                                        processing_time_ms: msg.processingTime
-                                      }
-                                    }}
-                                    index={0}
-                                    isDarkMode={theme === 'dark'}
-                                  />
-                                </div>
-                              )}
-                              
                               {/* Display additional response metadata for AI messages */}
-                              {!msg.isUser && !msg.isThinking && 
-                               !(msg.items || msg.sources || msg.confidence) && (
+                              {!msg.isUser && !msg.isThinking && (
                                 <>
                                   {/* Suggested items/actions */}
                                   {msg.items && msg.items.length > 0 && (
@@ -1753,7 +1724,7 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
         )}
 
         {/* Input area */}
-        <div className="chat-input-container input-container">
+        <div className="input-container">
           <div className="input-wrapper">
             <form 
               onSubmit={(e) => {

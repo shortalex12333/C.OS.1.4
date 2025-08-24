@@ -1,0 +1,371 @@
+/* Phase 3: Mobile Optimization Styles */
+
+/* Responsive breakpoints */
+:root {
+  --breakpoint-xs: 320px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+}
+
+/* Mobile-first responsive utilities */
+@media (max-width: 640px) {
+  /* Typography adjustments */
+  body {
+    font-size: 14px;
+  }
+  
+  h1 {
+    font-size: 24px !important;
+  }
+  
+  h2 {
+    font-size: 20px !important;
+  }
+  
+  h3 {
+    font-size: 18px !important;
+  }
+  
+  /* ConversationCard mobile optimization */
+  .conversation-card {
+    margin: var(--spacing-3) var(--spacing-2) !important;
+    padding: var(--spacing-4) !important;
+    border-radius: var(--radius-lg) !important;
+  }
+  
+  .conversation-card h4 {
+    font-size: 13px !important;
+  }
+  
+  .conversation-card p {
+    font-size: 14px !important;
+  }
+  
+  /* Chat interface mobile */
+  .chat-main {
+    padding: 0 !important;
+  }
+  
+  .messages-container {
+    padding: var(--spacing-3) !important;
+  }
+  
+  .message-wrapper {
+    padding: var(--spacing-3) var(--spacing-2) !important;
+    max-width: 100% !important;
+  }
+  
+  .message-content {
+    max-width: 100% !important;
+  }
+  
+  .message-text {
+    font-size: 14px !important;
+  }
+  
+  .message-avatar {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 14px !important;
+  }
+  
+  /* Empty state mobile */
+  .empty-state-container {
+    padding: var(--spacing-4) var(--spacing-3) !important;
+  }
+  
+  .empty-state-title {
+    font-size: 24px !important;
+  }
+  
+  .empty-state-subtitle {
+    font-size: 14px !important;
+  }
+  
+  .stat-card {
+    padding: var(--spacing-3) !important;
+    min-width: 80px !important;
+  }
+  
+  .stat-value {
+    font-size: 18px !important;
+  }
+  
+  .stat-label {
+    font-size: 11px !important;
+  }
+  
+  /* Guided prompts mobile */
+  .guided-prompts-container {
+    padding: 0 var(--spacing-3) !important;
+    gap: var(--spacing-2) !important;
+  }
+  
+  .guided-prompts-container button {
+    font-size: 13px !important;
+    padding: var(--spacing-2) var(--spacing-3) !important;
+  }
+  
+  /* Input area mobile */
+  .input-container {
+    padding: var(--spacing-3) !important;
+  }
+  
+  .chat-input {
+    font-size: 14px !important;
+    padding: var(--spacing-3) !important;
+  }
+  
+  .send-button {
+    width: 36px !important;
+    height: 36px !important;
+  }
+  
+  /* Tutorial overlay mobile */
+  .tutorial-card {
+    width: calc(100vw - 24px) !important;
+    max-width: none !important;
+    padding: var(--spacing-4) !important;
+  }
+  
+  .tutorial-card h3 {
+    font-size: 18px !important;
+  }
+  
+  .tutorial-card p {
+    font-size: 14px !important;
+  }
+  
+  /* Ask Alex mobile */
+  .ask-alex-container {
+    padding: var(--spacing-4) !important;
+  }
+  
+  .ask-alex-header {
+    padding: var(--spacing-3) !important;
+  }
+  
+  .ask-alex-title {
+    font-size: 20px !important;
+  }
+  
+  .ask-alex-message {
+    font-size: 14px !important;
+    padding: var(--spacing-2) var(--spacing-3) !important;
+  }
+  
+  /* Animated intro mobile */
+  .typewriter-text {
+    font-size: 24px !important;
+    padding: 0 var(--spacing-4) !important;
+    text-align: center !important;
+  }
+  
+  /* Sidebar mobile - full screen */
+  .sidebar {
+    width: 100% !important;
+    max-width: none !important;
+  }
+  
+  /* Token display mobile */
+  .token-display {
+    display: none !important; /* Hide on mobile to save space */
+  }
+  
+  /* Mobile-specific token display */
+  .mobile-token-display {
+    display: flex !important;
+    font-size: 12px !important;
+    padding: var(--spacing-2) !important;
+    background: var(--color-bg-tertiary);
+    border-radius: var(--radius-md);
+  }
+}
+
+/* Tablet optimization (641px - 1024px) */
+@media (min-width: 641px) and (max-width: 1024px) {
+  /* ConversationCard tablet */
+  .conversation-card {
+    max-width: 600px !important;
+    margin: var(--spacing-4) auto !important;
+  }
+  
+  /* Chat interface tablet */
+  .messages-container {
+    padding: var(--spacing-5) var(--spacing-4) !important;
+  }
+  
+  .message-wrapper {
+    max-width: 700px !important;
+  }
+  
+  /* Sidebar tablet */
+  .sidebar {
+    width: 300px !important;
+  }
+  
+  /* Empty state tablet */
+  .stats-container {
+    gap: var(--spacing-4) !important;
+  }
+  
+  /* Guided prompts tablet */
+  .guided-prompts-container {
+    max-width: 600px !important;
+    margin: 0 auto !important;
+  }
+}
+
+/* Touch-friendly adjustments */
+@media (hover: none) and (pointer: coarse) {
+  /* Increase touch targets */
+  button {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+  
+  .prompt-chip {
+    min-height: 40px !important;
+    padding: var(--spacing-3) var(--spacing-4) !important;
+  }
+  
+  /* Remove hover effects on touch devices */
+  .card:hover {
+    box-shadow: var(--shadow-card) !important;
+    transform: none !important;
+  }
+  
+  .btn-primary:hover {
+    transform: none !important;
+  }
+  
+  /* Add active states for touch */
+  button:active {
+    transform: scale(0.98) !important;
+    opacity: 0.9 !important;
+  }
+  
+  .prompt-chip:active {
+    transform: scale(0.98) !important;
+  }
+}
+
+/* Landscape mobile optimization */
+@media (max-width: 896px) and (orientation: landscape) {
+  /* Reduce vertical spacing in landscape */
+  .empty-state-container {
+    padding: var(--spacing-3) !important;
+  }
+  
+  .messages-container {
+    padding: var(--spacing-2) !important;
+  }
+  
+  .input-container {
+    padding: var(--spacing-2) !important;
+  }
+  
+  /* Smaller headers in landscape */
+  h1 {
+    font-size: 20px !important;
+  }
+  
+  h2 {
+    font-size: 18px !important;
+  }
+  
+  /* Compact stats in landscape */
+  .stats-container {
+    flex-direction: row !important;
+    justify-content: center !important;
+  }
+  
+  .stat-card {
+    min-width: 70px !important;
+    padding: var(--spacing-2) !important;
+  }
+}
+
+/* High-resolution displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* Sharper borders for retina */
+  .card {
+    border-width: 0.5px !important;
+  }
+  
+  .conversation-card {
+    border-width: 0.5px !important;
+  }
+  
+  /* Crisper shadows */
+  .shadow-card {
+    box-shadow: 
+      0 2px 8px rgba(0, 0, 0, 0.06),
+      0 1px 1.5px rgba(0, 0, 0, 0.03),
+      inset 0 0.5px 0 rgba(255, 255, 255, 0.2) !important;
+  }
+}
+
+/* Animation performance optimization for mobile */
+@media (max-width: 768px) {
+  /* Reduce animation complexity on mobile */
+  * {
+    animation-duration: 0.2s !important;
+  }
+  
+  /* Disable parallax and complex animations */
+  .parallax {
+    transform: none !important;
+  }
+  
+  /* Use GPU-accelerated transforms only */
+  .transition-base {
+    transition: transform 0.2s, opacity 0.2s !important;
+  }
+}
+
+/* Accessibility improvements for mobile */
+@media (max-width: 640px) {
+  /* Larger tap targets */
+  a, button, input, textarea, select {
+    min-height: 44px;
+  }
+  
+  /* Better focus indicators */
+  *:focus {
+    outline: 2px solid var(--color-primary) !important;
+    outline-offset: 2px !important;
+  }
+  
+  /* Improved contrast for small text */
+  .text-muted {
+    color: var(--color-text-secondary) !important;
+  }
+}
+
+/* Print styles (bonus) */
+@media print {
+  /* Hide unnecessary elements */
+  .sidebar,
+  .sidebar-toggle,
+  .input-container,
+  .tutorial-overlay,
+  .ask-alex-button,
+  button {
+    display: none !important;
+  }
+  
+  /* Optimize for print */
+  .messages-container {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .message-wrapper {
+    page-break-inside: avoid;
+    border: 1px solid #ddd !important;
+    margin: 10px 0 !important;
+  }
+}

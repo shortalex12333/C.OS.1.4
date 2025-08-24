@@ -1,0 +1,77 @@
+/* ================================================
+   FONTS.CSS - Using System Fonts Fallback
+   ================================================ */
+
+/* 
+   Eloquia fonts commented out until font files are available.
+   Using Inter + system fonts as fallback.
+   
+   To enable Eloquia fonts later:
+   1. Add font files to /public/fonts/
+   2. Uncomment the @font-face rules below
+*/
+
+/* 
+@font-face {
+  font-family: 'Eloquia';
+  src: url('/fonts/Eloquia-Thin.woff2') format('woff2'),
+       url('/fonts/Eloquia-Thin.woff') format('woff');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Eloquia';
+  src: url('/fonts/Eloquia-ExtraLight.woff2') format('woff2'),
+       url('/fonts/Eloquia-ExtraLight.woff') format('woff');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Eloquia';
+  src: url('/fonts/Eloquia-Light.woff2') format('woff2'),
+       url('/fonts/Eloquia-Light.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Eloquia';
+  src: url('/fonts/Eloquia-Regular.woff2') format('woff2'),
+       url('/fonts/Eloquia-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Eloquia';
+  src: url('/fonts/Eloquia-Medium.woff2') format('woff2'),
+       url('/fonts/Eloquia-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Eloquia';
+  src: url('/fonts/Eloquia-SemiBold.woff2') format('woff2'),
+       url('/fonts/Eloquia-SemiBold.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Eloquia';
+  src: url('/fonts/Eloquia-Bold.woff2') format('woff2'),
+       url('/fonts/Eloquia-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+*/
