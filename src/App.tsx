@@ -4,6 +4,9 @@ import { ChatArea } from './components/ChatArea';
 import { InputArea } from './components/InputArea';
 import { Settings } from './components/Settings';
 import { Login } from './components/Login';
+import { AnimatedIntro } from './components/AnimatedIntro';
+import { TutorialOverlay } from './components/TutorialOverlay';
+import { AskAlex } from './components/AskAlex';
 import { DesktopMobileComparison } from './components/DesktopMobileComparison';
 import { BackgroundSystem } from './components/BackgroundSystem';
 import { MobileHeader } from './components/MobileHeader';
@@ -24,6 +27,9 @@ export default function App() {
   const [appearance, setAppearance] = useState('light');
   const [currentSearchType, setCurrentSearchType] = useState<SearchType>('yacht');
   const [selectedModel, setSelectedModel] = useState<string>('air');
+  const [showIntro, setShowIntro] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [showAskAlex, setShowAskAlex] = useState(false);
   const [chatMessages, setChatMessages] = useState<Array<{
     id: string;
     content: string;
@@ -35,12 +41,26 @@ export default function App() {
   // Check for existing session on app start
   useEffect(() => {
     const checkSession = () => {
+      // Check if user has seen intro
+      const hasSeenIntro = localStorage.getItem('hasSeenIntro');
+      if (!hasSeenIntro) {
+        setShowIntro(true);
+        return;
+      }
+      
       if (completeWebhookService.isLoggedIn()) {
         const user = completeWebhookService.getCurrentUser();
         if (user) {
           setDisplayName(user.userName || user.email);
           setIsLoggedIn(true);
           console.log('✅ Restored session for:', user.userName);
+          
+          // Check if user has completed tutorial
+          const hasCompletedTutorial = localStorage.getItem('hasCompletedTutorial');
+          if (!hasCompletedTutorial) {
+            // Show tutorial after user logs in for the first time
+            setTimeout(() => setShowTutorial(true), 1000);
+          }
         }
       }
     };
@@ -88,6 +108,13 @@ export default function App() {
         setDisplayName(response.data.userName || username);
         setIsLoggedIn(true);
         console.log('✅ Login successful:', response.data);
+        
+        // Check if user has completed tutorial
+        const hasCompletedTutorial = localStorage.getItem('hasCompletedTutorial');
+        if (!hasCompletedTutorial) {
+          // Show tutorial after user logs in for the first time
+          setTimeout(() => setShowTutorial(true), 1500);
+        }
       } else {
         console.error('❌ Login failed:', response.error || response.message);
         alert('Login failed: ' + (response.error || response.message || 'Unknown error'));
@@ -209,12 +236,42 @@ export default function App() {
         isLoggedIn={isLoggedIn}
       />
 
-      {/* Show Login Page if not logged in */}
-      {!isLoggedIn ? (
+      {/* Animated Intro */}
+      {showIntro && (
+        <AnimatedIntro
+          isVisible={showIntro}
+          onComplete={() => {
+            setShowIntro(false);
+            localStorage.setItem('hasSeenIntro', 'true');
+          }}
+          isDarkMode={isDarkMode}
+        />
+      )}
+
+      {/* Tutorial Overlay */}
+      {showTutorial && isLoggedIn && (
+        <TutorialOverlay
+          isVisible={showTutorial}
+          onComplete={() => setShowTutorial(false)}
+          isDarkMode={isDarkMode}
+        />
+      )}
+
+      {/* Ask Alex Modal */}
+      {showAskAlex && (
+        <AskAlex
+          isDarkMode={isDarkMode}
+          onClose={() => setShowAskAlex(false)}
+          isMobile={isMobile}
+        />
+      )}
+
+      {/* Show Login Page if not logged in and intro is complete */}
+      {!showIntro && !isLoggedIn ? (
         <div className="relative z-10 h-full w-full">
           <Login onLogin={handleLogin} isMobile={isMobile} />
         </div>
-      ) : (
+      ) : !showIntro && isLoggedIn ? (
         <>
           {/* Settings Modal */}
           <Settings 
@@ -253,6 +310,7 @@ export default function App() {
                 <Sidebar 
                   onNewChat={handleNewChat} 
                   onOpenSettings={handleOpenSettings}
+                  onAskAlex={() => setShowAskAlex(true)}
                   isMobile={isMobile}
                   isCollapsed={isSidebarCollapsed}
                   onToggleCollapse={toggleSidebarCollapse}
@@ -307,7 +365,7 @@ export default function App() {
 
 
         </>
-      )}
+      ) : null}
     </div>
   );
 }

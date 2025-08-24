@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, MessageSquare, Settings, User, ChevronLeft, ChevronRight, Folder, ChevronDown, ChevronRight as ChevronRightSmall, MoreHorizontal, Ship, Mail, Search, Edit3, Check, X } from 'lucide-react';
+import { Plus, MessageSquare, Settings, User, ChevronLeft, ChevronRight, Folder, ChevronDown, ChevronRight as ChevronRightSmall, MoreHorizontal, Ship, Mail, Search, Edit3, Check, X, HelpCircle } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { BrainLogo } from './BrainLogo';
@@ -7,6 +7,7 @@ import { BrainLogo } from './BrainLogo';
 interface SidebarProps {
   onNewChat: () => void;
   onOpenSettings: () => void;
+  onAskAlex?: () => void;
   isMobile?: boolean;
   isCollapsed?: boolean;
   onToggleCollapse: () => void;
@@ -20,7 +21,8 @@ interface SidebarProps {
 
 export function Sidebar({ 
   onNewChat, 
-  onOpenSettings, 
+  onOpenSettings,
+  onAskAlex,
   isMobile = false, 
   isCollapsed = false, 
   onToggleCollapse,
@@ -493,6 +495,20 @@ export function Sidebar({
               </span>
             </div>
 
+            {/* Ask Alex Button */}
+            {onAskAlex && (
+              <button
+                onClick={() => {
+                  onAskAlex();
+                  if (isMobile) onMobileMenuClose();
+                }}
+                className="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all duration-200 ask_alex_button"
+                title="Ask Alex"
+              >
+                <HelpCircle className="w-4 h-4" />
+              </button>
+            )}
+            
             {/* Settings Button */}
             <button
               onClick={() => {
@@ -526,6 +542,20 @@ export function Sidebar({
                   .toUpperCase()}
               </span>
             </div>
+            
+            {/* Ask Alex Button Collapsed */}
+            {onAskAlex && (
+              <button
+                onClick={() => {
+                  onAskAlex();
+                  if (isMobile) onMobileMenuClose();
+                }}
+                className="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all duration-200 ask_alex_button_collapsed"
+                title="Ask Alex"
+              >
+                <HelpCircle className="w-4 h-4" />
+              </button>
+            )}
             
             <button
               onClick={() => {
