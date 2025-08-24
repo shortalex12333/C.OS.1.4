@@ -1481,7 +1481,7 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
                 setMessage(prompt);
                 setTimeout(() => handleSendMessage(), 100);
               }}
-              isDarkMode={theme === 'dark'}
+              isDarkMode={isDarkMode}
             />
           ) : (
             <div className="pb-32">
@@ -1559,7 +1559,7 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
                                     fontSize: '16px', 
                                     fontWeight: '600', 
                                     marginBottom: '16px',
-                                    color: theme === 'dark' ? '#f6f7fb' : '#1f2937',
+                                    color: isDarkMode ? '#f6f7fb' : '#1f2937',
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: '8px'
@@ -1605,7 +1605,7 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
                                       }
                                     }}
                                     index={0}
-                                    isDarkMode={theme === 'dark'}
+                                    isDarkMode={isDarkMode}
                                   />
                                 </div>
                               )}
