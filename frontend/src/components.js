@@ -37,6 +37,10 @@ import { CleanChatInput } from './components/CleanChatInput';
 import { CleanHeader } from './components/CleanHeader';
 import { CleanSidebar } from './components/CleanSidebar';
 import { CleanMessages } from './components/CleanMessages';
+import { UpdateUXHeader } from './components/UpdateUXHeader';
+import { UpdateUXWelcome } from './components/UpdateUXWelcome';
+import { UpdateUXChatArea } from './components/UpdateUXChatArea';
+import { UpdateUXInput } from './components/UpdateUXInput';
 import { DESIGN_TOKENS } from './styles/design-system';
 import { logWebhookResponse } from './utils/webhookLogger'; // Phase 1: Logging
 import AnimatedIntro from './pages/AnimatedIntro'; // Phase 2: Animated intro
@@ -1328,13 +1332,34 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
         flexDirection: 'column',
         marginLeft: sidebarOpen || window.innerWidth >= 768 ? '280px' : '0'
       }}>
-        {/* Clean Header */}
-        <CleanHeader 
-          user={user}
-          activeConversation={activeConversation}
-          isSending={isSending}
-          selectedModel="power"
-        />
+        {/* UPDATE UX Interface - Authentic Template */}
+        {(!activeConversation || activeConversation.messages?.length === 0) ? (
+          // Welcome State - Using UPDATE UX Template
+          <UpdateUXWelcome
+            isMobile={window.innerWidth < 768}
+            displayName={userProfile?.display_name || user.name || user.displayName}
+            isDarkMode={false}
+            selectedModel="power"
+            onModelChange={(modelId) => {
+              console.log('Model changed to:', modelId);
+              // Handle model change if needed
+            }}
+          />
+        ) : (
+          // Chat State - Using UPDATE UX Template  
+          <UpdateUXChatArea
+            messages={activeConversation.messages || []}
+            user={user}
+            isMobile={window.innerWidth < 768}
+            isDarkMode={false}
+            selectedModel="power"
+            onModelChange={(modelId) => {
+              console.log('Model changed to:', modelId);
+              // Handle model change if needed
+            }}
+            messagesEndRef={messagesEndRef}
+          />
+        )}
         
         {/* Token status bar */}
         <div style={{
@@ -1351,36 +1376,6 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
             CelesteOS transforms patterns into profits • {tokensRemaining.toLocaleString()} tokens remaining
           </div>
         </div>
-
-        {/* Clean Messages */}
-        <CleanMessages
-          messages={activeConversation?.messages || []}
-          user={user}
-          isGenerating={isGenerating}
-          onCopyMessage={handleCopyMessage}
-          onEditMessage={handleEditMessage}
-          onRegenerateMessage={handleRegenerateMessage}
-          messagesEndRef={messagesEndRef}
-        />
-        
-        {(!activeConversation || activeConversation.messages?.length === 0) && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: '100%',
-            textAlign: 'center',
-            padding: DESIGN_TOKENS.spacing.xl
-          }}>
-            <EnhancedEmptyState 
-              onPromptSelect={(prompt) => {
-                setMessage(prompt);
-                setTimeout(() => handleSendMessage(), 100);
-              }}
-              isDarkMode={false}
-            />
-          </div>
-        )}
 
         {/* Error messages */}
         {error && (
@@ -1433,19 +1428,18 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
           </div>
         )}
 
-        {/* Clean Input area - Using UPDATE UX template */}
-        <CleanChatInput
-          onSendMessage={handleSendMessage}
+        {/* UPDATE UX Input - Authentic Template with Search Intent */}
+        <UpdateUXInput
+          onStartChat={(msg, searchType) => {
+            setMessage(msg);
+            handleSendMessage();
+          }}
+          isMobile={window.innerWidth < 768}
+          isDarkMode={false}
+          currentSearchType="yacht"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           isSending={isSending}
-          placeholder={
-            editingMessage 
-              ? "Edit your message..." 
-              : activeConversation 
-              ? "Send a message..." 
-              : "Start your transformation..."
-          }
         />
             
         {editingMessage && (
