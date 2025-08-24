@@ -659,6 +659,8 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
   const [abortController, setAbortController] = useState(null);
   const [editingMessage, setEditingMessage] = useState(null);
   const [streamingIntervals, setStreamingIntervals] = useState(new Map()); // FIX: Added missing state
+  const [selectedSearchType, setSelectedSearchType] = useState('yacht'); // Search type state integration
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768); // Responsive mobile detection
   
   // User data from cache
   const [userProfile, setUserProfile] = useState(null);
@@ -862,6 +864,16 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
     [conversations]
   );
 
+  // Mobile responsive detection
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Mobile sidebar handling
   useEffect(() => {
     if (!sidebarOpen) return;
@@ -991,6 +1003,7 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
         message: trimmedMessage,
         chatId: currentConversation.id,
         sessionId: sessionId,
+        searchType: selectedSearchType, // Include search type for context-aware responses
         timestamp: new Date().toISOString()
       }, { maxRetries: 1, timeout: 30000, signal: controller.signal });
       
@@ -1330,13 +1343,13 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
         backgroundColor: DESIGN_TOKENS.colors.background,
         display: 'flex',
         flexDirection: 'column',
-        marginLeft: sidebarOpen || window.innerWidth >= 768 ? '280px' : '0'
+        marginLeft: sidebarOpen || !isMobile ? '280px' : '0'
       }}>
         {/* UPDATE UX Interface - Authentic Template */}
         {(!activeConversation || activeConversation.messages?.length === 0) ? (
           // Welcome State - Using UPDATE UX Template
           <UpdateUXWelcome
-            isMobile={window.innerWidth < 768}
+            isMobile={isMobile}
             displayName={userProfile?.display_name || user.name || user.displayName}
             isDarkMode={false}
             selectedModel="power"
@@ -1350,7 +1363,7 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
           <UpdateUXChatArea
             messages={activeConversation.messages || []}
             user={user}
-            isMobile={window.innerWidth < 768}
+            isMobile={isMobile}
             isDarkMode={false}
             selectedModel="power"
             onModelChange={(modelId) => {
@@ -1432,11 +1445,13 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
         <UpdateUXInput
           onStartChat={(msg, searchType) => {
             setMessage(msg);
+            setSelectedSearchType(searchType);
             handleSendMessage();
           }}
-          isMobile={window.innerWidth < 768}
+          onSearchTypeChange={(searchType) => setSelectedSearchType(searchType)}
+          isMobile={isMobile}
           isDarkMode={false}
-          currentSearchType="yacht"
+          currentSearchType={selectedSearchType}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           isSending={isSending}
