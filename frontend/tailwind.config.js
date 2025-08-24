@@ -3,135 +3,51 @@ module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
-  darkMode: 'class', // Enable class-based dark mode
   theme: {
     extend: {
       colors: {
-        // Light Mode Glass Colors (Default)
-        'celeste-glass': {
-          'primary': 'rgba(255, 255, 255, 0.1)',
-          'secondary': 'rgba(255, 255, 255, 0.05)',
-          'tertiary': 'rgba(255, 255, 255, 0.15)',
-          'hover': 'rgba(255, 255, 255, 0.2)',
-          'active': 'rgba(255, 255, 255, 0.25)',
+        // Static Site Glassmorphism Theme - ONLY THESE COLORS
+        glass: {
+          'card': 'rgba(255, 255, 255, 0.1)',
+          'hover': 'rgba(255, 255, 255, 0.15)',
+          'border': 'rgba(255, 255, 255, 0.2)',
+          'text': '#1e293b',
+          'muted': '#64748b',
         },
-        // Light Mode Text Colors
-        'celeste-text': {
-          'primary': '#1e293b',     // Dark slate
-          'secondary': '#475569',   // Slate
-          'muted': '#64748b',       // Gray slate
-          'disabled': '#94a3b8',    // Light slate
+        // Brand colors from static site
+        blue: {
+          500: '#3b82f6',
+          600: '#2563eb',
         },
-        // Dark Mode Background Colors
-        'celeste-dark': {
-          'primary': '#0A0A0B',     // Deep space black
-          'secondary': '#0F0F10',   // Void
-          'tertiary': '#18181B',    // Carbon
-          'hover': '#27272A',       // Graphite hover
-          'active': '#3F3F46',      // Active state
-        },
-        // Dark Mode Text Colors (keep for dark mode)
-        'celeste-text-dark': {
-          'primary': '#FAFAFA',     // Pure white
-          'secondary': '#E4E4E7',   // Pearl
-          'muted': '#A1A1AA',       // Ash
-          'disabled': '#71717A',    // Smoke
-        },
-        // Brand Colors
-        'celeste-brand': {
-          'primary': '#8B5CF6',     // Electric Violet
-          'hover': '#7C3AED',       // Deep Violet
-          'light': '#A78BFA',       // Soft Violet
-          'accent': '#EC4899',      // Hot Pink
-        },
-        // System Colors
-        'celeste-system': {
-          'success': '#10B981',
-          'warning': '#FBBF24',
-          'error': '#EF4444',
-          'info': '#3B82F6',
-        },
-        // Category Colors
-        'celeste-cat': {
-          'sales': '#10B981',
-          'marketing': '#8B5CF6',
-          'operations': '#3B82F6',
-          'finance': '#FBBF24',
-          'mindset': '#EC4899',
-          'strategy': '#F97316',
-        },
-      },
-      fontFamily: {
-        'eloquia': ['Eloquia', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        'mono': ['SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', 'monospace'],
-      },
-      fontSize: {
-        'chat-xs': '0.75rem',     // 12px
-        'chat-sm': '0.875rem',    // 14px
-        'chat-base': '1rem',      // 16px
-        'chat-lg': '1.125rem',    // 18px
-        'chat-xl': '1.25rem',     // 20px
-        'chat-2xl': '1.5rem',     // 24px
-        'chat-3xl': '1.875rem',   // 30px
-        'chat-4xl': '2.25rem',    // 36px
-      },
-      animation: {
-        'fade-in': 'fadeIn 0.3s ease-out',
-        'slide-in': 'slideIn 0.3s ease-out',
-        'word-appear': 'wordAppear 0.1s ease-out forwards',
-        'cursor-blink': 'cursorBlink 1s infinite',
-        'typing-dot': 'typingDot 1.4s infinite',
-      },
-      keyframes: {
-        fadeIn: {
-          'from': { opacity: '0', transform: 'translateY(10px)' },
-          'to': { opacity: '1', transform: 'translateY(0)' }
-        },
-        slideIn: {
-          'from': { opacity: '0', transform: 'translateX(20px)' },
-          'to': { opacity: '1', transform: 'translateX(0)' }
-        },
-        wordAppear: {
-          'to': { opacity: '1' }
-        },
-        cursorBlink: {
-          '0%, 50%': { opacity: '1' },
-          '51%, 100%': { opacity: '0' }
-        },
-        typingDot: {
-          '0%, 60%, 100%': { transform: 'translateY(0)', opacity: '0.7' },
-          '30%': { transform: 'translateY(-10px)', opacity: '1' }
+        slate: {
+          800: '#1e293b',
+          600: '#475569',
+          500: '#64748b',
         }
       },
-      backdropFilter: {
-        'glass': 'blur(16px) saturate(1.5)',
-        'glass-heavy': 'blur(32px) saturate(1.8)',
+      fontFamily: {
+        'inter': ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
       },
       backgroundImage: {
-        'gradient-glass': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      },
-      boxShadow: {
-        'dark-sm': '0 2px 4px rgba(0, 0, 0, 0.5)',
-        'dark-md': '0 4px 12px rgba(0, 0, 0, 0.6)',
-        'dark-lg': '0 10px 30px rgba(0, 0, 0, 0.7)',
-        'glow': '0 0 20px rgba(139, 92, 246, 0.4)',
+        'gradient-purple': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       },
     },
   },
   plugins: [
     require('tailwindcss/plugin')(({ addUtilities }) => {
       addUtilities({
-        '.backdrop-blur-glass': {
-          'backdrop-filter': 'blur(16px) saturate(1.5)',
-        },
-        '.backdrop-blur-glass-heavy': {
-          'backdrop-filter': 'blur(32px) saturate(1.8)',
-        },
         '.glass-card': {
           'background': 'rgba(255, 255, 255, 0.1)',
           'backdrop-filter': 'blur(16px) saturate(1.5)',
+          '-webkit-backdrop-filter': 'blur(16px) saturate(1.5)',
           'border': '1px solid rgba(255, 255, 255, 0.2)',
-          'box-shadow': '0 4px 16px rgba(0, 0, 0, 0.12)',
+          'box-shadow': '0 8px 32px rgba(0, 0, 0, 0.1)',
+        },
+        '.glass-input': {
+          'background': 'rgba(255, 255, 255, 0.05)',
+          'backdrop-filter': 'blur(10px)',
+          '-webkit-backdrop-filter': 'blur(10px)',
+          'border': '1px solid rgba(255, 255, 255, 0.1)',
         },
       })
     })

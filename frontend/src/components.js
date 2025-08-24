@@ -201,17 +201,17 @@ const AuthScreen = ({ onLogin }) => {
     const isWeak = weakPasswords.some(weak => password.toLowerCase().includes(weak));
     
     if (isWeak) {
-      return { strength: 0, text: 'Too weak (common password)', color: 'text-celeste-system-error' };
+      return { strength: 0, text: 'Too weak (common password)', color: 'text-red-500' };
     }
     
     if (score <= 2) {
-      return { strength: score, text: `Weak (needs: ${feedback.slice(0, 2).join(', ')})`, color: 'text-celeste-system-error' };
+      return { strength: score, text: `Weak (needs: ${feedback.slice(0, 2).join(', ')})`, color: 'text-red-500' };
     } else if (score <= 3) {
-      return { strength: score, text: 'Fair', color: 'text-celeste-system-warning' };
+      return { strength: score, text: 'Fair', color: 'text-yellow-500' };
     } else if (score <= 4) {
-      return { strength: score, text: 'Good', color: 'text-celeste-system-success' };
+      return { strength: score, text: 'Good', color: 'text-green-500' };
     } else {
-      return { strength: score, text: 'Strong', color: 'text-celeste-system-success' };
+      return { strength: score, text: 'Strong', color: 'text-green-500' };
     }
   };
 
@@ -343,23 +343,23 @@ const AuthScreen = ({ onLogin }) => {
 
   if (signupSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-glass flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-purple flex items-center justify-center p-4">
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-semibold text-celeste-text-primary">
-              Celeste<span className="bg-gradient-to-r from-celeste-brand-primary to-celeste-brand-accent bg-clip-text text-transparent">OS</span>
+            <h1 className="text-3xl font-semibold text-slate-800">
+              Celeste<span className="bg-gradient-to-r from-blue-500 to-blue-600 bg-clip-text text-transparent">OS</span>
             </h1>
           </div>
           
-          <div className="bg-celeste-system-success/10 border border-celeste-system-success/30 rounded-md p-6 text-center">
+          <div className="bg-green-500/10 border border-green-500/30 rounded-md p-6 text-center">
             <div className="mb-4">
-              <div className="w-16 h-16 bg-celeste-system-success/20 rounded-full flex items-center justify-center mx-auto">
-                <Check className="w-8 h-8 text-celeste-system-success" />
+              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
+                <Check className="w-8 h-8 text-green-500" />
               </div>
             </div>
-            <h3 className="text-lg font-semibold text-celeste-system-success mb-2">Account created successfully!</h3>
-            <p className="text-celeste-system-success/80 mb-4">Welcome to CelesteOS! Your account is ready to use.</p>
-            <p className="text-sm text-celeste-system-success/60 mb-6">Redirecting you to login in a few seconds...</p>
+            <h3 className="text-lg font-semibold text-green-500 mb-2">Account created successfully!</h3>
+            <p className="text-green-500/80 mb-4">Welcome to CelesteOS! Your account is ready to use.</p>
+            <p className="text-sm text-green-500/60 mb-6">Redirecting you to login in a few seconds...</p>
             
             <button
               onClick={() => {
@@ -368,7 +368,7 @@ const AuthScreen = ({ onLogin }) => {
                 setEmail('');
                 setPassword('');
               }}
-              className="bg-celeste-brand-primary hover:bg-celeste-brand-hover text-white px-6 py-2 rounded-lg transition-colors"
+              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors"
             >
               Continue to Login
             </button>
@@ -379,13 +379,13 @@ const AuthScreen = ({ onLogin }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-glass flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-purple flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-semibold text-celeste-text-primary">
-            Celeste<span className="bg-gradient-to-r from-celeste-brand-primary to-celeste-brand-accent bg-clip-text text-transparent">OS</span>
+          <h1 className="text-3xl font-semibold text-slate-800">
+            Celeste<span className="bg-gradient-to-r from-blue-500 to-blue-600 bg-clip-text text-transparent">OS</span>
           </h1>
-          <p className="text-celeste-text-muted mt-2">Your success inevitability engine</p>
+          <p className="text-slate-500 mt-2">Your success inevitability engine</p>
         </div>
 
         <div className="space-y-4">
@@ -398,7 +398,7 @@ const AuthScreen = ({ onLogin }) => {
               onKeyDown={(e) => {
                 if (e.key === 'Enter') document.getElementById('email-input')?.focus();
               }}
-              className="w-full px-3 py-3 bg-celeste-glass-tertiary backdrop-blur-glass border border-celeste-glass-hover rounded-md text-celeste-text-primary placeholder-celeste-text-muted focus:outline-none focus:ring-2 focus:ring-celeste-brand-primary focus:border-transparent transition-all"
+              className="w-full px-3 py-3 glass-input border border-glass-border rounded-md text-slate-800 placeholder-celeste-text-muted focus:outline-none focus:ring-2 focus:ring-celeste-brand-primary focus:border-transparent transition-all"
               disabled={isLoading}
             />
           )}
@@ -412,7 +412,7 @@ const AuthScreen = ({ onLogin }) => {
             onKeyDown={(e) => {
               if (e.key === 'Enter') document.getElementById('password-input')?.focus();
             }}
-            className="w-full px-3 py-3 bg-celeste-glass-tertiary backdrop-blur-glass border border-celeste-glass-hover rounded-md text-celeste-text-primary placeholder-celeste-text-muted focus:outline-none focus:ring-2 focus:ring-celeste-brand-primary focus:border-transparent transition-all"
+            className="w-full px-3 py-3 glass-input border border-glass-border rounded-md text-slate-800 placeholder-celeste-text-muted focus:outline-none focus:ring-2 focus:ring-celeste-brand-primary focus:border-transparent transition-all"
             autoComplete="email"
             disabled={isLoading}
           />
@@ -433,14 +433,14 @@ const AuthScreen = ({ onLogin }) => {
                   }
                 }
               }}
-              className="w-full px-3 py-3 pr-10 bg-celeste-glass-tertiary backdrop-blur-glass border border-celeste-glass-hover rounded-md text-celeste-text-primary placeholder-celeste-text-muted focus:outline-none focus:ring-2 focus:ring-celeste-brand-primary focus:border-transparent transition-all"
+              className="w-full px-3 py-3 pr-10 glass-input border border-glass-border rounded-md text-slate-800 placeholder-celeste-text-muted focus:outline-none focus:ring-2 focus:ring-celeste-brand-primary focus:border-transparent transition-all"
               autoComplete={isSignup ? "new-password" : "current-password"}
               disabled={isLoading}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-celeste-text-muted hover:text-celeste-text-secondary transition-colors"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-500 hover:text-slate-600 transition-colors"
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -465,14 +465,14 @@ const AuthScreen = ({ onLogin }) => {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleSubmit();
                 }}
-                className="w-full px-3 py-3 pr-10 bg-celeste-glass-tertiary backdrop-blur-glass border border-celeste-glass-hover rounded-md text-celeste-text-primary placeholder-celeste-text-muted focus:outline-none focus:ring-2 focus:ring-celeste-brand-primary focus:border-transparent transition-all"
+                className="w-full px-3 py-3 pr-10 glass-input border border-glass-border rounded-md text-slate-800 placeholder-celeste-text-muted focus:outline-none focus:ring-2 focus:ring-celeste-brand-primary focus:border-transparent transition-all"
                 autoComplete="new-password"
                 disabled={isLoading}
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-celeste-text-muted hover:text-celeste-text-secondary transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-500 hover:text-slate-600 transition-colors"
               >
                 {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -480,7 +480,7 @@ const AuthScreen = ({ onLogin }) => {
           )}
 
           {error && (
-            <div className="flex items-start gap-2 text-celeste-system-error text-sm bg-celeste-system-error/10 border border-celeste-system-error/30 rounded-md p-3">
+            <div className="flex items-start gap-2 text-red-500 text-sm bg-celeste-system-error/10 border border-celeste-system-error/30 rounded-md p-3">
               <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
               <span className="whitespace-pre-wrap">{error}</span>
             </div>
@@ -489,7 +489,7 @@ const AuthScreen = ({ onLogin }) => {
           <button
             onClick={handleSubmit}
             disabled={isLoading || !email || !password || (isSignup && !confirmPassword)}
-            className="w-full bg-gradient-to-r from-celeste-brand-primary to-celeste-brand-accent text-white py-3 rounded-md font-semibold hover:opacity-90 transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-lg"
+            className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-md font-semibold hover:opacity-90 transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-lg"
           >
             {isLoading ? (
               <div className="flex items-center justify-center gap-2">
@@ -504,7 +504,7 @@ const AuthScreen = ({ onLogin }) => {
           <div className="text-center">
             <button
               onClick={toggleMode}
-              className="text-sm text-celeste-text-muted hover:text-celeste-text-secondary transition-colors"
+              className="text-sm text-slate-500 hover:text-slate-600 transition-colors"
               disabled={isLoading}
             >
               {isSignup ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
@@ -553,10 +553,10 @@ const ErrorMessage = ({ error, onRetry, onDismiss }) => {
   }, [error?.retryAfter]);
 
   const getErrorStyles = () => {
-    if (error?.type === 'token_limit') return 'bg-celeste-system-warning/10 border-celeste-system-warning/30 text-celeste-system-warning';
-    if (error?.type === 'rate_limit') return 'bg-celeste-system-error/10 border-celeste-system-error/30 text-celeste-system-error';
-    if (error?.type === 'success') return 'bg-celeste-system-success/10 border-celeste-system-success/30 text-celeste-system-success';
-    return 'bg-celeste-glass-tertiary backdrop-blur-glass border-celeste-glass-hover text-celeste-text-secondary';
+    if (error?.type === 'token_limit') return 'bg-celeste-system-warning/10 border-celeste-system-warning/30 text-yellow-500';
+    if (error?.type === 'rate_limit') return 'bg-celeste-system-error/10 border-celeste-system-error/30 text-red-500';
+    if (error?.type === 'success') return 'bg-green-500/10 border-green-500/30 text-green-500';
+    return 'glass-input border-glass-border text-slate-600';
   };
 
   return (
@@ -581,14 +581,14 @@ const ErrorMessage = ({ error, onRetry, onDismiss }) => {
         {countdown === 0 && onRetry && (
           <button 
             onClick={onRetry}
-            className="px-3 py-1 text-xs bg-celeste-brand-primary text-white rounded hover:bg-celeste-brand-hover transition-colors"
+            className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
           >
             Retry Now
           </button>
         )}
         <button 
           onClick={onDismiss}
-          className="px-3 py-1 text-xs bg-celeste-glass-hover backdrop-blur-glass text-celeste-text-secondary rounded hover:bg-celeste-dark-active transition-colors"
+          className="px-3 py-1 text-xs glass-card hover:bg-glass-hover text-slate-600 rounded hover:bg-celeste-dark-active transition-colors"
         >
           Dismiss
         </button>
@@ -1299,16 +1299,16 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
       {/* Sidebar */}
       <div id="sidebar" className={`sidebar ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         {/* Logo */}
-        <div className="p-4 border-b border-celeste-glass-hover">
+        <div className="p-4 border-b border-glass-border">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-celeste-brand-primary to-celeste-brand-accent rounded-md flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-md flex items-center justify-center">
               <span className="text-white font-bold text-sm">C</span>
             </div>
-            <h2 className="text-lg font-semibold text-celeste-text-primary">
-              Celeste<span className="bg-gradient-to-r from-celeste-brand-primary to-celeste-brand-accent bg-clip-text text-transparent">OS</span>
+            <h2 className="text-lg font-semibold text-slate-800">
+              Celeste<span className="bg-gradient-to-r from-blue-500 to-blue-600 bg-clip-text text-transparent">OS</span>
             </h2>
           </div>
-          <div className="text-sm text-celeste-text-muted mt-1">
+          <div className="text-sm text-slate-500 mt-1">
             Transform your patterns into profits
           </div>
         </div>
@@ -1323,7 +1323,7 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
         <div className="flex-1 overflow-y-auto">
           <div className="pb-2">
             {sortedConversations.length === 0 ? (
-              <div className="text-center text-sm mt-8 px-4 text-celeste-text-muted">
+              <div className="text-center text-sm mt-8 px-4 text-slate-500">
                 Your transformation journey begins with your first conversation
               </div>
             ) : (
@@ -1352,11 +1352,11 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
         </div>
 
         {/* Bottom section */}
-        <div className="border-t border-celeste-glass-hover">
+        <div className="border-t border-glass-border">
           {/* Theme toggle */}
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
-            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-celeste-text-secondary hover:bg-celeste-glass-hover backdrop-blur-glass transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:glass-card hover:bg-glass-hover transition-colors"
           >
             {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
             <span className="flex-1 text-left">{isDarkMode ? 'Light mode' : 'Dark mode'}</span>
@@ -1365,7 +1365,7 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
           {/* User section */}
           <button
             onClick={() => setShowProfilePanel(true)}
-            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-celeste-text-secondary hover:bg-celeste-glass-hover backdrop-blur-glass transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:glass-card hover:bg-glass-hover transition-colors"
           >
             <Settings size={16} />
             <span className="flex-1 text-left">Profile & Data</span>
@@ -1373,7 +1373,7 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
           
           <button
             onClick={onLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-celeste-text-secondary hover:bg-celeste-glass-hover backdrop-blur-glass transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:glass-card hover:bg-glass-hover transition-colors"
           >
             <User size={16} />
             <span className="flex-1 text-left truncate">{user.email}</span>
@@ -1394,36 +1394,36 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
       {/* Mobile menu toggle */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="sidebar-toggle fixed top-4 left-4 z-50 p-2 rounded-md bg-celeste-glass-secondary backdrop-blur-glass hover:bg-celeste-glass-hover backdrop-blur-glass md:hidden"
+        className="sidebar-toggle fixed top-4 left-4 z-50 p-2 rounded-md glass-card hover:glass-card hover:bg-glass-hover md:hidden"
         aria-label="Toggle menu"
       >
-        {sidebarOpen ? <X size={24} className="text-celeste-text-primary" /> : <Menu size={24} className="text-celeste-text-primary" />}
+        {sidebarOpen ? <X size={24} className="text-slate-800" /> : <Menu size={24} className="text-slate-800" />}
       </button>
 
       {/* Main chat area */}
       <div className="chat-main">
         {/* Header with token counter and user info */}
-        <div className="border-b border-celeste-glass-hover p-4">
+        <div className="border-b border-glass-border p-4">
           <div className="max-w-4xl mx-auto flex items-center justify-between">
             {/* Token display */}
             <div className="flex items-center gap-4">
               <div className="md:hidden">
-                <h1 className="text-xl font-semibold text-celeste-text-primary">
-                  Celeste<span className="bg-gradient-to-r from-celeste-brand-primary to-celeste-brand-accent bg-clip-text text-transparent">OS</span>
+                <h1 className="text-xl font-semibold text-slate-800">
+                  Celeste<span className="bg-gradient-to-r from-blue-500 to-blue-600 bg-clip-text text-transparent">OS</span>
                 </h1>
               </div>
               <div className="token-display hidden md:flex items-center gap-3">
-                <span className="text-sm font-medium text-celeste-text-secondary">
+                <span className="text-sm font-medium text-slate-600">
                   {tokensRemaining.toLocaleString()} tokens today
                 </span>
-                <div className="w-24 h-2 rounded-full overflow-hidden bg-celeste-glass-hover backdrop-blur-glass">
+                <div className="w-24 h-2 rounded-full overflow-hidden glass-card hover:bg-glass-hover">
                   <div 
-                    className="h-full bg-gradient-to-r from-celeste-brand-primary to-celeste-brand-accent transition-all duration-300"
+                    className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300"
                     style={{ width: `${Math.max(0, (tokensRemaining / 50000) * 100)}%` }}
                   />
                 </div>
                 {cacheLoading && (
-                  <div className="text-xs flex items-center gap-1 text-celeste-text-muted">
+                  <div className="text-xs flex items-center gap-1 text-slate-500">
                     <div className="w-3 h-3 border border-celeste-brand-primary border-t-transparent rounded-full animate-spin"></div>
                     Loading...
                   </div>
@@ -1436,13 +1436,13 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
               {/* Ask Alex FAQ Link */}
               <button
                 onClick={onAskAlex}
-                className="flex items-center gap-2 px-3 py-1.5 bg-celeste-glass-secondary backdrop-blur-glass hover:bg-celeste-glass-hover backdrop-blur-glass rounded-lg transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 glass-card hover:glass-card hover:bg-glass-hover rounded-lg transition-colors"
                 title="Ask Alex - FAQ"
               >
-                <span className="text-sm font-medium text-celeste-brand-primary">Ask Alex</span>
+                <span className="text-sm font-medium text-blue-500">Ask Alex</span>
               </button>
               
-              <span className="hidden md:inline text-sm font-medium text-celeste-text-secondary">
+              <span className="hidden md:inline text-sm font-medium text-slate-600">
                 {userProfile?.display_name || user.name || user.displayName}
               </span>
               {/* Cache refresh button */}
@@ -1464,7 +1464,7 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
                     setCacheLoading(false);
                   }
                 }}
-                className="p-1 transition-colors text-celeste-text-muted hover:text-celeste-text-secondary"
+                className="p-1 transition-colors text-slate-500 hover:text-slate-600"
                 title="Refresh user data"
               >
                 <RefreshCw size={14} className={cacheLoading ? 'animate-spin' : ''} />
@@ -1514,33 +1514,33 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
                                     <ReactMarkdown
                                       components={{
                                         p: ({children}) => <p className="mb-4 last:mb-0">{children}</p>,
-                                        h1: ({children}) => <h1 className="text-chat-2xl font-semibold mb-4 mt-6 first:mt-0 pb-2 border-b border-celeste-glass-hover">{children}</h1>,
+                                        h1: ({children}) => <h1 className="text-chat-2xl font-semibold mb-4 mt-6 first:mt-0 pb-2 border-b border-glass-border">{children}</h1>,
                                         h2: ({children}) => <h2 className="text-chat-xl font-semibold mb-3 mt-5 first:mt-0">{children}</h2>,
                                         h3: ({children}) => <h3 className="text-chat-lg font-semibold mb-2 mt-4 first:mt-0">{children}</h3>,
                                         ul: ({children}) => <ul className="list-disc pl-6 mb-4 space-y-2">{children}</ul>,
                                         ol: ({children}) => <ol className="list-decimal pl-6 mb-4 space-y-2">{children}</ol>,
                                         li: ({children}) => <li className="leading-relaxed">{children}</li>,
-                                        strong: ({children}) => <strong className="font-semibold text-celeste-text-primary">{children}</strong>,
+                                        strong: ({children}) => <strong className="font-semibold text-slate-800">{children}</strong>,
                                         em: ({children}) => <em className="italic">{children}</em>,
                                         code: ({inline, children}) => 
                                           inline ? (
-                                            <code className="px-1.5 py-0.5 bg-celeste-glass-tertiary backdrop-blur-glass text-celeste-text-primary rounded text-sm font-mono">{children}</code>
+                                            <code className="px-1.5 py-0.5 glass-input text-slate-800 rounded text-sm font-mono">{children}</code>
                                           ) : (
                                             <code className="block">{children}</code>
                                           ),
                                         pre: ({children}) => (
-                                          <pre className="bg-celeste-glass-secondary backdrop-blur-glass border border-celeste-glass-hover rounded-lg p-4 mb-4 overflow-x-auto">
+                                          <pre className="glass-card border border-glass-border rounded-lg p-4 mb-4 overflow-x-auto">
                                             {children}
                                           </pre>
                                         ),
                                         blockquote: ({children}) => (
-                                          <blockquote className="border-l-3 border-celeste-brand-primary pl-4 my-4 italic text-celeste-text-muted">
+                                          <blockquote className="border-l-3 border-celeste-brand-primary pl-4 my-4 italic text-slate-500">
                                             {children}
                                           </blockquote>
                                         ),
-                                        hr: () => <hr className="my-6 border-celeste-glass-hover" />,
+                                        hr: () => <hr className="my-6 border-glass-border" />,
                                         a: ({href, children}) => (
-                                          <a href={href} className="text-celeste-brand-primary hover:text-celeste-brand-hover underline" target="_blank" rel="noopener noreferrer">
+                                          <a href={href} className="text-blue-500 hover:text-celeste-brand-hover underline" target="_blank" rel="noopener noreferrer">
                                             {children}
                                           </a>
                                         ),
@@ -1617,7 +1617,7 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
                                   {/* Suggested items/actions */}
                                   {msg.items && msg.items.length > 0 && (
                                     <div className="mt-3 space-y-2">
-                                      <div className="text-xs text-celeste-text-muted mb-1">Suggestions:</div>
+                                      <div className="text-xs text-slate-500 mb-1">Suggestions:</div>
                                       <div className="flex flex-wrap gap-2">
                                         {msg.items.map((item, idx) => (
                                           <button
@@ -1626,7 +1626,7 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
                                               setMessage(item);
                                               textareaRef.current?.focus();
                                             }}
-                                            className="px-3 py-1.5 text-sm bg-celeste-glass-tertiary backdrop-blur-glass hover:bg-celeste-glass-hover backdrop-blur-glass rounded-lg transition-colors text-celeste-text-secondary hover:text-celeste-text-primary"
+                                            className="px-3 py-1.5 text-sm glass-input hover:glass-card hover:bg-glass-hover rounded-lg transition-colors text-slate-600 hover:text-slate-800"
                                           >
                                             {item}
                                           </button>
@@ -1637,7 +1637,7 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
                                   
                                   {/* Sources and references */}
                                   {((msg.sources && msg.sources.length > 0) || (msg.references && msg.references.length > 0)) && (
-                                    <div className="mt-3 text-xs text-celeste-text-muted">
+                                    <div className="mt-3 text-xs text-slate-500">
                                       {msg.sources && msg.sources.length > 0 && (
                                         <div className="mb-1">
                                           <span className="font-medium">Sources:</span> {msg.sources.join(', ')}
@@ -1656,16 +1656,16 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
                                   
                                   {/* Response metadata */}
                                   {(msg.intentType || msg.searchStrategy || msg.processingTime) && (
-                                    <div className="mt-2 flex flex-wrap gap-3 text-xs text-celeste-text-muted">
+                                    <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500">
                                       {msg.intentType && (
                                         <span className="flex items-center gap-1">
-                                          <span className="w-1.5 h-1.5 bg-celeste-brand-primary rounded-full"></span>
+                                          <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
                                           Intent: {msg.intentType}
                                         </span>
                                       )}
                                       {msg.searchStrategy && (
                                         <span className="flex items-center gap-1">
-                                          <span className="w-1.5 h-1.5 bg-celeste-system-success rounded-full"></span>
+                                          <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
                                           Strategy: {msg.searchStrategy}
                                         </span>
                                       )}
@@ -1804,7 +1804,7 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
             </form>
             
             {editingMessage && (
-              <div className="mt-2 flex items-center gap-2 text-sm text-celeste-text-muted">
+              <div className="mt-2 flex items-center gap-2 text-sm text-slate-500">
                 <Edit3 size={14} />
                 <span>Editing message</span>
                 <button
@@ -1812,7 +1812,7 @@ const ChatInterface = ({ user, onLogout, onAskAlex }) => {
                     setEditingMessage(null);
                     setMessage('');
                   }}
-                  className="text-celeste-brand-primary hover:text-celeste-brand-hover"
+                  className="text-blue-500 hover:text-celeste-brand-hover"
                 >
                   Cancel
                 </button>
