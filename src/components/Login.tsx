@@ -30,15 +30,15 @@ export function Login({ onLogin, isMobile = false }: LoginProps) {
         <div 
           className={`w-full ${isMobile ? 'max-w-[340px] mx-4' : 'max-w-[400px] mx-6'}`}
         >
-          {/* Login Card with Maximum Strength Glassmorphism */}
+          {/* Login Card with Solid Background */}
           <div 
             className="glass-overlay rounded-lg transition-all duration-300"
             style={{
-              background: 'rgba(255, 255, 255, 0.10)',
-              backdropFilter: 'blur(32px) saturate(1.3)',
-              WebkitBackdropFilter: 'blur(32px) saturate(1.3)',
-              border: '1px solid rgba(255, 255, 255, 0.20)',
-              boxShadow: '0 16px 64px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(255, 255, 255, 0.12)',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(10px) saturate(1.3)',
+              WebkitBackdropFilter: 'blur(10px) saturate(1.3)',
+              border: '1px solid rgba(0, 0, 0, 0.10)',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.05)',
               padding: isMobile ? '32px 24px' : '40px 32px'
             }}
           >
