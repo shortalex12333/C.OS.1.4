@@ -1,41 +1,74 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { SettingsSection, settingsMenuItems } from './settings/SettingsConstants';
-import { SectionHeader, SettingsRow, SettingsSection as Section } from './settings/SettingsComponents';
+import { 
+  SettingsSection, 
+  settingsMenuItems,
+  languageOptions,
+  appearanceOptions,
+  dateRangeOptions,
+  accountScopeOptions,
+  messageTypeOptions
+} from './settings/SettingsConstants';
+import { SectionHeader, AppleSettingsRow, FormGroup, UnifiedTextarea } from './settings/SettingsComponents';
+import { renderSectionContent as renderSettingsContent } from './settings/SettingsSections';
+import { darkTheme } from '../styles/darkModeTheme';
 
 // =====================================================
-// DESIGN TOKENS - MATCHING CHATGPT STYLE
+// DESIGN TOKENS - PREMIUM MARITIME INTELLIGENCE SYSTEM
 // =====================================================
 const MODAL_DESIGN = {
   modal: {
-    width: '700px',
-    height: '600px',
+    width: '800px',
+    height: '650px',
     background: '#ffffff',
-    borderRadius: '12px',
-    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05)',
-    border: '1px solid #e1e5e9'
+    borderRadius: '16px',
+    boxShadow: '0 32px 64px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05)',
+    border: '1px solid rgba(0, 0, 0, 0.06)',
+    // Dark mode premium modal
+    dark: {
+      background: darkTheme.backgrounds.secondary, // #13151a - elevated modal
+      boxShadow: darkTheme.effects.elevationHigh,
+      border: `1px solid ${darkTheme.modal.border}`,
+      backdropFilter: 'blur(8px)'
+    }
   },
   header: {
     background: '#f8f9fa',
     borderBottom: '1px solid #e9ecef',
-    padding: '20px 24px'
+    padding: '18px 24px',
+    height: '60px',
+    // Dark mode header with gradient
+    dark: {
+      background: darkTheme.modal.header,
+      borderBottom: `1px solid ${darkTheme.modal.headerBorder}`
+    }
   },
   sidebar: {
-    width: '200px',
+    width: '220px',
     background: '#f8f9fa',
-    borderRight: '1px solid #e9ecef'
+    borderRight: '1px solid #e9ecef',
+    // Dark mode sidebar
+    dark: {
+      background: darkTheme.backgrounds.primary, // #0a0b0d - deep ocean
+      borderRight: `1px solid ${darkTheme.sidebar.border}`
+    }
   },
   content: {
     background: '#ffffff',
-    padding: '32px 40px'
+    padding: '28px 36px',
+    // Dark mode content
+    dark: {
+      background: darkTheme.backgrounds.secondary // #13151a - elevated
+    }
   },
   nav: {
     item: {
-      padding: '12px 20px',
+      padding: '10px 16px',
       fontSize: '14px',
-      borderRadius: '6px',
-      margin: '2px 8px',
-      transition: 'all 0.15s ease'
+      borderRadius: '8px',
+      margin: '4px 12px',
+      transition: `all ${darkTheme.effects.timingFast} ${darkTheme.effects.easingDefault}`,
+      whiteSpace: 'nowrap'
     }
   }
 };
@@ -49,6 +82,7 @@ interface SettingsProps {
   isChatMode?: boolean;
   appearance?: string;
   onAppearanceChange?: (appearance: string) => void;
+  isDarkMode?: boolean;
 }
 
 interface MicrosoftConnectionStatus {
@@ -69,10 +103,17 @@ export function Settings({
   onDisplayNameChange, 
   isChatMode = false, 
   appearance = 'light', 
-  onAppearanceChange 
+  onAppearanceChange,
+  isDarkMode = false 
 }: SettingsProps) {
   const [activeSection, setActiveSection] = useState<SettingsSection>('general');
   const [language, setLanguage] = useState('en');
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [pushNotifications, setPushNotifications] = useState(false);
+  const [dateRange, setDateRange] = useState('30');
+  const [accountScope, setAccountScope] = useState('this');
+  const [messageType, setMessageType] = useState('');
+  const [messageContent, setMessageContent] = useState('');
   
   // Microsoft Connection Status Management
   const [microsoftStatus, setMicrosoftStatus] = useState<MicrosoftConnectionStatus>({
@@ -80,19 +121,8 @@ export function Settings({
     loading: true
   });
 
-  // Language and appearance options
-  const languageOptions = [
-    { value: 'en', label: 'English' },
-    { value: 'es', label: 'Español' },
-    { value: 'fr', label: 'Français' },
-    { value: 'de', label: 'Deutsch' }
-  ];
-
-  const appearanceOptions = [
-    { value: 'light', label: 'Light' },
-    { value: 'dark', label: 'Dark' },
-    { value: 'auto', label: 'Auto-detect' }
-  ];
+  // Language and appearance options are imported from SettingsConstants
+  // Removed local duplicates to avoid conflicts
 
   // Function to check Microsoft connection status
   const checkMicrosoftConnection = async () => {
@@ -101,7 +131,7 @@ export function Settings({
       
       const userId = localStorage.getItem('ms_user_id') || `user_${Date.now()}`;
       
-      const response = await fetch('http://localhost:5679/webhook/microsoft-auth', {
+      const response = await fetch(`${import.meta.env.VITE_WEBHOOK_BASE_URL || 'https://api.celeste7.ai/webhook/'}microsoft-auth`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -153,7 +183,7 @@ export function Settings({
       localStorage.setItem('appearance', appearance);
 
       const CLIENT_ID = '41f6dc82-8127-4330-97e0-c6b26e6aa967';
-      const REDIRECT_URI = encodeURIComponent('http://localhost:8003/auth/callback');
+      const REDIRECT_URI = encodeURIComponent(import.meta.env.VITE_OAUTH_REDIRECT_URI || `${window.location.origin}/api/auth/callback`);
       const SCOPES = encodeURIComponent('openid profile email offline_access User.Read IMAP.AccessAsUser.All');
 
       const authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${REDIRECT_URI}&scope=${SCOPES}&state=${userId}&prompt=select_account`;
@@ -182,109 +212,41 @@ export function Settings({
 
   // Render section content
   const renderSectionContent = () => {
-    switch (activeSection) {
-      case 'general':
-        return (
-          <Section>
-            <SettingsRow
-              label="Display Name"
-              value={displayName}
-              isEditable={true}
-              onChange={onDisplayNameChange}
-              placeholder="Enter your display name"
-            />
-            <SettingsRow
-              label="Language"
-              value={languageOptions.find(opt => opt.value === language)?.label || 'English'}
-              isEditable={true}
-              onChange={setLanguage}
-              type="select"
-              options={languageOptions}
-            />
-            <SettingsRow
-              label="Appearance"
-              value={appearanceOptions.find(opt => opt.value === appearance)?.label || 'Light'}
-              isEditable={true}
-              onChange={onAppearanceChange || (() => {})}
-              type="select"
-              options={appearanceOptions}
-            />
-          </Section>
-        );
-
-      case 'connectors':
-        return (
-          <Section>
-            <SettingsRow
-              label="Microsoft Outlook"
-              value={
-                microsoftStatus.loading 
-                  ? "Checking..." 
-                  : microsoftStatus.connected 
-                    ? "Connected" 
-                    : microsoftStatus.error 
-                      ? "Connection Error"
-                      : "Not Connected"
-              }
-            />
-            {microsoftStatus.connected && (
-              <>
-                <SettingsRow
-                  label="Email Address"
-                  value={microsoftStatus.email || "Unknown"}
-                />
-                <SettingsRow
-                  label="Display Name"
-                  value={microsoftStatus.displayName || "Unknown User"}
-                />
-              </>
-            )}
-            {!microsoftStatus.connected && !microsoftStatus.loading && (
-              <div style={{ marginTop: '20px', textAlign: 'center' }}>
-                <button
-                  onClick={handleMicrosoftConnect}
-                  style={{
-                    background: '#0d6efd',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    padding: '10px 20px',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: 'pointer',
-                    transition: 'background 0.15s ease'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = '#0b5ed7'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = '#0d6efd'}
-                >
-                  Connect to Email
-                </button>
-              </div>
-            )}
-          </Section>
-        );
-
-      default:
-        return (
-          <Section>
-            <div style={{
-              padding: '40px',
-              textAlign: 'center',
-              color: '#6c757d',
-              fontSize: '14px'
-            }}>
-              This section is not implemented yet.
-            </div>
-          </Section>
-        );
-    }
+    return renderSettingsContent({
+      sectionId: activeSection,
+      isMobile,
+      displayName,
+      onDisplayNameChange,
+      emailNotifications,
+      setEmailNotifications,
+      pushNotifications,
+      setPushNotifications,
+      language,
+      setLanguage,
+      appearance,
+      setAppearance: onAppearanceChange || (() => {}),
+      dateRange,
+      setDateRange,
+      accountScope,
+      setAccountScope,
+      messageType,
+      setMessageType,
+      messageContent,
+      setMessageContent,
+      isDarkMode
+    });
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
+      {/* Backdrop - Premium elevation */}
       <div 
-        className="absolute inset-0 bg-black bg-opacity-50 transition-opacity duration-300"
+        className="absolute inset-0 transition-opacity duration-300"
+        style={{
+          background: isDarkMode ? darkTheme.modal.overlay : 'rgba(0, 0, 0, 0.5)',
+          backdropFilter: isDarkMode ? darkTheme.modal.backdropBlur : 'blur(8px)',
+          WebkitBackdropFilter: isDarkMode ? darkTheme.modal.backdropBlur : 'blur(8px)'
+        }}
         onClick={onClose}
       />
 
@@ -292,38 +254,41 @@ export function Settings({
       <div 
         className="relative z-10"
         style={{
-          width: MODAL_DESIGN.modal.width,
-          height: MODAL_DESIGN.modal.height,
-          maxWidth: '90vw',
-          maxHeight: '90vh',
-          background: MODAL_DESIGN.modal.background,
-          borderRadius: MODAL_DESIGN.modal.borderRadius,
-          boxShadow: MODAL_DESIGN.modal.boxShadow,
-          border: MODAL_DESIGN.modal.border,
+          width: isMobile ? '100%' : MODAL_DESIGN.modal.width,
+          height: isMobile ? '100%' : MODAL_DESIGN.modal.height,
+          maxWidth: isMobile ? '100%' : '90vw',
+          maxHeight: isMobile ? '100%' : '90vh',
+          background: isDarkMode ? darkTheme.modal.background : MODAL_DESIGN.modal.background,
+          borderRadius: isMobile ? '0' : (isDarkMode ? darkTheme.modal.borderRadius : MODAL_DESIGN.modal.borderRadius),
+          boxShadow: isDarkMode ? darkTheme.modal.shadow : MODAL_DESIGN.modal.boxShadow,
+          border: isDarkMode ? `1px solid ${darkTheme.modal.border}` : MODAL_DESIGN.modal.border,
           display: 'flex',
           flexDirection: 'column',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          animation: isDarkMode ? 'modalEntrance 500ms cubic-bezier(0.22, 0.61, 0.36, 1)' : undefined
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
+        {/* Header - CelesteOS Styling */}
         <div 
           style={{
-            background: MODAL_DESIGN.header.background,
-            borderBottom: MODAL_DESIGN.header.borderBottom,
+            background: isDarkMode ? darkTheme.modal.header : MODAL_DESIGN.header.background,
+            borderBottom: isDarkMode ? `1px solid ${darkTheme.modal.border}` : MODAL_DESIGN.header.borderBottom,
             padding: MODAL_DESIGN.header.padding,
+            height: MODAL_DESIGN.header.height,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            flexShrink: 0
+            flexShrink: 0,
+            boxSizing: 'border-box'
           }}
         >
           <h1 style={{
             fontSize: '18px',
             fontWeight: '600',
-            color: '#212529',
+            color: isDarkMode ? darkTheme.text.primary : '#212529',
             margin: 0,
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
           }}>
             Settings
           </h1>
@@ -332,17 +297,17 @@ export function Settings({
             style={{
               background: 'transparent',
               border: 'none',
-              color: '#6c757d',
+              color: isDarkMode ? darkTheme.text.tertiary : '#6c757d',
               cursor: 'pointer',
               padding: '4px',
               borderRadius: '4px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transition: 'color 0.15s ease'
+              transition: `color ${darkTheme.effects.microDelay} cubic-bezier(0.22, 0.61, 0.36, 1)`
             }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#212529'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#6c757d'}
+            onMouseEnter={(e) => e.currentTarget.style.color = isDarkMode ? darkTheme.text.primary : '#212529'}
+            onMouseLeave={(e) => e.currentTarget.style.color = isDarkMode ? darkTheme.text.tertiary : '#6c757d'}
           >
             <X className="w-5 h-5" />
           </button>
@@ -350,14 +315,18 @@ export function Settings({
 
         {/* Content */}
         <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-          {/* Sidebar */}
+          {/* Sidebar - CelesteOS Nav */}
           <div 
             style={{
-              width: MODAL_DESIGN.sidebar.width,
-              background: MODAL_DESIGN.sidebar.background,
-              borderRight: MODAL_DESIGN.sidebar.borderRight,
-              padding: '8px 0',
-              overflowY: 'auto'
+              width: isMobile ? '160px' : MODAL_DESIGN.sidebar.width,
+              background: isDarkMode ? darkTheme.sidebar.background : MODAL_DESIGN.sidebar.background,
+              borderRight: isDarkMode ? `1px solid ${darkTheme.sidebar.border}` : MODAL_DESIGN.sidebar.borderRight,
+              padding: isMobile ? '8px 0' : '12px 0',
+              overflowX: 'hidden',
+              overflowY: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              flexShrink: 0
             }}
           >
             {settingsMenuItems.map((item) => {
@@ -372,34 +341,45 @@ export function Settings({
                     display: 'flex',
                     alignItems: 'center',
                     width: '100%',
-                    background: isActive ? '#e9ecef' : 'transparent',
-                    color: isActive ? '#212529' : '#6c757d',
+                    position: 'relative',
+                    background: isActive 
+                      ? (isDarkMode ? darkTheme.sidebar.itemBackgroundActive : '#e9ecef')
+                      : 'transparent',
+                    color: isActive 
+                      ? (isDarkMode ? darkTheme.sidebar.itemTextActive : '#212529')  // PRIMARY TEXT for active
+                      : (isDarkMode ? darkTheme.sidebar.itemText : '#6c757d'),       // TERTIARY for inactive
                     border: 'none',
-                    padding: MODAL_DESIGN.nav.item.padding,
+                    borderLeft: isActive && isDarkMode ? `2px solid ${darkTheme.sidebar.itemActiveIndicator}` : '2px solid transparent',
+                    padding: isDarkMode && isActive 
+                      ? `${MODAL_DESIGN.nav.item.padding.split(' ')[0]} calc(${MODAL_DESIGN.nav.item.padding.split(' ')[1]} - 2px)`
+                      : MODAL_DESIGN.nav.item.padding,
                     fontSize: MODAL_DESIGN.nav.item.fontSize,
                     borderRadius: MODAL_DESIGN.nav.item.borderRadius,
                     margin: MODAL_DESIGN.nav.item.margin,
                     cursor: 'pointer',
-                    transition: MODAL_DESIGN.nav.item.transition,
+                    transition: 'all 240ms cubic-bezier(0.22, 0.61, 0.36, 1)',  // CelesteOS easing
                     textAlign: 'left',
-                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    gap: '12px'
+                    fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    gap: '10px',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive) {
-                      e.currentTarget.style.background = '#f8f9fa';
-                      e.currentTarget.style.color = '#212529';
+                      e.currentTarget.style.background = isDarkMode ? darkTheme.sidebar.itemBackgroundHover : '#f8f9fa';
+                      e.currentTarget.style.color = isDarkMode ? darkTheme.sidebar.itemTextHover : '#212529';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isActive) {
                       e.currentTarget.style.background = 'transparent';
-                      e.currentTarget.style.color = '#6c757d';
+                      e.currentTarget.style.color = isDarkMode ? darkTheme.sidebar.itemText : '#6c757d';
                     }
                   }}
                 >
-                  <Icon className="w-4 h-4" style={{ opacity: isActive ? 1 : 0.7 }} />
-                  {item.label}
+                  <Icon className="w-4 h-4" style={{ opacity: isActive ? 1 : 0.7, flexShrink: 0 }} />
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>
                 </button>
               );
             })}
@@ -409,13 +389,16 @@ export function Settings({
           <div 
             style={{
               flex: 1,
-              background: MODAL_DESIGN.content.background,
+              background: isDarkMode ? '#1a1a1a' : MODAL_DESIGN.content.background,
               padding: MODAL_DESIGN.content.padding,
-              overflowY: 'auto'
+              overflowY: 'auto',
+              color: isDarkMode ? '#f0f0f0' : '#212529'
             }}
           >
             <SectionHeader 
               title={settingsMenuItems.find(item => item.id === activeSection)?.label || 'Settings'} 
+              isMobile={isMobile}
+              isDarkMode={isDarkMode}
             />
             {renderSectionContent()}
           </div>

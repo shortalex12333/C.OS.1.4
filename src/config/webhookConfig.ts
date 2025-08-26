@@ -9,18 +9,20 @@ const isProduction = import.meta.env.PROD;
 const WEBHOOK_BASE_URL = 
   import.meta.env.VITE_WEBHOOK_BASE_URL || 
   (isProduction 
-    ? 'https://your-n8n-instance.com/webhook/' // Replace with actual N8N production URL
+    ? '/api/webhook?endpoint=' // Use Vercel proxy to handle CORS
     : 'http://localhost:5679/webhook/');
 
 // Export configuration
 export { WEBHOOK_BASE_URL };
 
 // Webhook endpoints reference:
-// - /user-auth - User authentication
+// - /user-auth - User login authentication
+// - /user-signup - User registration  
+// - /auth-logout - User logout
+// - /auth/refresh - Token refresh
+// - /auth/verify-token - Token verification
 // - /text-chat - Chat messages
 // - /microsoft-auth - Microsoft OAuth
-// - /token-refresh-trigger - Token refresh
 // - /documents - Document management
 // - /yacht-search - Yacht-specific searches
 // - /email-search - Email searches
-// - /web-search - Web searches

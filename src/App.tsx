@@ -4,39 +4,152 @@ import { ChatArea } from './components/ChatArea';
 import { InputArea } from './components/InputArea';
 import { Settings } from './components/Settings';
 import { Login } from './components/Login';
+import { SignUp } from './components/SignUp';
 import { AnimatedIntro } from './components/AnimatedIntro';
 import { TutorialOverlay } from './components/TutorialOverlay';
+import { PreloadedQuestions } from './components/PreloadedQuestions';
 import { AskAlex } from './components/AskAlex';
+import { AskAlexPage } from './components/AskAlexPage';
 import { DesktopMobileComparison } from './components/DesktopMobileComparison';
 import { BackgroundSystem } from './components/BackgroundSystem';
 import { MobileHeader } from './components/MobileHeader';
 import { getSidebarWidth, checkIsMobile, checkComparisonMode } from './utils/appUtils';
 import completeWebhookService from './services/webhookServiceComplete';
+import { authService } from './services/supabaseClient';
+import type { ChatMessage } from './types/webhook';
+import './styles/enterpriseComponents.css';
 
-type SearchType = 'yacht' | 'email' | 'web' | 'email-yacht';
+type SearchType = 'yacht' | 'email' | 'email-yacht';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [appearance, setAppearance] = useState(() => {
+    return localStorage.getItem('appearance') || 'light';
+  });
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedAppearance = localStorage.getItem('appearance') || 'light';
+    if (savedAppearance === 'auto') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return savedAppearance === 'dark';
+  });
   const [isChatMode, setIsChatMode] = useState(false);
+  const [showAskAlex, setShowAskAlex] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [displayName, setDisplayName] = useState('John Doe');
-  const [appearance, setAppearance] = useState('light');
+  const [displayName, setDisplayName] = useState<string>('User');
   const [currentSearchType, setCurrentSearchType] = useState<SearchType>('yacht');
   const [selectedModel, setSelectedModel] = useState<string>('air');
   const [showIntro, setShowIntro] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
-  const [showAskAlex, setShowAskAlex] = useState(false);
-  const [chatMessages, setChatMessages] = useState<Array<{
-    id: string;
-    content: string;
-    isUser: boolean;
-    timestamp: string;
-    searchType?: SearchType;
-  }>>([]);
+  const [hasReceivedJSON, setHasReceivedJSON] = useState(false);
+  const [showSignUp, setShowSignUp] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  
+  // Theme change handler for Settings component
+  const handleAppearanceChange = (newAppearance: string) => {
+    setAppearance(newAppearance);
+    localStorage.setItem('appearance', newAppearance);
+    
+    // Update dark mode state
+    if (newAppearance === 'auto') {
+      setIsDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches);
+    } else {
+      setIsDarkMode(newAppearance === 'dark');
+    }
+  };
+  
+  // Listen for system theme changes when in auto mode
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      if (appearance === 'auto') {
+        setIsDarkMode(e.matches);
+      }
+    };
+    
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [appearance]);
+  
+  // Apply theme to document
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDarkMode);
+    document.body.classList.toggle('dark-theme', isDarkMode);
+    document.body.classList.toggle('light-theme', !isDarkMode);
+  }, [isDarkMode]);
+
+  // Check for existing Supabase session on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        setIsAuthLoading(true);
+        
+        // Check for existing session
+        const session = await authService.getSession();
+        const user = await authService.getCurrentUser();
+        
+        if (session && user) {
+          console.log('✅ Restored session for:', user.email);
+          setIsLoggedIn(true);
+          
+          // Set display name from user metadata or email
+          const savedUser = localStorage.getItem('celesteos_user');
+          if (savedUser) {
+            const userData = JSON.parse(savedUser);
+            setDisplayName(userData.displayName || user.email?.split('@')[0] || 'User');
+          } else {
+            setDisplayName(user.user_metadata?.display_name || user.email?.split('@')[0] || 'User');
+          }
+          
+          // Sync webhook service with restored auth state
+          setTimeout(() => {
+            completeWebhookService.syncWithSupabaseAuth();
+            // Check if tutorial should be shown for existing session
+            checkAndShowTutorial();
+          }, 500);
+        } else {
+          console.log('ℹ️ No existing session found');
+          setIsLoggedIn(false);
+        }
+      } catch (error) {
+        console.error('❌ Auth check error:', error);
+        setIsLoggedIn(false);
+      } finally {
+        setIsAuthLoading(false);
+      }
+    };
+
+    checkAuth();
+
+    // Subscribe to auth state changes
+    const unsubscribe = authService.onAuthStateChange((user) => {
+      if (user) {
+        console.log('🔄 Auth state changed - User logged in:', user.email);
+        setIsLoggedIn(true);
+        setDisplayName(user.user_metadata?.display_name || user.email?.split('@')[0] || 'User');
+        
+        // Sync webhook service with new auth state
+        setTimeout(() => {
+          completeWebhookService.syncWithSupabaseAuth();
+          // Check if tutorial should be shown after auth sync
+          checkAndShowTutorial();
+        }, 500);
+      } else {
+        console.log('🔄 Auth state changed - User logged out');
+        setIsLoggedIn(false);
+        setDisplayName('User');
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   // Check for existing session on app start
   useEffect(() => {
@@ -51,9 +164,10 @@ export default function App() {
       if (completeWebhookService.isLoggedIn()) {
         const user = completeWebhookService.getCurrentUser();
         if (user) {
-          setDisplayName(user.userName || user.email);
+          const name = user.userName || user.email || 'User';
+          setDisplayName(name);
           setIsLoggedIn(true);
-          console.log('✅ Restored session for:', user.userName);
+          console.log('✅ Restored session for:', name);
           
           // Check if user has completed tutorial
           const hasCompletedTutorial = localStorage.getItem('hasCompletedTutorial');
@@ -92,6 +206,7 @@ export default function App() {
 
   // Apply chat mode class to body for clean white workspace
   useEffect(() => {
+    document.body.classList.add('theme-transition');
     if (isLoggedIn && isChatMode) {
       document.body.classList.add('chat-mode');
     } else {
@@ -100,28 +215,23 @@ export default function App() {
     return () => document.body.classList.remove('chat-mode');
   }, [isLoggedIn, isChatMode]);
 
-  const handleLogin = async (username: string, password: string) => {
-    try {
-      const response = await completeWebhookService.login(username, password);
-      
-      if (response.success && response.data) {
-        setDisplayName(response.data.userName || username);
-        setIsLoggedIn(true);
-        console.log('✅ Login successful:', response.data);
-        
-        // Check if user has completed tutorial
-        const hasCompletedTutorial = localStorage.getItem('hasCompletedTutorial');
-        if (!hasCompletedTutorial) {
-          // Show tutorial after user logs in for the first time
-          setTimeout(() => setShowTutorial(true), 1500);
-        }
-      } else {
-        console.error('❌ Login failed:', response.error || response.message);
-        alert('Login failed: ' + (response.error || response.message || 'Unknown error'));
-      }
-    } catch (error) {
-      console.error('❌ Login error:', error);
-      alert('Login error: ' + (error instanceof Error ? error.message : 'Network error'));
+  const handleLogin = async (email: string, password: string) => {
+    // Note: The actual authentication is handled in the Login component via Supabase
+    // This handler is kept for compatibility but auth state is managed by authService listener
+    console.log('🔄 Login process initiated for:', email);
+  };
+
+  const handleSignUp = async (firstName: string, lastName: string, email: string, password: string) => {
+    // Note: This is handled by Supabase now, but kept for compatibility
+    console.log('🔄 Signup process initiated for:', email);
+  };
+
+  // Consolidated tutorial trigger function
+  const checkAndShowTutorial = () => {
+    const hasCompletedTutorial = localStorage.getItem('hasCompletedTutorial');
+    if (!hasCompletedTutorial && isLoggedIn) {
+      console.log('🎓 Triggering tutorial for new user');
+      setTimeout(() => setShowTutorial(true), 1000);
     }
   };
 
@@ -133,7 +243,7 @@ export default function App() {
     
     // Add user message to chat immediately
     const userMessageId = `msg_${Date.now()}_user`;
-    const userMessage = {
+    const userMessage: ChatMessage = {
       id: userMessageId,
       content: message,
       isUser: true,
@@ -151,32 +261,60 @@ export default function App() {
     // Send message to backend via webhook
     try {
       const webhookSearchType = searchType === 'email-yacht' ? 'email' : (searchType || 'local');
-      const response = await completeWebhookService.sendTextChat(message, webhookSearchType as 'local' | 'yacht' | 'email' | 'web');
+      const response = await completeWebhookService.sendTextChat(message, webhookSearchType as 'local' | 'yacht' | 'email');
       
       console.log('📤 Chat message sent:', message);
       console.log('📥 Backend response:', response);
       
       if (response.success && response.data) {
+        // Check if response contains JSON with solution cards
+        const isJSON = typeof response.data === 'object' && 
+          (response.data.items || response.data.solutions || response.data.sources);
+        
+        if (isJSON) {
+          setHasReceivedJSON(true);
+        }
+        
         // Add bot response to chat
         const botMessageId = `msg_${Date.now()}_bot`;
-        const botMessage = {
+        
+        // Pass the raw response data to let ChatMessage component handle formatting
+        const botMessage: ChatMessage = {
           id: botMessageId,
-          content: response.data.response || 'Response received',
+          content: response.data, // Pass the entire response object
           isUser: false,
           timestamp: new Date().toISOString(),
-          searchType
+          searchType,
+          metadata: response.data.metadata,
+          isStreaming: true // Enable streaming animation
         };
         setChatMessages(prev => [...prev, botMessage]);
+        
+        // Mark streaming complete after animation duration
+        const streamDuration = typeof response.data === 'string' 
+          ? response.data.length * 20 
+          : (response.data.answer || response.data.message || '').length * 20;
+        
+        setTimeout(() => {
+          setChatMessages(prev => 
+            prev.map(msg => 
+              msg.id === botMessageId 
+                ? { ...msg, isStreaming: false }
+                : msg
+            )
+          );
+        }, Math.min(streamDuration, 5000)); // Cap at 5 seconds
       } else {
         console.error('❌ Chat failed:', response.error);
         // Add error message to chat
         const errorMessageId = `msg_${Date.now()}_error`;
-        const errorMessage = {
+        const errorMessage: ChatMessage = {
           id: errorMessageId,
           content: `Error: ${response.error || 'Unknown error'}`,
           isUser: false,
           timestamp: new Date().toISOString(),
-          searchType
+          searchType,
+          isStreaming: true
         };
         setChatMessages(prev => [...prev, errorMessage]);
       }
@@ -184,12 +322,13 @@ export default function App() {
       console.error('❌ Chat error:', error);
       // Add error message to chat
       const errorMessageId = `msg_${Date.now()}_error`;
-      const errorMessage = {
+      const errorMessage: ChatMessage = {
         id: errorMessageId,
         content: `Network error: ${error instanceof Error ? error.message : 'Connection failed'}`,
         isUser: false,
         timestamp: new Date().toISOString(),
-        searchType
+        searchType,
+        isStreaming: true
       };
       setChatMessages(prev => [...prev, errorMessage]);
     }
@@ -221,14 +360,34 @@ export default function App() {
     }
   };
 
-  const isDarkMode = appearance === 'dark';
+  // isDarkMode now comes from ThemeProvider
 
   if (showComparison) {
     return <DesktopMobileComparison />;
   }
 
+  // Show loading state while checking auth
+  if (isAuthLoading) {
+    return (
+      <div className={`flex h-full w-full items-center justify-center ${isDarkMode ? 'dark' : ''}`} style={{
+        backgroundColor: isDarkMode ? '#0f0b12' : '#ffffff',
+      }}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`flex h-full w-full flex-col relative overflow-hidden chat-mode-transition ${isDarkMode ? 'dark' : ''}`}>
+    <div className={`flex h-full w-full flex-col relative overflow-hidden chat-mode-transition theme-transition ${isDarkMode ? 'dark' : ''}`} style={{
+      animation: 'fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+      backgroundColor: isDarkMode ? '#0f0b12' : '#ffffff',
+      minHeight: '100vh',
+      color: isDarkMode ? '#f6f7fb' : '#1f2937',
+      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+    }}>
       {/* Background System */}
       <BackgroundSystem 
         isDarkMode={isDarkMode}
@@ -254,38 +413,57 @@ export default function App() {
           isVisible={showTutorial}
           onComplete={() => setShowTutorial(false)}
           isDarkMode={isDarkMode}
+          messageCount={chatMessages.length}
+          hasReceivedJSON={hasReceivedJSON}
         />
       )}
 
-      {/* Ask Alex Modal */}
-      {showAskAlex && (
-        <AskAlex
-          isDarkMode={isDarkMode}
-          onClose={() => setShowAskAlex(false)}
-          isMobile={isMobile}
-        />
-      )}
 
-      {/* Show Login Page if not logged in and intro is complete */}
+      {/* Show Login or SignUp Page if not logged in and intro is complete */}
       {!showIntro && !isLoggedIn ? (
-        <div className="relative z-10 h-full w-full">
-          <Login onLogin={handleLogin} isMobile={isMobile} />
+        <div className="relative z-10 h-full w-full" style={{
+          animation: 'scaleIn 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
+        }}>
+          {showSignUp ? (
+            <SignUp 
+              onSignUp={handleSignUp} 
+              onBack={() => setShowSignUp(false)}
+              isMobile={isMobile}
+              isDarkMode={isDarkMode}
+            />
+          ) : (
+            <Login 
+              onLogin={handleLogin} 
+              onSignUp={() => setShowSignUp(true)}
+              isMobile={isMobile}
+              isDarkMode={isDarkMode}
+            />
+          )}
         </div>
       ) : !showIntro && isLoggedIn ? (
         <>
-          {/* Settings Modal */}
-          <Settings 
-            isOpen={isSettingsOpen} 
-            onClose={handleCloseSettings} 
-            isMobile={isMobile}
-            displayName={displayName}
-            onDisplayNameChange={setDisplayName}
-            isChatMode={isChatMode}
-            appearance={appearance}
-            onAppearanceChange={setAppearance}
-          />
+          {/* Ask Alex Page */}
+          {showAskAlex ? (
+            <AskAlexPage 
+              onBack={() => setShowAskAlex(false)}
+              isDarkMode={isDarkMode}
+              isMobile={isMobile}
+            />
+          ) : (
+            <>
+              {/* Settings Modal */}
+              <Settings 
+                isOpen={isSettingsOpen} 
+                onClose={handleCloseSettings} 
+                isMobile={isMobile}
+                displayName={displayName}
+                onDisplayNameChange={setDisplayName}
+                isChatMode={isChatMode}
+                appearance={appearance}
+                onAppearanceChange={handleAppearanceChange}
+              />
 
-          <div className="relative flex h-full w-full flex-1 transition-colors z-10">
+              <div className="relative flex h-full w-full flex-1 transition-colors z-10">
             {/* Mobile Header */}
             {isMobile && (
               <MobileHeader 
@@ -346,14 +524,26 @@ export default function App() {
                           selectedModel={selectedModel}
                           onModelChange={handleModelChange}
                           messages={chatMessages}
+                          onAskAlexClick={() => setShowAskAlex(true)}
                         />
                       </div>
+                      {/* Show preloaded questions when no messages, regardless of chat mode */}
+                      {chatMessages.length === 0 && (
+                        <div className="flex-shrink-0">
+                          <PreloadedQuestions 
+                            onQuestionClick={handleStartChat}
+                            isDarkMode={isDarkMode}
+                            isMobile={isMobile}
+                          />
+                        </div>
+                      )}
                       <div className="flex-shrink-0">
                         <InputArea 
                           onStartChat={handleStartChat} 
                           isMobile={isMobile}
                           isDarkMode={isDarkMode}
                           currentSearchType={currentSearchType}
+                          showFAQSuggestions={chatMessages.length === 0}
                         />
                       </div>
                     </div>
@@ -362,7 +552,8 @@ export default function App() {
               </div>
             </div>
           </div>
-
+            </>
+          )}
 
         </>
       ) : null}

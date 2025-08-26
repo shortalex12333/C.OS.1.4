@@ -1,76 +1,24 @@
 import React from 'react';
 import { ChevronDown } from 'lucide-react';
+import { Switch } from '../ui/switch';
+import { darkTheme } from '../../styles/darkModeTheme';
 
-// =====================================================
-// UNIFIED DESIGN SYSTEM - CLEAN AND CONSISTENT
-// =====================================================
-
-const DESIGN_TOKENS = {
-  // Colors - Simple, clean palette
-  colors: {
-    background: '#ffffff',
-    backgroundSecondary: '#f8f9fa',
-    border: '#e9ecef',
-    text: {
-      primary: '#212529',
-      secondary: '#6c757d',
-      muted: '#adb5bd'
-    },
-    accent: '#0d6efd',
-    input: {
-      background: '#ffffff',
-      border: '#ced4da',
-      focus: '#0d6efd'
-    }
-  },
-  // Typography - Consistent hierarchy
-  typography: {
-    sizes: {
-      header: '24px',
-      subheader: '16px',
-      body: '14px',
-      caption: '12px'
-    },
-    weights: {
-      normal: '400',
-      medium: '500',
-      semibold: '600'
-    },
-    family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
-  },
-  // Spacing - 8px grid system
-  spacing: {
-    xs: '4px',
-    sm: '8px',
-    md: '16px',
-    lg: '24px',
-    xl: '32px'
-  },
-  // Border radius - Consistent rounding
-  radius: {
-    sm: '4px',
-    md: '8px',
-    lg: '12px'
-  }
-};
-
-// =====================================================
-// SECTION HEADER COMPONENT
-// =====================================================
 interface SectionHeaderProps {
   title: string;
+  isMobile?: boolean;
+  isDarkMode?: boolean;
 }
 
-export const SectionHeader = ({ title }: SectionHeaderProps) => (
-  <div style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
+export const SectionHeader = ({ title, isMobile = false, isDarkMode = false }: SectionHeaderProps) => (
+  <div style={{ marginBottom: 'var(--spacing-6)' }}>
     <h2 
       style={{
-        fontSize: DESIGN_TOKENS.typography.sizes.header,
-        fontWeight: DESIGN_TOKENS.typography.weights.semibold,
-        color: DESIGN_TOKENS.colors.text.primary,
-        fontFamily: DESIGN_TOKENS.typography.family,
-        margin: 0,
-        lineHeight: 1.2
+        fontSize: isMobile ? '20px' : '22px',
+        lineHeight: isMobile ? '26px' : '28px',
+        fontWeight: '400',
+        color: isDarkMode ? darkTheme.text.primary : '#1f2937',
+        fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        margin: '0'
       }}
     >
       {title}
@@ -78,10 +26,48 @@ export const SectionHeader = ({ title }: SectionHeaderProps) => (
   </div>
 );
 
-// =====================================================
-// SETTINGS ROW COMPONENT - CLEAN AND SIMPLE
-// =====================================================
-interface SettingsRowProps {
+interface FormGroupProps {
+  label: string;
+  children: React.ReactNode;
+  description?: string;
+  isDarkMode?: boolean;
+}
+
+export const FormGroup = ({ label, children, description, isDarkMode = false }: FormGroupProps) => (
+  <div style={{ marginBottom: 'var(--spacing-6)' }}>
+    <label 
+      style={{
+        display: 'block',
+        fontSize: '14px',
+        lineHeight: '20px',
+        fontWeight: '500',
+        color: isDarkMode ? darkTheme.text.primary : '#374151',
+        fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        marginBottom: 'var(--spacing-2)'
+      }}
+    >
+      {label}
+    </label>
+    {children}
+    {description && (
+      <p 
+        style={{
+          fontSize: '13px',
+          lineHeight: '18px',
+          fontWeight: '400',
+          color: isDarkMode ? darkTheme.text.secondary : '#6b7280',
+          fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          marginTop: 'var(--spacing-1)',
+          margin: '0'
+        }}
+      >
+        {description}
+      </p>
+    )}
+  </div>
+);
+
+interface AppleSettingsRowProps {
   label: string;
   value: string;
   isEditable?: boolean;
@@ -89,88 +75,114 @@ interface SettingsRowProps {
   type?: 'text' | 'select';
   options?: { value: string; label: string }[];
   placeholder?: string;
+  isMobile?: boolean;
+  isDarkMode?: boolean;
 }
 
-export const SettingsRow = ({ 
+export const AppleSettingsRow = ({ 
   label, 
   value, 
   isEditable = false,
   onChange,
   type = 'text',
   options,
-  placeholder
-}: SettingsRowProps) => (
+  placeholder,
+  isMobile = false,
+  isDarkMode = false
+}: AppleSettingsRowProps) => (
   <div 
     style={{
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: `${DESIGN_TOKENS.spacing.md} 0`,
-      borderBottom: `1px solid ${DESIGN_TOKENS.colors.border}`,
-      minHeight: '56px'
+      padding: isMobile ? 'var(--spacing-3) var(--spacing-4)' : 'var(--spacing-4)',
+      borderBottom: isDarkMode ? `1px solid ${darkTheme.sidebar.border}` : '1px solid rgba(255, 255, 255, 0.2)',
+      minHeight: isMobile ? '44px' : '48px',
+      background: isDarkMode ? darkTheme.backgrounds.tertiary : 'rgba(255, 255, 255, 0.4)',
+      backdropFilter: isDarkMode ? 'none' : 'blur(8px)',
+      WebkitBackdropFilter: isDarkMode ? 'none' : 'blur(8px)',
+      transition: 'all 0.2s ease'
     }}
   >
-    {/* Label */}
     <div 
       style={{
-        fontSize: DESIGN_TOKENS.typography.sizes.body,
-        fontWeight: DESIGN_TOKENS.typography.weights.normal,
-        color: DESIGN_TOKENS.colors.text.primary,
-        fontFamily: DESIGN_TOKENS.typography.family,
-        minWidth: '120px',
-        marginRight: DESIGN_TOKENS.spacing.md
+        fontSize: isMobile ? '14px' : '16px',
+        lineHeight: '20px',
+        fontWeight: '400',
+        color: isDarkMode ? darkTheme.text.primary : '#1f2937',
+        fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        flex: '0 0 auto',
+        marginRight: 'var(--spacing-2)',
+        minWidth: isMobile ? '120px' : '140px',
+        whiteSpace: isMobile ? 'nowrap' : 'normal'
       }}
     >
       {label}
     </div>
     
-    {/* Value/Input */}
     <div style={{ 
-      flex: 1, 
-      maxWidth: '200px',
-      textAlign: 'right'
+      flex: '1 1 auto', 
+      textAlign: 'right', 
+      maxWidth: isMobile ? '45%' : '60%', 
+      position: 'relative',
+      minWidth: '0'
     }}>
       {isEditable ? (
         type === 'select' && options ? (
-          <div style={{ position: 'relative' }}>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <select
               value={value}
               onChange={(e) => onChange?.(e.target.value)}
               style={{
                 appearance: 'none',
-                background: DESIGN_TOKENS.colors.input.background,
-                border: `1px solid ${DESIGN_TOKENS.colors.input.border}`,
-                borderRadius: DESIGN_TOKENS.radius.sm,
-                padding: `${DESIGN_TOKENS.spacing.sm} ${DESIGN_TOKENS.spacing.lg} ${DESIGN_TOKENS.spacing.sm} ${DESIGN_TOKENS.spacing.sm}`,
-                fontSize: DESIGN_TOKENS.typography.sizes.body,
-                fontFamily: DESIGN_TOKENS.typography.family,
-                color: DESIGN_TOKENS.colors.text.primary,
-                width: '100%',
-                cursor: 'pointer',
+                background: isDarkMode ? darkTheme.inputs.background : 'rgba(255, 255, 255, 0.6)',
+                border: isDarkMode ? `1px solid ${darkTheme.inputs.border}` : '1px solid rgba(255, 255, 255, 0.3)',
                 outline: 'none',
-                transition: 'border-color 0.2s ease'
+                fontSize: isMobile ? '13px' : '16px',
+                lineHeight: '20px',
+                fontWeight: '400',
+                color: isDarkMode ? darkTheme.inputs.text : '#6b7280',
+                fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                textAlign: 'right',
+                cursor: 'pointer',
+                width: '100%',
+                padding: isMobile ? 'var(--spacing-1) var(--spacing-5) var(--spacing-1) var(--spacing-2)' : 'var(--spacing-2) var(--spacing-6) var(--spacing-2) var(--spacing-2)',
+                borderRadius: '8px',
+                backdropFilter: isDarkMode ? 'none' : 'blur(4px)',
+                WebkitBackdropFilter: isDarkMode ? 'none' : 'blur(4px)',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                transition: 'all 0.2s ease'
               }}
               onFocus={(e) => {
-                e.target.style.borderColor = DESIGN_TOKENS.colors.accent;
+                e.target.style.background = isDarkMode ? darkTheme.inputs.backgroundFocus : 'rgba(255, 255, 255, 0.8)';
+                e.target.style.color = isDarkMode ? darkTheme.inputs.textFocus : '#1f2937';
+                e.target.style.borderColor = isDarkMode ? darkTheme.inputs.borderFocus : 'rgba(255, 255, 255, 0.5)';
+                e.target.style.boxShadow = isDarkMode ? `${darkTheme.inputs.focusRing}, ${darkTheme.inputs.focusGlow}` : '0 0 0 2px rgba(59, 130, 246, 0.1)';
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = DESIGN_TOKENS.colors.input.border;
+                e.target.style.background = isDarkMode ? darkTheme.inputs.background : 'rgba(255, 255, 255, 0.6)';
+                e.target.style.color = isDarkMode ? darkTheme.inputs.text : '#6b7280';
+                e.target.style.borderColor = isDarkMode ? darkTheme.inputs.border : 'rgba(255, 255, 255, 0.3)';
+                e.target.style.boxShadow = 'none';
               }}
             >
-              {options.map(option => (
+              {options.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
             </select>
             <ChevronDown 
-              className="w-4 h-4" 
               style={{
                 position: 'absolute',
-                right: DESIGN_TOKENS.spacing.sm,
+                right: isMobile ? 'var(--spacing-1)' : 'var(--spacing-2)',
                 top: '50%',
                 transform: 'translateY(-50%)',
-                color: DESIGN_TOKENS.colors.text.muted,
+                width: '16px',
+                height: '16px',
+                color: isDarkMode ? darkTheme.text.tertiary : '#6b7280',
                 pointerEvents: 'none'
               }}
             />
@@ -182,33 +194,51 @@ export const SettingsRow = ({
             onChange={(e) => onChange?.(e.target.value)}
             placeholder={placeholder}
             style={{
-              background: DESIGN_TOKENS.colors.input.background,
-              border: `1px solid ${DESIGN_TOKENS.colors.input.border}`,
-              borderRadius: DESIGN_TOKENS.radius.sm,
-              padding: `${DESIGN_TOKENS.spacing.sm} ${DESIGN_TOKENS.spacing.sm}`,
-              fontSize: DESIGN_TOKENS.typography.sizes.body,
-              fontFamily: DESIGN_TOKENS.typography.family,
-              color: DESIGN_TOKENS.colors.text.primary,
-              width: '100%',
+              background: isDarkMode ? darkTheme.inputs.background : 'rgba(255, 255, 255, 0.6)',
+              border: isDarkMode ? `1px solid ${darkTheme.inputs.border}` : '1px solid rgba(255, 255, 255, 0.3)',
               outline: 'none',
+              fontSize: isMobile ? '13px' : '16px',
+              lineHeight: '20px',
+              fontWeight: '400',
+              color: isDarkMode ? darkTheme.inputs.text : '#6b7280',
+              fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
               textAlign: 'right',
-              transition: 'border-color 0.2s ease'
+              width: '100%',
+              padding: isMobile ? 'var(--spacing-1) var(--spacing-2)' : 'var(--spacing-2)',
+              borderRadius: '8px',
+              backdropFilter: isDarkMode ? 'none' : 'blur(4px)',
+              WebkitBackdropFilter: isDarkMode ? 'none' : 'blur(4px)',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
             }}
             onFocus={(e) => {
-              e.target.style.borderColor = DESIGN_TOKENS.colors.accent;
+              e.target.style.background = isDarkMode ? darkTheme.inputs.backgroundFocus : 'rgba(255, 255, 255, 0.8)';
+              e.target.style.color = isDarkMode ? darkTheme.inputs.textFocus : '#1f2937';
+              e.target.style.borderColor = isDarkMode ? darkTheme.inputs.borderFocus : 'rgba(255, 255, 255, 0.5)';
+              e.target.style.boxShadow = isDarkMode ? `${darkTheme.inputs.focusRing}, ${darkTheme.inputs.focusGlow}` : '0 0 0 2px rgba(59, 130, 246, 0.1)';
+              e.target.style.transition = `all ${darkTheme.effects.timingFast} ${darkTheme.effects.easingDefault}`;
             }}
             onBlur={(e) => {
-              e.target.style.borderColor = DESIGN_TOKENS.colors.input.border;
+              e.target.style.background = isDarkMode ? darkTheme.inputs.background : 'rgba(255, 255, 255, 0.6)';
+              e.target.style.color = isDarkMode ? darkTheme.inputs.text : '#6b7280';
+              e.target.style.borderColor = isDarkMode ? darkTheme.inputs.border : 'rgba(255, 255, 255, 0.3)';
+              e.target.style.boxShadow = 'none';
             }}
           />
         )
       ) : (
         <div 
           style={{
-            fontSize: DESIGN_TOKENS.typography.sizes.body,
-            fontFamily: DESIGN_TOKENS.typography.family,
-            color: DESIGN_TOKENS.colors.text.secondary,
-            textAlign: 'right'
+            fontSize: isMobile ? '13px' : '16px',
+            lineHeight: '20px',
+            fontWeight: '400',
+            color: isDarkMode ? darkTheme.text.secondary : '#6b7280',
+            fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            textAlign: 'right',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
           }}
         >
           {value}
@@ -218,23 +248,185 @@ export const SettingsRow = ({
   </div>
 );
 
-// =====================================================
-// SETTINGS SECTION CONTAINER
-// =====================================================
-interface SettingsSectionProps {
-  children: React.ReactNode;
+interface SwitchRowProps {
+  label: string;
+  description?: string;
+  checked: boolean;
+  onCheckedChange?: (checked: boolean) => void;
+  isMobile?: boolean;
+  isDarkMode?: boolean;
 }
 
-export const SettingsSection = ({ children }: SettingsSectionProps) => (
+export const SwitchRow = ({ 
+  label, 
+  description, 
+  checked, 
+  onCheckedChange,
+  isMobile = false,
+  isDarkMode = false
+}: SwitchRowProps) => (
   <div 
     style={{
-      background: DESIGN_TOKENS.colors.background,
-      border: `1px solid ${DESIGN_TOKENS.colors.border}`,
-      borderRadius: DESIGN_TOKENS.radius.md,
-      padding: DESIGN_TOKENS.spacing.lg,
-      marginBottom: DESIGN_TOKENS.spacing.lg
+      display: 'flex',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      padding: isMobile ? 'var(--spacing-3) var(--spacing-4)' : 'var(--spacing-4)',
+      borderBottom: isDarkMode ? `1px solid ${darkTheme.sidebar.border}` : '1px solid rgba(255, 255, 255, 0.2)',
+      minHeight: isMobile ? '44px' : '48px',
+      background: isDarkMode ? darkTheme.backgrounds.tertiary : 'rgba(255, 255, 255, 0.4)',
+      backdropFilter: isDarkMode ? 'none' : 'blur(8px)',
+      WebkitBackdropFilter: isDarkMode ? 'none' : 'blur(8px)'
     }}
   >
-    {children}
+    <div style={{ flex: 1, marginRight: 'var(--spacing-3)' }}>
+      <div 
+        style={{
+          fontSize: isMobile ? '15px' : '16px',
+          lineHeight: '20px',
+          fontWeight: '400',
+          color: isDarkMode ? darkTheme.text.primary : '#1f2937',
+          fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          marginBottom: description ? 'var(--spacing-1)' : '0'
+        }}
+      >
+        {label}
+      </div>
+      {description && (
+        <div 
+          style={{
+            fontSize: isMobile ? '13px' : '14px',
+            lineHeight: '18px',
+            fontWeight: '400',
+            color: isDarkMode ? darkTheme.text.secondary : '#6b7280',
+            fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+          }}
+        >
+          {description}
+        </div>
+      )}
+    </div>
+    <Switch
+      checked={checked}
+      onCheckedChange={onCheckedChange}
+      style={{ flexShrink: 0 }}
+    />
   </div>
 );
+
+interface UnifiedTextareaProps {
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  placeholder?: string;
+  rows?: number;
+  isDarkMode?: boolean;
+}
+
+export const UnifiedTextarea = ({ value, onChange, placeholder, rows = 4, isDarkMode = false }: UnifiedTextareaProps) => (
+  <textarea
+    value={value}
+    onChange={onChange}
+    placeholder={placeholder}
+    rows={rows}
+    style={{
+      width: '100%',
+      maxWidth: '400px',
+      padding: 'var(--spacing-3)',
+      fontSize: '16px',
+      lineHeight: '24px',
+      fontWeight: '400',
+      color: isDarkMode ? darkTheme.inputs.text : '#1f2937',
+      fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      background: isDarkMode ? darkTheme.inputs.background : 'rgba(255, 255, 255, 0.6)',
+      border: isDarkMode ? `1px solid ${darkTheme.inputs.border}` : '1px solid rgba(255, 255, 255, 0.3)',
+      borderRadius: '8px',
+      outline: 'none',
+      resize: 'vertical',
+      transition: 'all 0.2s ease',
+      boxSizing: 'border-box',
+      minHeight: '100px',
+      backdropFilter: isDarkMode ? 'none' : 'blur(4px)',
+      WebkitBackdropFilter: isDarkMode ? 'none' : 'blur(4px)'
+    }}
+    onFocus={(e) => {
+      e.target.style.background = isDarkMode ? darkTheme.inputs.backgroundFocus : 'rgba(255, 255, 255, 0.8)';
+      e.target.style.borderColor = isDarkMode ? darkTheme.inputs.borderFocus : 'rgba(59, 130, 246, 0.4)';
+      e.target.style.boxShadow = isDarkMode ? `0 0 0 3px ${darkTheme.inputs.borderFocus}33` : '0 0 0 3px rgba(59, 130, 246, 0.1)';
+    }}
+    onBlur={(e) => {
+      e.target.style.background = isDarkMode ? darkTheme.inputs.background : 'rgba(255, 255, 255, 0.6)';
+      e.target.style.borderColor = isDarkMode ? darkTheme.inputs.border : 'rgba(255, 255, 255, 0.3)';
+      e.target.style.boxShadow = 'none';
+    }}
+  />
+);
+
+interface MobileSectionHeaderProps {
+  section: {
+    id: string;
+    label: string;
+    icon: React.ComponentType<any>;
+  };
+  isExpanded: boolean;
+  onToggle: () => void;
+}
+
+export const MobileSectionHeader = ({ 
+  section, 
+  isExpanded, 
+  onToggle 
+}: MobileSectionHeaderProps) => {
+  const Icon = section.icon;
+  return (
+    <button
+      onClick={onToggle}
+      className="w-full flex items-center justify-between text-left transition-all duration-200"
+      style={{
+        padding: 'var(--spacing-4)',
+        background: 'rgba(255, 255, 255, 0.6)',
+        backdropFilter: 'blur(16px) saturate(1.1)',
+        WebkitBackdropFilter: 'blur(16px) saturate(1.1)',
+        border: '1px solid rgba(255, 255, 255, 0.3)',
+        borderRadius: '12px',
+        marginBottom: isExpanded ? '0' : 'var(--spacing-3)',
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.05)',
+        cursor: 'pointer'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.8)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)';
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)' }}>
+        <Icon 
+          style={{
+            width: '18px',
+            height: '18px',
+            color: '#6b7280'
+          }}
+        />
+        <span 
+          style={{
+            fontSize: '16px',
+            lineHeight: '20px',
+            fontWeight: '500',
+            color: '#1f2937',
+            fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+          }}
+        >
+          {section.label}
+        </span>
+      </div>
+      <ChevronDown 
+        style={{
+          width: '16px',
+          height: '16px',
+          color: '#6b7280',
+          transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+          transition: 'transform 0.2s ease'
+        }}
+      />
+    </button>
+  );
+};

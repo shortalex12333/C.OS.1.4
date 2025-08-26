@@ -17,3 +17,40 @@ html, body, #root {
   margin: 0;
   padding: 0;
 }
+
+/* Premium modal entrance animation */
+@keyframes modalEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Glass morphism for premium depth */
+.glass-subtle {
+  backdrop-filter: blur(8px) saturate(1.2);
+  -webkit-backdrop-filter: blur(8px) saturate(1.2);
+}
+
+.glass-medium {
+  backdrop-filter: blur(16px) saturate(1.5);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+}
+
+.glass-strong {
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+}
+
+/* Premium focus transitions */
+.premium-focus {
+  transition: all 240ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.premium-focus:focus {
+  transform: translateY(-1px);
+}

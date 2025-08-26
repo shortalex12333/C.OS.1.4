@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, Zap, Target, Wind, Check } from 'lucide-react';
+import { ChevronDown, Zap, Target, Wind, Check, Sparkles } from 'lucide-react';
 
 interface ModelType {
   id: 'power' | 'reach' | 'air';
@@ -14,6 +14,7 @@ interface MainHeaderProps {
   isChatMode?: boolean;
   selectedModel?: string;
   onModelChange?: (modelId: string) => void;
+  onAskAlexClick?: () => void;
 }
 
 const models: ModelType[] = [
@@ -37,7 +38,7 @@ const models: ModelType[] = [
   }
 ];
 
-export function MainHeader({ isMobile = false, isDarkMode = false, isChatMode = false, selectedModel = 'air', onModelChange }: MainHeaderProps) {
+export function MainHeader({ isMobile = false, isDarkMode = false, isChatMode = false, selectedModel = 'air', onModelChange, onAskAlexClick }: MainHeaderProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleModelSelect = (modelId: string) => {
@@ -315,6 +316,27 @@ export function MainHeader({ isMobile = false, isDarkMode = false, isChatMode = 
           <selectedModelData.icon className="w-4 h-4" />
           <span>{selectedModelData.name}</span>
         </div>
+      )}
+      
+      {/* ASK ALEX Button - Always visible in top right */}
+      {onAskAlexClick && (
+        <button
+          onClick={onAskAlexClick}
+          className="absolute top-4 right-4 flex items-center gap-2 px-4 py-2 rounded-lg transition-all hover:scale-105"
+          style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: '#fff',
+            border: 'none',
+            boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+            fontSize: isMobile ? '13px' : '14px',
+            fontWeight: 600,
+            fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            cursor: 'pointer'
+          }}
+        >
+          <Sparkles size={16} />
+          <span>ASK ALEX</span>
+        </button>
       )}
     </div>
   );

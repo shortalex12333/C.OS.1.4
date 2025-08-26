@@ -4,6 +4,7 @@
  */
 
 import { WEBHOOK_BASE_URL } from '../config/webhookConfig';
+import type { WebhookResponseData, WebhookArrayResponse } from '../types/webhook';
 
 // ============ TYPE DEFINITIONS ============
 
@@ -35,7 +36,7 @@ interface TextChatPayload {
   userName: string;
   email: string;
   message: string;
-  search_strategy: 'local' | 'yacht' | 'email' | 'web';
+  search_strategy: 'local' | 'yacht' | 'email';
   conversation_id: string;
   sessionId: string;
   timestamp: string;
@@ -82,9 +83,41 @@ class CompleteWebhookService {
     this.baseUrl = WEBHOOK_BASE_URL;
     // Try to restore session from localStorage
     this.restoreSession();
+    // Sync with Supabase authentication
+    this.syncWithSupabaseAuth();
   }
 
   // ============ HELPER METHODS ============
+
+  /**
+   * Sync with Supabase authentication data
+   * Converts Supabase user format to webhook service format
+   */
+  public syncWithSupabaseAuth(): void {
+    try {
+      const supabaseUserStr = localStorage.getItem('celesteos_user');
+      if (supabaseUserStr) {
+        const supabaseUser = JSON.parse(supabaseUserStr);
+        
+        // Convert Supabase format to webhook service format
+        if (supabaseUser.id && supabaseUser.email) {
+          this.currentUser = {
+            userId: supabaseUser.id,
+            userName: supabaseUser.displayName || supabaseUser.email.split('@')[0],
+            email: supabaseUser.email,
+            sessionId: `supabase_session_${Date.now()}`
+          };
+          
+          console.log('🔄 Synced webhook service with Supabase user:', this.currentUser);
+          
+          // Save in webhook service format for consistency
+          this.saveSession();
+        }
+      }
+    } catch (error) {
+      console.error('❌ Failed to sync with Supabase auth:', error);
+    }
+  }
 
   private async sendRequest<T = any>(
     endpoint: string,
@@ -92,7 +125,11 @@ class CompleteWebhookService {
     options: RequestInit = {},
     retryCount: number = 0
   ): Promise<WebhookResponse<T>> {
-    const url = `${this.baseUrl}${endpoint}`;
+    // Handle proxy URL format for production
+    const url = this.baseUrl.includes('endpoint=') 
+      ? `${this.baseUrl}${endpoint}` // Proxy format: /api/webhook?endpoint=text-chat
+      : `${this.baseUrl}${endpoint}`; // Direct format: http://localhost:5679/webhook/text-chat
+    
     const maxRetries = 3;
     
     // Wrap payload in the expected format with metadata
@@ -101,7 +138,9 @@ class CompleteWebhookService {
       webhookUrl: url,
       executionMode: 'production',
       retryCount,
-      clientVersion: '1.0.0'
+      clientVersion: '1.0.0',
+      // Add endpoint for proxy
+      ...(this.baseUrl.includes('endpoint=') && { endpoint })
     };
     
     try {
@@ -312,8 +351,15 @@ class CompleteWebhookService {
    * User Signup (also uses user-auth endpoint with displayName)
    */
   async signup(displayName: string, email: string, password: string): Promise<WebhookResponse<UserAuthResponse>> {
+    // Split displayName into firstName and lastName
+    const nameParts = displayName.trim().split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || '';
+    
     const payload = {
       action: 'user_signup',
+      firstName: firstName,
+      lastName: lastName,
       username: email.toLowerCase().trim(),
       password,
       displayName: displayName.trim(),
@@ -326,7 +372,7 @@ class CompleteWebhookService {
       }
     };
 
-    const response = await this.sendRequest<UserAuthResponse>('user-auth', payload);
+    const response = await this.sendRequest<UserAuthResponse>('user-signup', payload);
     
     if (response.success && response.data) {
       this.currentUser = response.data;
@@ -343,7 +389,7 @@ class CompleteWebhookService {
     this.clearSession();
     // Optionally notify server about logout
     if (this.currentUser) {
-      await this.sendRequest('user-auth', {
+      await this.sendRequest('auth-logout', {
         action: 'logout',
         userId: this.currentUser.userId
       });
@@ -373,7 +419,7 @@ class CompleteWebhookService {
    */
   async sendTextChat(
     message: string,
-    searchStrategy: 'local' | 'yacht' | 'email' | 'web' = 'local'
+    searchStrategy: 'local' | 'yacht' | 'email' = 'local'
   ): Promise<WebhookResponse<any>> {
     if (!this.currentUser) {
       return {
@@ -405,7 +451,63 @@ class CompleteWebhookService {
       }
     };
 
-    return this.sendRequest('text-chat', payload);
+    const response = await this.sendRequest('text-chat', payload);
+    
+    // Handle different response formats from webhook
+    if (response.success && response.data) {
+      let responseData = response.data;
+      
+      // Handle array response from webhook (webhook returns [{response: {...}}])
+      if (Array.isArray(responseData) && responseData.length > 0) {
+        const firstItem = responseData[0];
+        responseData = {
+          success: true,
+          answer: firstItem.response?.answer || firstItem.answer || 'Response received',
+          messageId: firstItem.query_id || `msg_${Date.now()}`,
+          timestamp: firstItem.timestamp || new Date().toISOString(),
+          items: firstItem.response?.items || firstItem.items || [],
+          sources: firstItem.response?.sources || firstItem.sources || [],
+          references: firstItem.response?.references || firstItem.references || [],
+          summary: firstItem.response?.summary || firstItem.summary || '',
+          metadata: firstItem.metadata || {}
+        };
+      }
+      // Handle direct object response
+      else if (typeof responseData === 'object') {
+        responseData = {
+          success: true,
+          answer: responseData.answer || responseData.response || responseData.message || 'Response received',
+          messageId: responseData.query_id || responseData.messageId || `msg_${Date.now()}`,
+          timestamp: responseData.timestamp || new Date().toISOString(),
+          items: responseData.items || [],
+          sources: responseData.sources || [],
+          references: responseData.references || [],
+          summary: responseData.summary || '',
+          metadata: responseData.metadata || {}
+        };
+      }
+      // Handle string response
+      else if (typeof responseData === 'string') {
+        responseData = {
+          success: true,
+          answer: responseData,
+          messageId: `msg_${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          items: [],
+          sources: [],
+          references: [],
+          summary: '',
+          metadata: {}
+        };
+      }
+      
+      return {
+        success: true,
+        data: responseData
+      };
+    }
+    
+    return response;
   }
 
   // ============ MICROSOFT INTEGRATION WEBHOOKS ============

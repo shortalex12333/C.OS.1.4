@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CelesteOS - Responsive Test Suite</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .device-frame {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        .device-header {
+            background: #333;
+            color: white;
+            padding: 10px 15px;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .device-size {
+            background: #4CAF50;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .iframe-wrapper {
+            position: relative;
+            width: 100%;
+            background: #f5f5f5;
+        }
+        
+        iframe {
+            width: 100%;
+            border: none;
+            display: block;
+        }
+        
+        /* Specific device sizes */
+        .mobile-frame iframe {
+            height: 667px;
+        }
+        
+        .tablet-frame iframe {
+            height: 600px;
+        }
+        
+        .desktop-frame iframe {
+            height: 600px;
+        }
+        
+        .test-controls {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .test-section {
+            margin-bottom: 20px;
+        }
+        
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .test-checklist {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .test-checklist li {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .test-checklist input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: auto;
+        }
+        
+        .status.pass {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .status.fail {
+            background: #f44336;
+            color: white;
+        }
+        
+        .status.pending {
+            background: #FFC107;
+            color: white;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #5a67d8;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 CelesteOS - Responsive Testing Suite</h1>
+        
+        <div class="test-controls">
+            <div class="alert info">
+                <strong>Test Credentials:</strong><br>
+                Email: shortalex@hotmail.co.uk | Password: Password1!<br>
+                Email: x@alex-short.com | Password: Password1!
+            </div>
+            
+            <div class="test-section">
+                <h3>📱 Mobile Tests (375px)</h3>
+                <ul class="test-checklist">
+                    <li>
+                        <input type="checkbox" id="mobile-login">
+                        <label for="mobile-login">Login page displays correctly</label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="mobile-signup">
+                        <label for="mobile-signup">Sign up form is fully visible and functional</label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="mobile-nav">
+                        <label for="mobile-nav">Mobile navigation works properly</label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="mobile-chat">
+                        <label for="mobile-chat">Chat interface is responsive</label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="mobile-settings">
+                        <label for="mobile-settings">Settings modal adapts to mobile</label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="mobile-logout">
+                        <label for="mobile-logout">Logout functionality works</label>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="test-section">
+                <h3>💻 Desktop Tests (1440px)</h3>
+                <ul class="test-checklist">
+                    <li>
+                        <input type="checkbox" id="desktop-login">
+                        <label for="desktop-login">Login page centered and styled correctly</label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="desktop-sidebar">
+                        <label for="desktop-sidebar">Sidebar displays and collapses properly</label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="desktop-chat">
+                        <label for="desktop-chat">Chat area uses full width appropriately</label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="desktop-theme">
+                        <label for="desktop-theme">Dark/Light theme switching works</label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="desktop-session">
+                        <label for="desktop-session">Session persists after refresh</label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="desktop-password">
+                        <label for="desktop-password">Password reset flow works</label>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="test-section">
+                <h3>🔐 Authentication Tests</h3>
+                <ul class="test-checklist">
+                    <li>
+                        <input type="checkbox" id="auth-login">
+                        <label for="auth-login">Successful login with valid credentials</label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="auth-error">
+                        <label for="auth-error">Error messages display for invalid credentials</label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="auth-signup">
+                        <label for="auth-signup">New user registration works</label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="auth-validation">
+                        <label for="auth-validation">Form validation prevents invalid submissions</label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="auth-remember">
+                        <label for="auth-remember">"Remember me" functionality works</label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="auth-logout">
+                        <label for="auth-logout">Logout clears session completely</label>
+                    </li>
+                </ul>
+            </div>
+            
+            <button onclick="refreshAll()">🔄 Refresh All Views</button>
+            <button onclick="testAuth()">🧪 Run Auth Tests</button>
+            <button onclick="generateReport()">📊 Generate Report</button>
+        </div>
+        
+        <div class="test-grid">
+            <div class="device-frame mobile-frame">
+                <div class="device-header">
+                    <span>📱 Mobile View</span>
+                    <span class="device-size">375 x 667</span>
+                </div>
+                <div class="iframe-wrapper">
+                    <iframe 
+                        id="mobile-iframe"
+                        src="http://localhost:8085" 
+                        style="width: 375px; transform-origin: top left; transform: scale(1);"
+                    ></iframe>
+                </div>
+            </div>
+            
+            <div class="device-frame tablet-frame">
+                <div class="device-header">
+                    <span>📱 Tablet View</span>
+                    <span class="device-size">768 x 1024</span>
+                </div>
+                <div class="iframe-wrapper">
+                    <iframe 
+                        id="tablet-iframe"
+                        src="http://localhost:8085" 
+                        style="width: 768px; transform-origin: top left; transform: scale(0.6);"
+                    ></iframe>
+                </div>
+            </div>
+            
+            <div class="device-frame desktop-frame">
+                <div class="device-header">
+                    <span>💻 Desktop View</span>
+                    <span class="device-size">1440 x 900</span>
+                </div>
+                <div class="iframe-wrapper">
+                    <iframe 
+                        id="desktop-iframe"
+                        src="http://localhost:8085" 
+                        style="width: 1440px; transform-origin: top left; transform: scale(0.4);"
+                    ></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function refreshAll() {
+            document.getElementById('mobile-iframe').src = document.getElementById('mobile-iframe').src;
+            document.getElementById('tablet-iframe').src = document.getElementById('tablet-iframe').src;
+            document.getElementById('desktop-iframe').src = document.getElementById('desktop-iframe').src;
+        }
+        
+        function testAuth() {
+            alert('Please manually test authentication in each view:\n\n1. Login with shortalex@hotmail.co.uk\n2. Check session persistence\n3. Test logout\n4. Try signup with a new email\n5. Verify error handling');
+        }
+        
+        function generateReport() {
+            const checks = document.querySelectorAll('input[type="checkbox"]');
+            let passed = 0;
+            let total = checks.length;
+            
+            checks.forEach(check => {
+                if (check.checked) passed++;
+            });
+            
+            const percentage = Math.round((passed / total) * 100);
+            
+            alert(`Test Report:\n\n✅ Passed: ${passed}/${total} (${percentage}%)\n\n${percentage >= 90 ? '🎉 Excellent! Ready for production!' : percentage >= 70 ? '⚠️ Good progress, but needs some fixes.' : '❌ More work needed before deployment.'}`);
+        }
+        
+        // Auto-save checkbox states
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            // Load saved state
+            const saved = localStorage.getItem(checkbox.id);
+            if (saved === 'true') {
+                checkbox.checked = true;
+            }
+            
+            // Save state on change
+            checkbox.addEventListener('change', () => {
+                localStorage.setItem(checkbox.id, checkbox.checked);
+            });
+        });
+    </script>
+</body>
+</html>

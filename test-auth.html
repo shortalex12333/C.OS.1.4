@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Supabase Auth</title>
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+        
+        const supabaseUrl = 'https://vivovcnaapmcfxxfhzxk.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpdm92Y25hYXBtY2Z4eGZoenhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4NjQ5ODIsImV4cCI6MjA3MTQ0MDk4Mn0.eUICOqJRP_MyVMNJNlZu3Mc-1-jAG6nQE-Oy0k3Yr0E';
+        
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        
+        window.testLogin = async () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.innerHTML = 'Testing login...';
+            
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) {
+                    resultDiv.innerHTML = `<span style="color: red;">Error: ${error.message}</span>`;
+                } else {
+                    resultDiv.innerHTML = `<span style="color: green;">Success! User: ${data.user.email}</span>`;
+                    console.log('Full response:', data);
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<span style="color: red;">Exception: ${err.message}</span>`;
+            }
+        };
+        
+        window.testSignup = async () => {
+            const email = document.getElementById('new-email').value;
+            const password = document.getElementById('new-password').value;
+            const resultDiv = document.getElementById('signup-result');
+            
+            resultDiv.innerHTML = 'Creating account...';
+            
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            display_name: email.split('@')[0]
+                        }
+                    }
+                });
+                
+                if (error) {
+                    resultDiv.innerHTML = `<span style="color: red;">Error: ${error.message}</span>`;
+                } else {
+                    if (data.user && !data.session) {
+                        resultDiv.innerHTML = `<span style="color: orange;">Account created! Please check your email to verify.</span>`;
+                    } else {
+                        resultDiv.innerHTML = `<span style="color: green;">Success! User created and logged in: ${data.user.email}</span>`;
+                    }
+                    console.log('Full response:', data);
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<span style="color: red;">Exception: ${err.message}</span>`;
+            }
+        };
+        
+        window.checkSession = async () => {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            const sessionDiv = document.getElementById('session');
+            
+            if (session) {
+                sessionDiv.innerHTML = `<span style="color: green;">Active session for: ${session.user.email}</span>`;
+            } else {
+                sessionDiv.innerHTML = `<span style="color: gray;">No active session</span>`;
+            }
+        };
+        
+        window.logout = async () => {
+            const { error } = await supabase.auth.signOut();
+            if (!error) {
+                document.getElementById('session').innerHTML = 'Logged out';
+                document.getElementById('result').innerHTML = '';
+                document.getElementById('signup-result').innerHTML = '';
+            }
+        };
+        
+        // Check session on load
+        window.addEventListener('DOMContentLoaded', () => {
+            window.checkSession();
+        });
+    </script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        #result, #signup-result, #session {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            min-height: 30px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Supabase Authentication</h1>
+    
+    <div class="section">
+        <h3>Current Session</h3>
+        <div id="session">Checking...</div>
+        <button onclick="checkSession()">Refresh Session</button>
+        <button onclick="logout()" style="background: #f44336;">Logout</button>
+    </div>
+    
+    <div class="section">
+        <h2>Test Login (Existing User)</h2>
+        <input type="email" id="email" placeholder="Email" value="shortalex@hotmail.co.uk">
+        <input type="password" id="password" placeholder="Password" value="Password1!">
+        <button onclick="testLogin()">Test Login</button>
+        <div id="result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Test Signup (New User)</h2>
+        <input type="email" id="new-email" placeholder="Email" value="x@alex-short.com">
+        <input type="password" id="new-password" placeholder="Password" value="Password1!">
+        <button onclick="testSignup()">Test Signup</button>
+        <div id="signup-result"></div>
+    </div>
+</body>
+</html>

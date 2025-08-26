@@ -15,8 +15,8 @@ interface SidebarProps {
   displayName: string;
   isChatMode: boolean;
   isDarkMode?: boolean;
-  onSearchTypeChange?: (searchType: 'yacht' | 'email' | 'web') => void;
-  selectedSearchType?: 'yacht' | 'email' | 'web';
+  onSearchTypeChange?: (searchType: 'yacht' | 'email' | 'email-yacht') => void;
+  selectedSearchType?: 'yacht' | 'email' | 'email-yacht';
 }
 
 export function Sidebar({ 
@@ -33,7 +33,7 @@ export function Sidebar({
   onSearchTypeChange,
   selectedSearchType = 'yacht'
 }: SidebarProps) {
-  const [searchType, setSearchType] = useState<'chat' | 'yacht' | 'email' | 'web'>('chat');
+  const [searchType, setSearchType] = useState<'chat' | 'yacht' | 'email' | 'email-yacht'>('chat');
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [editingChat, setEditingChat] = useState<string | null>(null);
   const [editingChatName, setEditingChatName] = useState('');
@@ -103,49 +103,20 @@ export function Sidebar({
     setEditingChatName('');
   };
 
-  // Determine sidebar background and styling based on chat mode and theme
+  // Enterprise sidebar styling
   const getSidebarStyles = () => {
-    if (isDarkMode) {
-      if (isChatMode) {
-        // Dark chat mode: Royal plum with glassmorphism
-        return {
-          background: 'linear-gradient(180deg, rgba(20, 12, 24, 0.95) 0%, rgba(15, 11, 18, 0.9) 50%, rgba(20, 12, 24, 0.95) 100%)',
-          backdropFilter: 'blur(16px) saturate(1.15)',
-          WebkitBackdropFilter: 'blur(16px) saturate(1.15)',
-          borderRight: '1px solid rgba(255, 255, 255, 0.08)',
-          boxShadow: '6px 0 24px rgba(0, 0, 0, 0.25), 2px 0 8px rgba(0, 0, 0, 0.15), inset -1px 0 0 rgba(255, 255, 255, 0.06)'
-        };
-      } else {
-        // Dark homepage: Glassmorphism to show royal plum gradient background
-        return {
-          background: 'rgba(0, 0, 0, 0.15)',
-          backdropFilter: 'blur(24px) saturate(1.25)',
-          WebkitBackdropFilter: 'blur(24px) saturate(1.25)',
-          borderRight: '1px solid rgba(255, 255, 255, 0.08)',
-          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)'
-        };
-      }
-    } else {
-      if (isChatMode) {
-        // Light chat mode: Enhanced glassmorphism with light grey/white gradient and subtle shadow
-        return {
-          background: 'linear-gradient(180deg, rgba(248, 249, 251, 0.95) 0%, rgba(243, 244, 246, 0.9) 50%, rgba(249, 250, 251, 0.95) 100%)',
-          backdropFilter: 'blur(16px) saturate(1.15)',
-          WebkitBackdropFilter: 'blur(16px) saturate(1.15)',
-          borderRight: '1px solid rgba(0, 0, 0, 0.08)',
-          boxShadow: '6px 0 24px rgba(0, 0, 0, 0.12), 2px 0 8px rgba(0, 0, 0, 0.06), inset -1px 0 0 rgba(255, 255, 255, 0.3)'
-        };
-      } else {
-        // Light homepage: Glassmorphism to show blue gradient background
-        return {
-          background: 'rgba(255, 255, 255, 0.08)',
-          backdropFilter: 'blur(24px) saturate(1.25)',
-          WebkitBackdropFilter: 'blur(24px) saturate(1.25)',
-          borderRight: '1px solid rgba(255, 255, 255, 0.12)',
-          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)'
-        };
-      }
-    }
+    return {
+      backgroundColor: isDarkMode ? 'rgba(15, 11, 18, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+      borderRight: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)'}`,
+      // Add premium glassmorphism effects for chat mode
+      ...(isChatMode ? {
+        backdropFilter: 'blur(20px) saturate(1.8)',
+        WebkitBackdropFilter: 'blur(20px) saturate(1.8)',
+        boxShadow: isDarkMode 
+          ? '0 25px 50px rgba(0, 0, 0, 0.25), inset -1px 0 0 rgba(255, 255, 255, 0.12)'
+          : '6px 0 24px rgba(0, 0, 0, 0.12), 2px 0 8px rgba(0, 0, 0, 0.06), inset -1px 0 0 rgba(255, 255, 255, 0.3)'
+      } : {})
+    };
   };
 
   return (
@@ -216,7 +187,7 @@ export function Sidebar({
 
           {/* Search Type Buttons - Binds to: metadata.search_type */}
           {!isCollapsed && (
-            <div className="space-y-1 search_type_buttons">
+            <div className="space-y-1 search_type_buttons sidebar-search-options">
               {/* Yacht Search Button - Binds to: metadata.search_type.yacht */}
               <button
                 onClick={() => handleSearchTypeSelect('yacht')}
@@ -291,42 +262,6 @@ export function Sidebar({
                 {!isCollapsed && "Email Search"}
               </button>
 
-              {/* Web Search Button - Binds to: metadata.search_type.web */}
-              <button
-                onClick={() => handleSearchTypeSelect('web')}
-                className={`flex items-center gap-3 w-full p-3 transition-all duration-200 web_search_button`}
-                style={{
-                  fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  background: 'transparent',
-                  border: 'none',
-                  borderRadius: '8px',
-                  color: isDarkMode ? 'var(--headline, #f6f7fb)' : '#374151'
-                }}
-                onMouseEnter={(e) => {
-                  if (isDarkMode) {
-                    e.currentTarget.style.background = isChatMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.06)';
-                  } else {
-                    e.currentTarget.style.background = isChatMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.08)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent';
-                }}
-              >
-                <Search 
-                  className="w-4 h-4" 
-                  style={{ 
-                    color: selectedSearchType === 'web' 
-                      ? isDarkMode 
-                        ? 'var(--opulent-gold, #c8a951)' 
-                        : '#181818' 
-                      : undefined 
-                  }} 
-                />
-                {!isCollapsed && "Web Search"}
-              </button>
             </div>
           )}
         </div>
@@ -534,7 +469,7 @@ export function Sidebar({
                   fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                 }}
               >
-                {displayName
+                {(displayName || 'User')
                   .split(' ')
                   .map(name => name[0])
                   .join('')

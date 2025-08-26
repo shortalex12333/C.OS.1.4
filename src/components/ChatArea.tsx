@@ -1,14 +1,8 @@
 import React from 'react';
 import { AISolutionCard } from './AISolutionCard';
 import { MainHeader } from './MainHeader';
-
-interface ChatMessage {
-  id: string;
-  content: string;
-  isUser: boolean;
-  timestamp: string;
-  searchType?: string;
-}
+import { ChatMessage as ChatMessageComponent } from './ChatMessage';
+import type { ChatMessage } from '../types/webhook';
 
 interface ChatAreaProps {
   isChatMode: boolean;
@@ -18,9 +12,10 @@ interface ChatAreaProps {
   selectedModel?: string;
   onModelChange?: (modelId: string) => void;
   messages?: ChatMessage[];
+  onAskAlexClick?: () => void;
 }
 
-export function ChatArea({ isChatMode, isMobile = false, displayName, isDarkMode = false, selectedModel = 'air', onModelChange, messages = [] }: ChatAreaProps) {
+export function ChatArea({ isChatMode, isMobile = false, displayName, isDarkMode = false, selectedModel = 'air', onModelChange, messages = [], onAskAlexClick }: ChatAreaProps) {
   // Time-based greeting function
   const getTimeBasedGreeting = () => {
     try {
@@ -116,6 +111,7 @@ export function ChatArea({ isChatMode, isMobile = false, displayName, isDarkMode
           isChatMode={false}
           selectedModel={selectedModel}
           onModelChange={onModelChange}
+          onAskAlexClick={onAskAlexClick}
         />
         
         {/* Welcome State Content */}
@@ -165,6 +161,7 @@ export function ChatArea({ isChatMode, isMobile = false, displayName, isDarkMode
         isChatMode={true}
         selectedModel={selectedModel}
         onModelChange={onModelChange}
+        onAskAlexClick={onAskAlexClick}
       />
       
       {/* Chat Messages Container */}
@@ -185,65 +182,13 @@ export function ChatArea({ isChatMode, isMobile = false, displayName, isDarkMode
           {/* Dynamic Chat Messages */}
           <div className="space-y-6">
             {messages.map((message) => (
-              <div key={message.id} className={`flex gap-3 ${message.isUser ? 'user_message_container' : 'ai_response_container'}`}>
-                {/* Avatar */}
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-sm flex-shrink-0 ${
-                  message.isUser 
-                    ? 'bg-gradient-to-br from-blue-500 to-blue-600 user_avatar_display' 
-                    : 'bg-gradient-to-br from-blue-500 to-purple-600 ai_avatar_display'
-                }`}>
-                  {message.isUser ? (
-                    <span 
-                      className="text-white font-medium"
-                      style={{
-                        fontSize: '10px',
-                        lineHeight: '10px',
-                        fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-                      }}
-                    >
-                      {displayName
-                        .split(' ')
-                        .map(name => name[0])
-                        .join('')
-                        .slice(0, 2)
-                        .toUpperCase()}
-                    </span>
-                  ) : (
-                    <div className="w-3 h-3 bg-white rounded-full"></div>
-                  )}
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  {/* Name label */}
-                  <div 
-                    className={`mb-1 ${message.isUser ? 'user_label_display' : 'assistant_label_display'}`}
-                    style={{
-                      fontSize: '14px',
-                      lineHeight: '20px',
-                      fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                      color: isDarkMode ? 'rgba(246, 247, 251, 0.7)' : '#6b7280'
-                    }}
-                  >
-                    {message.isUser ? 'You' : 'CelesteOS'}
-                  </div>
-                  
-                  {/* Message content */}
-                  <div>
-                    <div 
-                      className={message.isUser ? 'user_query_display' : 'ai_response_message'}
-                      style={{
-                        fontSize: isMobile ? '15px' : '16px',
-                        lineHeight: isMobile ? '22px' : '24px',
-                        letterSpacing: '-0.32px',
-                        fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                        color: isDarkMode ? 'var(--headline, #f6f7fb)' : '#1f2937'
-                      }}
-                    >
-                      {message.content}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <ChatMessageComponent
+                key={message.id}
+                message={message}
+                displayName={displayName}
+                isDarkMode={isDarkMode}
+                isMobile={isMobile}
+              />
             ))}
           </div>
 
