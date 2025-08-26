@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Intro Flow</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #007AFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover { background: #0056b3; }
+        .success { color: #28a745; font-weight: bold; }
+        .warning { color: #ffc107; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        pre { 
+            background: #f8f9fa; 
+            padding: 10px; 
+            border-radius: 4px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎬 Intro & Tutorial Flow Test</h1>
+    
+    <div class="test-section">
+        <h2>Current LocalStorage State</h2>
+        <div id="storage-state"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Expected UX Flow</h2>
+        <ol>
+            <li><strong>First Visit (New User):</strong>
+                <ul>
+                    <li>White screen with animated text intro (3 screens)</li>
+                    <li>Then → Login screen</li>
+                    <li>After login → 7-step tutorial overlay</li>
+                </ul>
+            </li>
+            <li><strong>Returning User:</strong>
+                <ul>
+                    <li>Skip intro → Direct to login</li>
+                    <li>After login → Skip tutorial → Direct to chat</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>Reset Options</h2>
+        <button onclick="clearIntro()">Clear Intro Only</button>
+        <button onclick="clearTutorial()">Clear Tutorial Only</button>
+        <button onclick="clearBoth()">Clear Both (New User)</button>
+        <button onclick="clearAll()">Clear Everything</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Production Site</h2>
+        <button onclick="openProduction()">Open Production</button>
+        <p style="margin-top: 10px; color: #666;">
+            After clearing, open production to test the flow
+        </p>
+    </div>
+
+    <div class="test-section">
+        <h2>Intro Screen Content</h2>
+        <pre>Screen 1:
+- "Chiefs lose ~2 hours a day searching manuals and emails."
+- "Handovers drag, knowledge gets lost, mistakes repeat."
+
+Screen 2:
+- "CelesteOS finds the right document in seconds."
+- "Handover notes: 30 seconds."
+- "Save 10+ hours a week, per engineer."
+
+Screen 3:
+- "Runs offline, on your yacht's LAN."
+- "Read-only: no data ever leaves your NAS."
+- "Built by a former Superyacht ETO, for Captains and Chiefs."</pre>
+    </div>
+
+    <script>
+        function checkStorage() {
+            const storageState = document.getElementById('storage-state');
+            const hasSeenIntro = localStorage.getItem('hasSeenIntro');
+            const hasCompletedTutorial = localStorage.getItem('hasCompletedTutorial');
+            const celesteosUser = localStorage.getItem('celesteos_user');
+            
+            let html = '<table style="width: 100%;">';
+            html += '<tr><td><strong>hasSeenIntro:</strong></td><td>' + 
+                    (hasSeenIntro ? '<span class="warning">true (intro will be skipped)</span>' : '<span class="success">null (intro will show)</span>') + '</td></tr>';
+            html += '<tr><td><strong>hasCompletedTutorial:</strong></td><td>' + 
+                    (hasCompletedTutorial ? '<span class="warning">true (tutorial will be skipped)</span>' : '<span class="success">null (tutorial will show)</span>') + '</td></tr>';
+            html += '<tr><td><strong>User logged in:</strong></td><td>' + 
+                    (celesteosUser ? '<span class="warning">Yes</span>' : '<span class="success">No</span>') + '</td></tr>';
+            html += '</table>';
+            
+            storageState.innerHTML = html;
+        }
+
+        function clearIntro() {
+            localStorage.removeItem('hasSeenIntro');
+            alert('✅ Intro flag cleared - intro will show on next visit');
+            checkStorage();
+        }
+
+        function clearTutorial() {
+            localStorage.removeItem('hasCompletedTutorial');
+            localStorage.removeItem('tutorialCompletedAt');
+            alert('✅ Tutorial flag cleared - tutorial will show after login');
+            checkStorage();
+        }
+
+        function clearBoth() {
+            localStorage.removeItem('hasSeenIntro');
+            localStorage.removeItem('hasCompletedTutorial');
+            localStorage.removeItem('tutorialCompletedAt');
+            alert('✅ Both cleared - full new user experience will show');
+            checkStorage();
+        }
+
+        function clearAll() {
+            // Clear everything CelesteOS related
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.includes('celeste') || key.includes('Celeste') || 
+                           key.includes('tutorial') || key.includes('intro') || 
+                           key.includes('supabase'))) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+            alert('✅ All CelesteOS data cleared - complete fresh start');
+            checkStorage();
+        }
+
+        function openProduction() {
+            window.open('https://celesteos-v1-4-k7e7kdvtn-c7s-projects-4a165667.vercel.app', '_blank');
+        }
+
+        // Check on load
+        checkStorage();
+    </script>
+</body>
+</html>
