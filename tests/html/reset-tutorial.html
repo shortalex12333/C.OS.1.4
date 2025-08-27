@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reset Tutorial - CelesteOS</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        .info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            color: #1565c0;
+        }
+        .success {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            color: #2e7d32;
+        }
+        button {
+            background: linear-gradient(115deg, #61afd9 0%, #81c8e4 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: scale(1.02);
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        .current-status {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 Tutorial Reset Tool</h1>
+        <p>Use this tool to reset the tutorial and see it again on next login.</p>
+        
+        <div class="current-status">
+            <strong>Current Status:</strong>
+            <div id="status"></div>
+        </div>
+        
+        <button onclick="resetTutorial()">Reset Tutorial</button>
+        
+        <div id="message"></div>
+        
+        <div class="info">
+            <strong>How it works:</strong><br>
+            • Clears <code>hasCompletedTutorial</code> from localStorage<br>
+            • Tutorial will show after you log in<br>
+            • The tutorial helps you learn CelesteOS features
+        </div>
+    </div>
+    
+    <script>
+        function checkStatus() {
+            const hasCompleted = localStorage.getItem('hasCompletedTutorial');
+            const hasSeenIntro = localStorage.getItem('hasSeenIntro');
+            const statusDiv = document.getElementById('status');
+            
+            let html = '<ul>';
+            html += `<li>Tutorial Completed: <strong>${hasCompleted ? 'Yes' : 'No'}</strong></li>`;
+            html += `<li>Intro Seen: <strong>${hasSeenIntro ? 'Yes' : 'No'}</strong></li>`;
+            html += '</ul>';
+            
+            statusDiv.innerHTML = html;
+        }
+        
+        function resetTutorial() {
+            // Clear tutorial flag
+            localStorage.removeItem('hasCompletedTutorial');
+            
+            // Show success message
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = 'status success';
+            messageDiv.innerHTML = '✅ Tutorial reset! It will show when you next log in to CelesteOS.';
+            
+            // Update status
+            checkStatus();
+            
+            // Optional: redirect to main site after 3 seconds
+            setTimeout(() => {
+                if (confirm('Tutorial reset! Go to CelesteOS now?')) {
+                    window.location.href = 'https://celesteos-v1-4.vercel.app';
+                }
+            }, 1000);
+        }
+        
+        // Check initial status
+        checkStatus();
+    </script>
+</body>
+</html>

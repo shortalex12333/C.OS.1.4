@@ -1,23 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { Sidebar } from './components/Sidebar';
-import { ChatArea } from './components/ChatArea';
-import { InputArea } from './components/InputArea';
-import { Settings } from './components/Settings';
-import { Login } from './components/Login';
-import { SignUp } from './components/SignUp';
-import { AnimatedIntro } from './components/AnimatedIntro';
-import { TutorialOverlay } from './components/TutorialOverlay';
-import { PreloadedQuestions } from './components/PreloadedQuestions';
-import { AskAlex } from './components/AskAlex';
-import { AskAlexPage } from './components/AskAlexPage';
-import { DesktopMobileComparison } from './components/DesktopMobileComparison';
-import { BackgroundSystem } from './components/BackgroundSystem';
-import { MobileHeader } from './components/MobileHeader';
-import { getSidebarWidth, checkIsMobile, checkComparisonMode } from './utils/appUtils';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Sidebar } from './frontend-ux/components/Sidebar';
+import { ChatArea } from './frontend-ux/components/ChatArea';
+import { InputArea } from './frontend-ux/components/InputArea';
+import { Settings } from './frontend-ux/components/Settings';
+import { Login } from './frontend-ux/components/Login';
+import { SignUp } from './frontend-ux/components/SignUp';
+import { AnimatedIntro } from './frontend-ux/components/AnimatedIntro';
+import { TutorialOverlay } from './frontend-ux/components/TutorialOverlay';
+import { PreloadedQuestions } from './frontend-ux/components/PreloadedQuestions';
+import { AskAlex } from './frontend-ux/components/AskAlex';
+import { AskAlexPage } from './frontend-ux/components/AskAlexPage';
+import { DesktopMobileComparison } from './frontend-ux/components/DesktopMobileComparison';
+import { BackgroundSystem } from './frontend-ux/components/BackgroundSystem';
+import { MobileHeader } from './frontend-ux/components/MobileHeader';
+import { getSidebarWidth, checkIsMobile, checkComparisonMode } from './frontend-ux/utils/appUtils';
 import completeWebhookService from './services/webhookServiceComplete';
 import { authService } from './services/supabaseClient';
 import type { ChatMessage } from './types/webhook';
-import './styles/enterpriseComponents.css';
+import './frontend-ux/styles/enterpriseComponents.css';
 
 type SearchType = 'yacht' | 'email' | 'email-yacht';
 
@@ -49,6 +49,14 @@ export default function App() {
   const [hasReceivedJSON, setHasReceivedJSON] = useState(false);
   const [showSignUp, setShowSignUp] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [currentConversationId, setCurrentConversationId] = useState<string>('');
+  const [conversationHistory, setConversationHistory] = useState<Array<{
+    id: string;
+    title: string;
+    timestamp: string;
+    messages: ChatMessage[];
+    searchType: SearchType;
+  }>>([]);
   
   // Theme change handler for Settings component
   const handleAppearanceChange = (newAppearance: string) => {
@@ -84,6 +92,13 @@ export default function App() {
   }, [isDarkMode]);
 
   // Check for existing Supabase session on mount
+  // Initialize conversation ID on app load
+  useEffect(() => {
+    if (!currentConversationId) {
+      setCurrentConversationId(generateConversationId());
+    }
+  }, []);
+
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -151,7 +166,7 @@ export default function App() {
     };
   }, []);
 
-  // Check for existing session on app start
+  // Check for existing session on app start - intro only
   useEffect(() => {
     const checkSession = () => {
       // Check if user has seen intro
@@ -161,20 +176,15 @@ export default function App() {
         return;
       }
       
-      if (completeWebhookService.isLoggedIn()) {
+      // Only check webhook service if Supabase auth didn't already handle it
+      if (!isLoggedIn && completeWebhookService.isLoggedIn()) {
         const user = completeWebhookService.getCurrentUser();
         if (user) {
           const name = user.userName || user.email || 'User';
           setDisplayName(name);
           setIsLoggedIn(true);
-          console.log('✅ Restored session for:', name);
-          
-          // Check if user has completed tutorial
-          const hasCompletedTutorial = localStorage.getItem('hasCompletedTutorial');
-          if (!hasCompletedTutorial) {
-            // Show tutorial after user logs in for the first time
-            setTimeout(() => setShowTutorial(true), 1000);
-          }
+          console.log('✅ Restored webhook session for:', name);
+          // Tutorial will be handled by the main auth flow
         }
       }
     };
@@ -215,10 +225,33 @@ export default function App() {
     return () => document.body.classList.remove('chat-mode');
   }, [isLoggedIn, isChatMode]);
 
+  // Watch for login state changes to trigger tutorial
+  useEffect(() => {
+    if (isLoggedIn && !showIntro) {
+      const hasCompletedTutorial = localStorage.getItem('hasCompletedTutorial');
+      if (!hasCompletedTutorial && !showTutorial) {
+        console.log('🎓 User logged in, checking tutorial status');
+        setTimeout(() => {
+          setShowTutorial(true);
+          console.log('🎓 Tutorial activated for logged-in user');
+        }, 1500);
+      }
+    }
+  }, [isLoggedIn, showIntro, showTutorial]);
+
   const handleLogin = async (email: string, password: string) => {
     // Note: The actual authentication is handled in the Login component via Supabase
     // This handler is kept for compatibility but auth state is managed by authService listener
     console.log('🔄 Login process initiated for:', email);
+    
+    // Check and show tutorial for new users after successful login
+    const hasCompletedTutorial = localStorage.getItem('hasCompletedTutorial');
+    if (!hasCompletedTutorial) {
+      console.log('🎓 New user logged in - will show tutorial');
+      setTimeout(() => {
+        setShowTutorial(true);
+      }, 1500);
+    }
   };
 
   const handleSignUp = async (firstName: string, lastName: string, email: string, password: string) => {
@@ -226,14 +259,20 @@ export default function App() {
     console.log('🔄 Signup process initiated for:', email);
   };
 
-  // Consolidated tutorial trigger function
-  const checkAndShowTutorial = () => {
+  // Consolidated tutorial trigger function - with proper state check
+  const checkAndShowTutorial = useCallback(() => {
     const hasCompletedTutorial = localStorage.getItem('hasCompletedTutorial');
-    if (!hasCompletedTutorial && isLoggedIn) {
-      console.log('🎓 Triggering tutorial for new user');
-      setTimeout(() => setShowTutorial(true), 1000);
+    if (!hasCompletedTutorial) {
+      console.log('🎓 Tutorial not completed, will show for logged in user');
+      // Use a slight delay to ensure UI is ready
+      setTimeout(() => {
+        setShowTutorial(true);
+        console.log('🎓 Tutorial triggered');
+      }, 1500);
+    } else {
+      console.log('✅ Tutorial already completed');
     }
-  };
+  }, []);
 
   const handleStartChat = async (message: string, searchType?: SearchType) => {
     if (searchType) {
@@ -339,10 +378,53 @@ export default function App() {
     console.log('Model changed to:', modelId);
   };
 
+  const generateConversationId = () => {
+    return `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  };
+
+  const saveCurrentConversation = () => {
+    if (currentConversationId && chatMessages.length > 0) {
+      const firstUserMessage = chatMessages.find(msg => msg.isUser);
+      const title = firstUserMessage?.content.toString().slice(0, 50) || 'New Chat';
+      
+      setConversationHistory(prev => [
+        {
+          id: currentConversationId,
+          title: title + (title.length >= 50 ? '...' : ''),
+          timestamp: new Date().toISOString(),
+          messages: chatMessages,
+          searchType: currentSearchType
+        },
+        ...prev.filter(conv => conv.id !== currentConversationId)
+      ]);
+    }
+  };
+
   const handleNewChat = () => {
+    // Save current conversation if it exists
+    saveCurrentConversation();
+    
+    // Create new conversation
     setIsChatMode(false);
     setChatMessages([]);
+    setCurrentConversationId(generateConversationId());
   };
+  const handleSearchTypeChangeWithNewChat = (searchType: SearchType) => {
+    // Save current conversation if it exists
+    saveCurrentConversation();
+    
+    // Start new conversation with new search type
+    setCurrentSearchType(searchType);
+    setIsChatMode(false);
+    setChatMessages([]);
+    setCurrentConversationId(generateConversationId());
+    
+    // Close mobile menu if open
+    if (isMobile) {
+      setIsMobileMenuOpen(false);
+    }
+  };
+
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
   const toggleSidebarCollapse = () => setIsSidebarCollapsed(!isSidebarCollapsed);
   const handleOpenSettings = () => {
@@ -469,6 +551,7 @@ export default function App() {
               <MobileHeader 
                 isMobileMenuOpen={isMobileMenuOpen}
                 onToggleMobileMenu={toggleMobileMenu}
+                isDarkMode={isDarkMode}
               />
             )}
 
@@ -496,8 +579,9 @@ export default function App() {
                   displayName={displayName}
                   isChatMode={isChatMode}
                   isDarkMode={isDarkMode}
-                  onSearchTypeChange={setCurrentSearchType}
+                  onSearchTypeChange={handleSearchTypeChangeWithNewChat}
                   selectedSearchType={currentSearchType}
+                  conversationHistory={conversationHistory}
                 />
               </div>
               
@@ -543,7 +627,6 @@ export default function App() {
                           isMobile={isMobile}
                           isDarkMode={isDarkMode}
                           currentSearchType={currentSearchType}
-                          showFAQSuggestions={chatMessages.length === 0}
                         />
                       </div>
                     </div>

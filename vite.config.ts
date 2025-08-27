@@ -11,7 +11,7 @@ export default defineConfig(({ command, mode }) => {
     
     // CSS Configuration
     css: {
-      postcss: './postcss.config.js',
+      postcss: './config/postcss.config.js',
     },
     
     // Path Resolution
