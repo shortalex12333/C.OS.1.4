@@ -1,5 +1,4 @@
 import React from 'react';
-import { AISolutionCard } from './AISolutionCard';
 import { MainHeader } from './MainHeader';
 import { ChatMessage as ChatMessageComponent } from './ChatMessage';
 import { ThinkingIndicator } from './ThinkingIndicator';

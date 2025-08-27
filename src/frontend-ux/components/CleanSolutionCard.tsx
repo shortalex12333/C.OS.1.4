@@ -23,8 +23,6 @@ interface SolutionCardProps {
 }
 
 export function CleanSolutionCard({ solutions, isDarkMode = false }: SolutionCardProps) {
-  console.log('🎨 CleanSolutionCard rendering with solutions:', solutions);
-  
   const [expandedSolutions, setExpandedSolutions] = useState<Set<string>>(
     new Set() // Collapsed by default
   );
@@ -54,7 +52,6 @@ export function CleanSolutionCard({ solutions, isDarkMode = false }: SolutionCar
 
   // Safety check
   if (!solutions || solutions.length === 0) {
-    console.log('⚠️ No solutions to render');
     return null;
   }
 

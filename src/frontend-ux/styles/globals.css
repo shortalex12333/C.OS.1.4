@@ -11,6 +11,22 @@
 :root {
   --font-size: 14px;
   font-family: 'Inter', system-ui, sans-serif;
+  
+  /* Confidence level colors for solution cards */
+  --confidence-high-bg: linear-gradient(135deg, #0070ff 0%, #0051cc 100%);
+  --confidence-high-text: #ffffff;
+  --confidence-high-border: rgba(0, 112, 255, 0.3);
+  --confidence-high-backdrop: blur(16px) saturate(1.5);
+  
+  --confidence-medium-bg: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  --confidence-medium-text: #ffffff;
+  --confidence-medium-border: rgba(59, 130, 246, 0.3);
+  --confidence-medium-backdrop: blur(16px) saturate(1.3);
+  
+  --confidence-low-bg: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+  --confidence-low-text: #ffffff;
+  --confidence-low-border: rgba(148, 163, 184, 0.3);
+  --confidence-low-backdrop: blur(16px) saturate(1.1);
 }
 
 /* Ensure full height layout */

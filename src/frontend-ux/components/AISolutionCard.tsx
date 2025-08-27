@@ -98,7 +98,7 @@ export function AISolutionCard({ solutions, isMobile = false, isDarkMode = false
     if (!message) return;
 
     // Here you would send the feedback to your ML system
-    console.log('Feedback submitted for solution:', solutionId, 'Message:', message);
+    // Feedback submitted for solution
     
     // Clear the feedback form
     setFeedbackMessages(prev => ({
@@ -347,17 +347,22 @@ export function AISolutionCard({ solutions, isMobile = false, isDarkMode = false
     };
   };
 
+  // Safety check for empty solutions
+  if (!solutions || solutions.length === 0) {
+    return null;
+  }
+
   return (
     // Binds to: response.solutions[]
     <div 
       className="w-full flex flex-col solutions_container"
       style={{ 
-        padding: isMobile ? 'var(--spacing-2)' : 'var(--spacing-3)', // Mobile: 8px for more width, Desktop: 12px
-        gap: isMobile ? 'var(--spacing-4)' : 'var(--spacing-5)' // Mobile: 16px, Desktop: 20px spacing
+        padding: isMobile ? '8px' : '12px', // Mobile: 8px for more width, Desktop: 12px
+        gap: isMobile ? '16px' : '20px' // Mobile: 16px, Desktop: 20px spacing
       }}
     >
       {solutions.map((solution, index) => {
-        const solutionId = solution.solution_id || solutionId || `solution_${index}`;
+        const solutionId = solution.solution_id || solution.id || `solution_${index}`;
         const isExpanded = expandedSolutions.has(solutionId);
         
         return (
