@@ -71,12 +71,36 @@ export function ChatMessage({ message, displayName, isDarkMode = false, isMobile
           const content = firstItem.message.content;
           const extractedText = content.message || content.ai_summary || 'Processing your request...';
           
-          // Solutions detected from OpenAI format
+          // Convert documents_used to solutions if solutions array is empty
+          let solutions = content.solutions || [];
+          
+          // If no solutions but we have documents, create solutions from them
+          if ((!solutions || solutions.length === 0) && content.documents_used && content.documents_used.length > 0) {
+            solutions = content.documents_used.map((doc: any, index: number) => ({
+              solution_id: doc.id || `solution_${index}`,
+              title: doc.fault_code ? `Fault Code ${doc.fault_code}` : `Solution ${index + 1}`,
+              confidence: content.confidence_score >= 0.85 ? 'high' : content.confidence_score >= 0.675 ? 'medium' : 'low',
+              confidenceScore: Math.round((content.confidence_score || 0.75) * 100),
+              source: {
+                title: doc.source || 'Technical Manual',
+                page: doc.page,
+                revision: doc.revision
+              },
+              steps: [
+                { text: `Review ${doc.source} manual for fault code ${doc.fault_code}`, type: 'normal', isBold: false },
+                { text: 'Check the referenced documentation for detailed procedures', type: 'tip', isBold: false },
+                { text: 'Follow manufacturer safety guidelines', type: 'warning', isBold: true }
+              ],
+              procedureLink: doc.url || '#',
+              original_doc_url: doc.url || '',
+              description: `${doc.source} procedure for ${doc.fault_code || 'issue resolution'}`
+            }));
+          }
           
           // Map solutions to ensure confidence is converted to confidenceScore
-          const mappedSolutions = (content.solutions || []).map((sol: any) => ({
+          const mappedSolutions = solutions.map((sol: any) => ({
             ...sol,
-            confidenceScore: sol.confidence ? Math.round(sol.confidence * 100) : 75
+            confidenceScore: sol.confidenceScore || (sol.confidence ? Math.round(sol.confidence * 100) : 75)
           }));
           
           return {
