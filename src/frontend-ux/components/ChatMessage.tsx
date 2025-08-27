@@ -28,8 +28,6 @@ export function ChatMessage({ message, displayName, isDarkMode = false, isMobile
     if (typeof message.content === 'object' && message.content !== null) {
       const content = message.content as any;
       
-      // Log for debugging
-      console.log('[ChatMessage] Parsing content with solutions:', content.solutions?.length || 0);
       
       return {
         text: content.answer || content.message || content.ai_summary || 'Processing your request...',
@@ -47,7 +45,6 @@ export function ChatMessage({ message, displayName, isDarkMode = false, isMobile
     }
 
     // Fallback for unexpected types
-    console.warn('[ChatMessage] Unexpected content type:', typeof message.content);
     return { text: 'Processing response...', solutions: null, showRaw: false };
   };
 

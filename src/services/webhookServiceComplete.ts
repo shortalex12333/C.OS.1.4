@@ -285,11 +285,8 @@ class CompleteWebhookService {
     confidenceScore: number = 0.75
   ): SolutionCard[] {
     if (!documents || !Array.isArray(documents) || documents.length === 0) {
-      console.log('[WebhookService] No documents to convert to solutions');
       return [];
     }
-
-    console.log(`[WebhookService] Converting ${documents.length} documents to solution cards`);
     
     return documents.map((doc, index) => {
       // Calculate individual confidence for this solution
@@ -362,7 +359,6 @@ class CompleteWebhookService {
         }
       };
 
-      console.log(`[WebhookService] Created solution card for ${doc.fault_code}`);
       return solutionCard;
     });
   }
@@ -738,17 +734,13 @@ class CompleteWebhookService {
       // Handle array response from webhook
       if (Array.isArray(responseData) && responseData.length > 0) {
         const firstItem = responseData[0] as any;
-        console.log('[WebhookService] Processing array response, checking for OpenAI format...');
-        
         // Check for OpenAI completion format with message.content structure
         if (firstItem.message && firstItem.message.content && firstItem.message.role === 'assistant') {
-          console.log('[WebhookService] Detected OpenAI format response');
           const content = firstItem.message.content as OpenAIMessageContent;
           
           // Convert documents to solutions if solutions array is empty
           let solutions = content.solutions || [];
           if ((!solutions || solutions.length === 0) && hasDocumentsUsed(content)) {
-            console.log(`[WebhookService] Creating solutions from ${content.documents_used.length} documents`);
             solutions = this.convertDocumentsToSolutionCards(
               content.documents_used, 
               content.confidence_score
@@ -774,12 +766,9 @@ class CompleteWebhookService {
               finish_reason: firstItem.finish_reason
             }
           } as NormalizedChatResponse;
-          
-          console.log(`[WebhookService] Normalized response with ${solutions.length} solution cards`);
         }
         // Handle legacy format
         else if (firstItem.response || firstItem.answer) {
-          console.log('[WebhookService] Processing legacy response format');
           const solutions = this.extractSolutionsFromResponse(firstItem, searchStrategy);
           
           responseData = {
@@ -797,7 +786,6 @@ class CompleteWebhookService {
         }
         // Unknown array format
         else {
-          console.warn('[WebhookService] Unknown array response format:', firstItem);
           responseData = {
             success: true,
             answer: 'Response received',
