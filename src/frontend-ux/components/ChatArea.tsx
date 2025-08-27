@@ -2,6 +2,7 @@ import React from 'react';
 import { AISolutionCard } from './AISolutionCard';
 import { MainHeader } from './MainHeader';
 import { ChatMessage as ChatMessageComponent } from './ChatMessage';
+import { ThinkingIndicator } from './ThinkingIndicator';
 import type { ChatMessage } from '../../types/webhook';
 
 interface ChatAreaProps {
@@ -13,9 +14,22 @@ interface ChatAreaProps {
   onModelChange?: (modelId: string) => void;
   messages?: ChatMessage[];
   onAskAlexClick?: () => void;
+  isWaitingForResponse?: boolean;
+  searchType?: 'yacht' | 'email' | 'email-yacht';
 }
 
-export function ChatArea({ isChatMode, isMobile = false, displayName, isDarkMode = false, selectedModel = 'air', onModelChange, messages = [], onAskAlexClick }: ChatAreaProps) {
+export function ChatArea({ 
+  isChatMode, 
+  isMobile = false, 
+  displayName, 
+  isDarkMode = false, 
+  selectedModel = 'air', 
+  onModelChange, 
+  messages = [], 
+  onAskAlexClick,
+  isWaitingForResponse = false,
+  searchType = 'yacht'
+}: ChatAreaProps) {
   // Time-based greeting function
   const getTimeBasedGreeting = () => {
     try {
@@ -190,6 +204,13 @@ export function ChatArea({ isChatMode, isMobile = false, displayName, isDarkMode
                 isMobile={isMobile}
               />
             ))}
+            {/* Thinking Indicator */}
+            {isWaitingForResponse && (
+              <ThinkingIndicator 
+                isDarkMode={isDarkMode} 
+                searchType={searchType}
+              />
+            )}
           </div>
 
           {/* Show welcome message when no chat messages */}

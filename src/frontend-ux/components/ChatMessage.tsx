@@ -67,6 +67,9 @@ export function ChatMessage({ message, displayName, isDarkMode = false, isMobile
           const content = firstItem.message.content;
           const extractedText = content.message || content.ai_summary || 'Processing your request...';
           
+          console.log('🎯 OpenAI format detected - Solutions found:', content.solutions?.length || 0);
+          console.log('📦 Full content structure:', content);
+          
           return {
             text: String(extractedText),
             solutions: content.solutions || [],
@@ -248,6 +251,12 @@ export function ChatMessage({ message, displayName, isDarkMode = false, isMobile
   };
 
   const parsedContent = parseContent();
+  
+  // Debug logging
+  if (parsedContent.solutions && parsedContent.solutions.length > 0) {
+    console.log('🔍 Solutions ready to render:', parsedContent.solutions);
+  }
+  
   // Ensure text is always a string
   const text = typeof parsedContent.text === 'string' 
     ? parsedContent.text 

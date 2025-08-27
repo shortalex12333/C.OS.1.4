@@ -23,6 +23,8 @@ interface SolutionCardProps {
 }
 
 export function CleanSolutionCard({ solutions, isDarkMode = false }: SolutionCardProps) {
+  console.log('🎨 CleanSolutionCard rendering with solutions:', solutions);
+  
   const [expandedSolutions, setExpandedSolutions] = useState<Set<string>>(
     new Set() // Collapsed by default
   );
@@ -49,6 +51,12 @@ export function CleanSolutionCard({ solutions, isDarkMode = false }: SolutionCar
     if (percentage >= 50) return 'medium confidence';
     return 'low confidence';
   };
+
+  // Safety check
+  if (!solutions || solutions.length === 0) {
+    console.log('⚠️ No solutions to render');
+    return null;
+  }
 
   return (
     <div className="space-y-4">

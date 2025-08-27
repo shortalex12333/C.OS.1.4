@@ -49,6 +49,7 @@ export default function App() {
   const [hasReceivedJSON, setHasReceivedJSON] = useState(false);
   const [showSignUp, setShowSignUp] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string>('');
   const [conversationHistory, setConversationHistory] = useState<Array<{
     id: string;
@@ -297,6 +298,9 @@ export default function App() {
       setIsMobileMenuOpen(false);
     }
     
+    // Set waiting state before sending
+    setIsWaitingForResponse(true);
+    
     // Send message to backend via webhook
     try {
       const webhookSearchType = searchType === 'email-yacht' ? 'email' : (searchType || 'local');
@@ -304,6 +308,9 @@ export default function App() {
       
       console.log('📤 Chat message sent:', message);
       console.log('📥 Backend response:', response);
+      
+      // Clear waiting state
+      setIsWaitingForResponse(false);
       
       if (response.success && response.data) {
         // Check if response contains JSON with solution cards
@@ -345,6 +352,7 @@ export default function App() {
         }, Math.min(streamDuration, 5000)); // Cap at 5 seconds
       } else {
         console.error('❌ Chat failed:', response.error);
+        setIsWaitingForResponse(false);
         // Add error message to chat
         const errorMessageId = `msg_${Date.now()}_error`;
         const errorMessage: ChatMessage = {
@@ -359,6 +367,7 @@ export default function App() {
       }
     } catch (error) {
       console.error('❌ Chat error:', error);
+      setIsWaitingForResponse(false);
       // Add error message to chat
       const errorMessageId = `msg_${Date.now()}_error`;
       const errorMessage: ChatMessage = {
@@ -609,6 +618,8 @@ export default function App() {
                           onModelChange={handleModelChange}
                           messages={chatMessages}
                           onAskAlexClick={() => setShowAskAlex(true)}
+                          isWaitingForResponse={isWaitingForResponse}
+                          searchType={currentSearchType}
                         />
                       </div>
                       {/* Show preloaded questions when no messages, regardless of chat mode */}
