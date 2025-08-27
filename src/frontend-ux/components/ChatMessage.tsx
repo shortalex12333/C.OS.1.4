@@ -32,9 +32,13 @@ export function ChatMessage({ message, displayName, isDarkMode = false, isMobile
           // Extract text but never show raw JSON
           let extractedText = parsed.answer || parsed.message || parsed.response || 'Processing your request...';
           
-          // Ensure text is a string
+          // Ensure text is a string without JSON stringification
           if (typeof extractedText === 'object' && extractedText !== null) {
-            extractedText = extractedText.text || extractedText.message || JSON.stringify(extractedText);
+            extractedText = extractedText.text || extractedText.message || extractedText.answer || '';
+            // If still an object, just use empty string instead of stringifying
+            if (typeof extractedText === 'object') {
+              extractedText = 'Processing response...';
+            }
           }
           
           return { 
@@ -103,9 +107,13 @@ export function ChatMessage({ message, displayName, isDarkMode = false, isMobile
       const contentObj = message.content as any;
       let extractedText = contentObj.answer || contentObj.response || contentObj.message || 'Processing your request...';
       
-      // If the extracted value is still an object, get its text property
+      // If the extracted value is still an object, get its text property without stringification
       if (typeof extractedText === 'object' && extractedText !== null) {
-        extractedText = extractedText.text || extractedText.message || extractedText.answer || JSON.stringify(extractedText);
+        extractedText = extractedText.text || extractedText.message || extractedText.answer || '';
+        // If still an object, use a placeholder instead of stringifying
+        if (typeof extractedText === 'object') {
+          extractedText = 'Processing response...';
+        }
       }
       
       return { 

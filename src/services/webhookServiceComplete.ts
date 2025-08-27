@@ -90,6 +90,183 @@ class CompleteWebhookService {
   // ============ HELPER METHODS ============
 
   /**
+   * Extract solution cards from webhook response
+   * Formats documents and knowledge base results into solution card format
+   */
+  private extractSolutionsFromResponse(data: any, searchStrategy: string): any[] {
+    // If solutions are already provided in correct format, return them
+    if (data.solutions && Array.isArray(data.solutions)) {
+      return data.solutions.map((sol: any) => ({
+        ...sol,
+        solution_id: sol.solution_id || sol.id || `solution_${Date.now()}_${Math.random()}`,
+        confidenceScore: sol.confidenceScore || (sol.confidence ? Math.round(sol.confidence * 100) : 75)
+      }));
+    }
+
+    // For yacht/knowledge base searches, convert documents to solution format
+    if ((searchStrategy === 'yacht' || searchStrategy === 'email') && (data.documents_used || data.items || data.references)) {
+      const docs = data.documents_used || data.items || data.references || [];
+      const solutions = [];
+
+      // Convert up to 3 most relevant documents to solution cards
+      docs.slice(0, 3).forEach((doc: any, index: number) => {
+        // Extract confidence score from relevance or confidence field
+        let confidenceScore = 75; // Default confidence
+        if (doc.confidence) {
+          confidenceScore = typeof doc.confidence === 'number' ? Math.round(doc.confidence * 100) : 75;
+        } else if (doc.relevance_score) {
+          confidenceScore = Math.round(doc.relevance_score * 100);
+        }
+
+        // Extract source information
+        const source = {
+          title: doc.document_title || doc.source || doc.title || 'Yacht Documentation',
+          page: doc.page_number || doc.page || undefined,
+          revision: doc.revision || doc.version || undefined
+        };
+
+        // Parse content to extract procedural steps
+        const steps = this.extractStepsFromContent(doc.content || doc.text || '');
+
+        // Create solution card
+        const solution = {
+          solution_id: `solution_${index}_${Date.now()}`,
+          title: doc.headline || doc.title || `Solution ${index + 1}`,
+          confidence: confidenceScore >= 85 ? 'high' : confidenceScore >= 67.5 ? 'medium' : 'low',
+          confidenceScore: confidenceScore,
+          description: doc.summary || doc.description || '',
+          source: source,
+          source_document: doc,
+          steps: steps,
+          procedureLink: doc.url || doc.link || doc.original_doc_url || '#',
+          original_doc_url: doc.url || doc.link || '',
+          parts_needed: doc.parts_needed || [],
+          estimated_time: doc.estimated_time || '',
+          safety_warnings: doc.safety_warnings || [],
+          specifications: doc.specifications || {}
+        };
+
+        solutions.push(solution);
+      });
+
+      return solutions;
+    }
+
+    return [];
+  }
+
+  /**
+   * Extract procedural steps from document content
+   */
+  private extractStepsFromContent(content: string): any[] {
+    if (!content) return [];
+
+    const steps = [];
+    
+    // Look for numbered or bulleted lists
+    const lines = content.split('\n');
+    let stepNumber = 0;
+
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      
+      // Skip empty lines
+      if (!trimmedLine) continue;
+
+      // Check for numbered steps (1., 2., etc.)
+      if (/^\d+[\.\)]\s/.test(trimmedLine)) {
+        const stepText = trimmedLine.replace(/^\d+[\.\)]\s*/, '');
+        steps.push({
+          text: stepText,
+          type: this.determineStepType(stepText),
+          isBold: false
+        });
+        stepNumber++;
+      }
+      // Check for bullet points
+      else if (/^[\-\*•]\s/.test(trimmedLine)) {
+        const stepText = trimmedLine.replace(/^[\-\*•]\s*/, '');
+        steps.push({
+          text: stepText,
+          type: this.determineStepType(stepText),
+          isBold: false
+        });
+        stepNumber++;
+      }
+      // If we have less than 3 steps and this looks like an instruction
+      else if (stepNumber < 3 && this.looksLikeInstruction(trimmedLine)) {
+        steps.push({
+          text: trimmedLine,
+          type: this.determineStepType(trimmedLine),
+          isBold: false
+        });
+        stepNumber++;
+      }
+    }
+
+    // If no structured steps found, create steps from paragraphs
+    if (steps.length === 0 && content.length > 50) {
+      const paragraphs = content.split(/\n\n+/).filter(p => p.trim().length > 20);
+      paragraphs.slice(0, 5).forEach(para => {
+        steps.push({
+          text: para.trim(),
+          type: this.determineStepType(para),
+          isBold: false
+        });
+      });
+    }
+
+    // Ensure we have at least one step
+    if (steps.length === 0) {
+      steps.push({
+        text: 'Review the documentation for detailed instructions.',
+        type: 'normal',
+        isBold: false
+      });
+    }
+
+    return steps;
+  }
+
+  /**
+   * Determine step type based on content
+   */
+  private determineStepType(text: string): 'warning' | 'tip' | 'normal' {
+    const lowerText = text.toLowerCase();
+    
+    // Warning indicators
+    if (lowerText.includes('warning') || lowerText.includes('caution') || 
+        lowerText.includes('danger') || lowerText.includes('do not') ||
+        lowerText.includes('never') || lowerText.includes('must not')) {
+      return 'warning';
+    }
+    
+    // Tip indicators
+    if (lowerText.includes('tip') || lowerText.includes('note') || 
+        lowerText.includes('hint') || lowerText.includes('pro tip') ||
+        lowerText.includes('recommend')) {
+      return 'tip';
+    }
+    
+    return 'normal';
+  }
+
+  /**
+   * Check if text looks like an instruction
+   */
+  private looksLikeInstruction(text: string): boolean {
+    const instructionKeywords = [
+      'check', 'verify', 'ensure', 'make sure', 'confirm',
+      'inspect', 'test', 'measure', 'adjust', 'turn',
+      'open', 'close', 'remove', 'install', 'replace',
+      'connect', 'disconnect', 'start', 'stop', 'press'
+    ];
+    
+    const lowerText = text.toLowerCase();
+    return instructionKeywords.some(keyword => lowerText.includes(keyword));
+  }
+
+  /**
    * Sync with Supabase authentication data
    * Converts Supabase user format to webhook service format
    */
@@ -460,6 +637,10 @@ class CompleteWebhookService {
       // Handle array response from webhook (webhook returns [{response: {...}}])
       if (Array.isArray(responseData) && responseData.length > 0) {
         const firstItem = responseData[0];
+        
+        // Extract solutions from documents if available
+        const solutions = this.extractSolutionsFromResponse(firstItem, searchStrategy);
+        
         responseData = {
           success: true,
           answer: firstItem.response?.answer || firstItem.answer || 'Response received',
@@ -469,11 +650,15 @@ class CompleteWebhookService {
           sources: firstItem.response?.sources || firstItem.sources || [],
           references: firstItem.response?.references || firstItem.references || [],
           summary: firstItem.response?.summary || firstItem.summary || '',
-          metadata: firstItem.metadata || {}
+          metadata: firstItem.metadata || {},
+          solutions: solutions // Add solutions for display
         };
       }
       // Handle direct object response
       else if (typeof responseData === 'object') {
+        // Extract solutions from documents if available
+        const solutions = this.extractSolutionsFromResponse(responseData, searchStrategy);
+        
         responseData = {
           success: true,
           answer: responseData.answer || responseData.response || responseData.message || 'Response received',
@@ -483,7 +668,8 @@ class CompleteWebhookService {
           sources: responseData.sources || [],
           references: responseData.references || [],
           summary: responseData.summary || '',
-          metadata: responseData.metadata || {}
+          metadata: responseData.metadata || {},
+          solutions: solutions // Add solutions for display
         };
       }
       // Handle string response
@@ -497,7 +683,8 @@ class CompleteWebhookService {
           sources: [],
           references: [],
           summary: '',
-          metadata: {}
+          metadata: {},
+          solutions: [] // No solutions for plain text responses
         };
       }
       
