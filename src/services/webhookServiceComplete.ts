@@ -5,6 +5,16 @@
 
 import { WEBHOOK_BASE_URL } from '../config/webhookConfig';
 import type { WebhookResponseData, WebhookArrayResponse } from '../types/webhook';
+import type { 
+  OpenAICompletionResponse, 
+  OpenAIMessageContent,
+  DocumentUsed,
+  SolutionCard,
+  SolutionStep,
+  NormalizedChatResponse,
+  LegacyWebhookResponse
+} from '../types/webhookFormats';
+import { isOpenAIFormat, isLegacyFormat, hasDocumentsUsed } from '../types/webhookFormats';
 
 // ============ TYPE DEFINITIONS ============
 
@@ -264,6 +274,97 @@ class CompleteWebhookService {
     
     const lowerText = text.toLowerCase();
     return instructionKeywords.some(keyword => lowerText.includes(keyword));
+  }
+
+  /**
+   * Convert documents from OpenAI format to solution cards
+   * Handles fault codes and technical manuals with proper formatting
+   */
+  private convertDocumentsToSolutionCards(
+    documents: DocumentUsed[], 
+    confidenceScore: number = 0.75
+  ): SolutionCard[] {
+    if (!documents || !Array.isArray(documents) || documents.length === 0) {
+      console.log('[WebhookService] No documents to convert to solutions');
+      return [];
+    }
+
+    console.log(`[WebhookService] Converting ${documents.length} documents to solution cards`);
+    
+    return documents.map((doc, index) => {
+      // Calculate individual confidence for this solution
+      const confidence = confidenceScore >= 0.85 ? 'high' : 
+                        confidenceScore >= 0.675 ? 'medium' : 'low';
+      
+      // Create comprehensive steps based on fault code
+      const steps: SolutionStep[] = [
+        {
+          text: `Access ${doc.source} technical manual for fault code ${doc.fault_code}`,
+          type: 'normal',
+          isBold: false
+        },
+        {
+          text: `Navigate to ${doc.type === 'manual' ? 'troubleshooting section' : doc.type} for detailed procedures`,
+          type: 'normal',
+          isBold: false
+        },
+        {
+          text: 'Ensure engine is off and system is safely isolated before beginning work',
+          type: 'warning',
+          isBold: true
+        },
+        {
+          text: `Check all related systems as specified in ${doc.source} documentation`,
+          type: 'tip',
+          isBold: false
+        },
+        {
+          text: 'Document all findings and actions taken for maintenance records',
+          type: 'normal',
+          isBold: false
+        }
+      ];
+
+      // Add content-based steps if available
+      if (doc.content) {
+        const extractedSteps = this.extractStepsFromContent(doc.content);
+        if (extractedSteps.length > 0) {
+          // Replace generic steps with actual content
+          steps.splice(1, 0, ...extractedSteps.slice(0, 3));
+        }
+      }
+
+      const solutionCard: SolutionCard = {
+        solution_id: doc.id || `solution_${index}_${Date.now()}`,
+        title: `Fault Code ${doc.fault_code} - ${doc.source} Procedure`,
+        confidence: confidence,
+        confidenceScore: Math.round(confidenceScore * 100),
+        description: doc.headline || `Technical procedure for ${doc.fault_code} from ${doc.source} manual`,
+        source: {
+          title: `${doc.source} Technical Manual`,
+          page: doc.page,
+          revision: doc.revision
+        },
+        steps: steps,
+        procedureLink: doc.url,
+        original_doc_url: doc.url,
+        parts_needed: [],
+        estimated_time: '',
+        safety_warnings: [
+          'Follow all manufacturer safety guidelines',
+          'Ensure proper ventilation when working in engine spaces',
+          'Use appropriate PPE as specified in manual'
+        ],
+        specifications: {
+          fault_code: doc.fault_code,
+          source_type: doc.type,
+          document_id: doc.id
+        }
+      };
+
+      console.log(`[WebhookService] Created solution card for ${doc.fault_code}`);
+      return solutionCard;
+    });
   }
 
   /**
@@ -634,25 +735,82 @@ class CompleteWebhookService {
     if (response.success && response.data) {
       let responseData = response.data;
       
-      // Handle array response from webhook (webhook returns [{response: {...}}])
+      // Handle array response from webhook
       if (Array.isArray(responseData) && responseData.length > 0) {
-        const firstItem = responseData[0];
+        const firstItem = responseData[0] as any;
+        console.log('[WebhookService] Processing array response, checking for OpenAI format...');
         
-        // Extract solutions from documents if available
-        const solutions = this.extractSolutionsFromResponse(firstItem, searchStrategy);
-        
-        responseData = {
-          success: true,
-          answer: firstItem.response?.answer || firstItem.answer || 'Response received',
-          messageId: firstItem.query_id || `msg_${Date.now()}`,
-          timestamp: firstItem.timestamp || new Date().toISOString(),
-          items: firstItem.response?.items || firstItem.items || [],
-          sources: firstItem.response?.sources || firstItem.sources || [],
-          references: firstItem.response?.references || firstItem.references || [],
-          summary: firstItem.response?.summary || firstItem.summary || '',
-          metadata: firstItem.metadata || {},
-          solutions: solutions // Add solutions for display
-        };
+        // Check for OpenAI completion format with message.content structure
+        if (firstItem.message && firstItem.message.content && firstItem.message.role === 'assistant') {
+          console.log('[WebhookService] Detected OpenAI format response');
+          const content = firstItem.message.content as OpenAIMessageContent;
+          
+          // Convert documents to solutions if solutions array is empty
+          let solutions = content.solutions || [];
+          if ((!solutions || solutions.length === 0) && hasDocumentsUsed(content)) {
+            console.log(`[WebhookService] Creating solutions from ${content.documents_used.length} documents`);
+            solutions = this.convertDocumentsToSolutionCards(
+              content.documents_used, 
+              content.confidence_score
+            );
+          }
+          
+          // Create normalized response
+          responseData = {
+            success: true,
+            answer: content.message || content.ai_summary || 'Response received',
+            messageId: `msg_${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            confidence_score: content.confidence_score,
+            ai_summary: content.ai_summary,
+            documents_used: content.documents_used,
+            solutions: solutions,
+            items: [],
+            sources: content.documents_used?.map(d => d.source) || [],
+            references: content.documents_used || [],
+            summary: content.ai_summary || '',
+            metadata: {
+              model: firstItem.model,
+              finish_reason: firstItem.finish_reason
+            }
+          } as NormalizedChatResponse;
+          
+          console.log(`[WebhookService] Normalized response with ${solutions.length} solution cards`);
+        }
+        // Handle legacy format
+        else if (firstItem.response || firstItem.answer) {
+          console.log('[WebhookService] Processing legacy response format');
+          const solutions = this.extractSolutionsFromResponse(firstItem, searchStrategy);
+          
+          responseData = {
+            success: true,
+            answer: firstItem.response?.answer || firstItem.answer || 'Response received',
+            messageId: firstItem.query_id || `msg_${Date.now()}`,
+            timestamp: firstItem.timestamp || new Date().toISOString(),
+            items: firstItem.response?.items || firstItem.items || [],
+            sources: firstItem.response?.sources || firstItem.sources || [],
+            references: firstItem.response?.references || firstItem.references || [],
+            summary: firstItem.response?.summary || firstItem.summary || '',
+            metadata: firstItem.metadata || {},
+            solutions: solutions
+          };
+        }
+        // Unknown array format
+        else {
+          console.warn('[WebhookService] Unknown array response format:', firstItem);
+          responseData = {
+            success: true,
+            answer: 'Response received',
+            messageId: `msg_${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            solutions: [],
+            items: [],
+            sources: [],
+            references: [],
+            summary: '',
+            metadata: {}
+          };
+        }
       }
       // Handle direct object response
       else if (typeof responseData === 'object') {
