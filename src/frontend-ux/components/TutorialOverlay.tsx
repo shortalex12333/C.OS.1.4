@@ -356,6 +356,62 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
     return () => window.removeEventListener('resize', handleResize);
   }, [currentStepIndex, isVisible]);
 
+  // Auto-advance tutorial when required actions are completed
+  useEffect(() => {
+    if (!isVisible || !step?.requiresAction) return;
+
+    const checkActionCompleted = () => {
+      if (step.id === 'expand_solution') {
+        const element = document.querySelector(step.target);
+        if (element) {
+          const solutionCard = element.closest('.solution_card');
+          const isExpanded = solutionCard?.querySelector('.solution_expanded_content');
+          if (isExpanded) {
+            console.log('Tutorial: Solution card expanded, auto-advancing');
+            setTimeout(() => {
+              setCurrentStepIndex(prev => prev + 1);
+            }, 800); // Small delay to let user see the expansion
+            return true;
+          }
+        }
+      }
+      
+      if (step.id === 'leave_feedback') {
+        const feedbackForm = document.querySelector('.feedback_form_container');
+        if (feedbackForm) {
+          console.log('Tutorial: Feedback form opened, auto-advancing');
+          setTimeout(() => {
+            setCurrentStepIndex(prev => prev + 1);
+          }, 500);
+          return true;
+        }
+      }
+
+      return false;
+    };
+
+    // Set up a mutation observer to watch for DOM changes
+    const observer = new MutationObserver(() => {
+      checkActionCompleted();
+    });
+
+    // Observe the entire document for changes
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'style']
+    });
+
+    // Also check immediately and on interval as fallback
+    const checkInterval = setInterval(checkActionCompleted, 500);
+
+    return () => {
+      observer.disconnect();
+      clearInterval(checkInterval);
+    };
+  }, [currentStepIndex, isVisible, step]);
+
   const updateHighlightPosition = () => {
     if (!step?.target) {
       setHighlightPosition(null);
@@ -733,9 +789,9 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
         <div style={{
           position: 'fixed',
           ...highlightPosition,
-          border: '3px solid #0D47A1',
-          borderRadius: '0px',
-          boxShadow: '0 0 20px rgba(13,71,161,0.6), inset 0 0 20px rgba(13,71,161,0.2)',
+          border: '2px solid #BADDE9',
+          borderRadius: '8px',
+          boxShadow: '0 0 20px rgba(186, 221, 233, 0.4), inset 0 0 20px rgba(186, 221, 233, 0.1)',
           pointerEvents: 'none',
           transition: 'all 0.3s ease-out',
           zIndex: 10001,
@@ -750,12 +806,13 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
           position: 'fixed',
           ...getTooltipPosition(),
           width: '360px',
-          background: 'rgba(255, 255, 255, 0.98)',
-          backdropFilter: 'blur(10px)',
-          border: '2px solid #0D47A1',
+          background: 'rgba(15, 11, 18, 0.95)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
           borderRadius: '12px',
-          padding: '20px',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+          padding: '24px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
           pointerEvents: 'auto',
           opacity: isAnimating ? 0 : 1,
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -773,8 +830,8 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
             height: '24px',
             borderRadius: '50%',
             border: 'none',
-            background: 'rgba(0, 0, 0, 0.05)',
-            color: 'rgba(0, 0, 0, 0.4)',
+            background: 'rgba(255, 255, 255, 0.05)',
+            color: 'rgba(246, 247, 251, 0.4)',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -783,12 +840,12 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
             padding: 0
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(0, 0, 0, 0.1)';
-            e.currentTarget.style.color = 'rgba(0, 0, 0, 0.6)';
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+            e.currentTarget.style.color = 'rgba(246, 247, 251, 0.6)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)';
-            e.currentTarget.style.color = 'rgba(0, 0, 0, 0.4)';
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+            e.currentTarget.style.color = 'rgba(246, 247, 251, 0.4)';
           }}
         >
           <X size={16} />
@@ -805,9 +862,9 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
               key={index}
               style={{
                 flex: 1,
-                height: '3px',
-                borderRadius: '1.5px',
-                background: index <= currentStepIndex ? '#0D47A1' : '#e0e0e0',
+                height: '2px',
+                borderRadius: '1px',
+                background: index <= currentStepIndex ? '#BADDE9' : 'rgba(255, 255, 255, 0.1)',
                 transition: 'all 0.3s'
               }}
             />
@@ -822,7 +879,7 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
           marginBottom: '12px'
         }}>
           <div style={{
-            color: '#0D47A1',
+            color: '#BADDE9',
             flexShrink: 0
           }}>
             {step.icon}
@@ -830,9 +887,10 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
           <h3 style={{
             fontSize: '18px',
             fontWeight: '600',
-            fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-            color: '#111827',
-            lineHeight: 1.3,
+            fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+            color: 'var(--headline, #f6f7fb)',
+            lineHeight: '24px',
+            letterSpacing: '-0.32px',
             margin: 0
           }}>
             {step.title}
@@ -842,8 +900,10 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
         {/* Description */}
         <p style={{
           fontSize: '14px',
-          color: 'rgba(0, 0, 0, 0.7)',
-          lineHeight: 1.6,
+          color: 'rgba(246, 247, 251, 0.7)',
+          lineHeight: '20px',
+          letterSpacing: '-0.32px',
+          fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
           marginBottom: '16px',
           marginLeft: '36px'
         }}>
@@ -856,11 +916,12 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
             marginLeft: '36px',
             marginBottom: '12px',
             padding: '8px 12px',
-            background: 'rgba(13, 71, 161, 0.1)',
-            borderRadius: '6px',
+            background: 'rgba(186, 221, 233, 0.1)',
+            borderRadius: '8px',
             fontSize: '13px',
-            color: '#0D47A1',
-            fontWeight: '500'
+            color: '#BADDE9',
+            fontWeight: '500',
+            fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
           }}>
             👆 {step.actionText}
           </div>
@@ -880,15 +941,24 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px',
-                padding: '6px 12px',
+                padding: '8px 16px',
                 background: 'transparent',
-                border: '1px solid rgba(0, 0, 0, 0.1)',
-                borderRadius: '6px',
-                color: 'rgba(0, 0, 0, 0.6)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '50px',
+                color: 'rgba(246, 247, 251, 0.6)',
                 fontSize: '13px',
                 fontWeight: '500',
+                fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                e.currentTarget.style.color = 'rgba(246, 247, 251, 0.8)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                e.currentTarget.style.color = 'rgba(246, 247, 251, 0.6)';
               }}
             >
               <ChevronLeft size={14} />
@@ -902,28 +972,31 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '4px',
+                gap: '6px',
                 height: '40px',
-                padding: '0 20px',
-                background: '#0070ff',
+                padding: '0 24px',
+                background: '#004aff',
                 border: 'none',
-                borderRadius: '6px',
+                borderRadius: '50px',
                 color: '#FFFFFF',
                 fontSize: '14px',
-                fontWeight: '500',
+                fontWeight: '600',
+                fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
                 cursor: 'pointer',
-                transition: 'all 300ms cubic-bezier(0.23, 1, 0.32, 1)',
+                transition: 'all 200ms cubic-bezier(0.23, 1, 0.32, 1)',
                 marginLeft: isFirstStep ? 'auto' : '0',
-                boxShadow: '0 1px 3px rgba(0, 112, 255, 0.2), 0 4px 12px rgba(0, 112, 255, 0.15)',
+                boxShadow: '0 2px 8px rgba(0, 74, 255, 0.3)',
                 transform: 'translateY(0)'
               }}
               onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#0052cc';
                 e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 112, 255, 0.2), 0 8px 24px rgba(0, 112, 255, 0.25)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 74, 255, 0.4)';
               }}
               onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#004aff';
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 112, 255, 0.2), 0 4px 12px rgba(0, 112, 255, 0.15)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 74, 255, 0.3)';
               }}
             >
               {isLastStep ? 'Complete' : 'Next'}
@@ -935,13 +1008,20 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
             <button
               onClick={handleSkip}
               style={{
-                padding: '6px 12px',
+                padding: '8px 16px',
                 background: 'transparent',
                 border: 'none',
-                color: 'rgba(0, 0, 0, 0.4)',
+                color: 'rgba(246, 247, 251, 0.4)',
                 fontSize: '13px',
+                fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
                 cursor: 'pointer',
                 transition: 'color 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'rgba(246, 247, 251, 0.6)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'rgba(246, 247, 251, 0.4)';
               }}
             >
               {currentPhase === 'initial' ? 'Close' : 'Skip Tutorial'}
@@ -958,13 +1038,13 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
 
         @keyframes pulse {
           0% {
-            box-shadow: 0 0 20px rgba(13,71,161,0.6), inset 0 0 20px rgba(13,71,161,0.2);
+            box-shadow: 0 0 20px rgba(186, 221, 233, 0.4), inset 0 0 20px rgba(186, 221, 233, 0.1);
           }
           50% {
-            box-shadow: 0 0 30px rgba(13,71,161,0.8), inset 0 0 30px rgba(13,71,161,0.3);
+            box-shadow: 0 0 30px rgba(186, 221, 233, 0.6), inset 0 0 30px rgba(186, 221, 233, 0.2);
           }
           100% {
-            box-shadow: 0 0 20px rgba(13,71,161,0.6), inset 0 0 20px rgba(13,71,161,0.2);
+            box-shadow: 0 0 20px rgba(186, 221, 233, 0.4), inset 0 0 20px rgba(186, 221, 233, 0.1);
           }
         }
 

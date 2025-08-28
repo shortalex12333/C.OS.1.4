@@ -73,7 +73,7 @@ export function AISolutionCardLibrary({
   // Override with variant state if specified
   useEffect(() => {
     if (state === 'expanded' && !controlledExpanded) {
-      setInternalExpanded(new Set(solutions.map(s => s.id)));
+      setInternalExpanded(new Set((solutions || []).map(s => s.id)));
     } else if (state === 'collapsed' && !controlledExpanded) {
       setInternalExpanded(new Set());
     }
@@ -94,7 +94,7 @@ export function AISolutionCardLibrary({
   };
 
   const copyToClipboard = (solutionId: string) => {
-    const solution = solutions.find(s => s.id === solutionId);
+    const solution = (solutions || []).find(s => s.id === solutionId);
     if (solution) {
       const text = `${solution.title}\n\n${solution.steps.map(step => `• ${step.text}`).join('\n')}`;
       navigator.clipboard.writeText(text);
@@ -323,7 +323,7 @@ export function AISolutionCardLibrary({
       className="w-full space-y-0"
       style={{ padding: tokens.spacing.md }} // 12px container padding
     >
-      {solutions.map((solution, index) => {
+      {(solutions || []).filter(solution => solution && solution.title).map((solution, index) => {
         const isExpanded = expandedSolutions.has(solution.id);
         
         return (

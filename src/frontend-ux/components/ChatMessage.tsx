@@ -3,7 +3,7 @@ import { AISolutionCard } from './AISolutionCard';
 import ReactMarkdown from 'react-markdown';
 import { StreamingText } from './StreamingText';
 import { BrainLogo } from './BrainLogo';
-import { Copy, RotateCw, ThumbsUp, ThumbsDown, Edit2 } from 'lucide-react';
+import { Copy, RotateCw, ThumbsUp, ThumbsDown, Edit2, X, Check } from 'lucide-react';
 import type { ChatMessage as ChatMessageType, ParsedContent, WebhookArrayResponse } from '../../types/webhook';
 
 interface ChatMessageProps {
@@ -45,9 +45,27 @@ export function ChatMessage({ message, displayName, isDarkMode = false, isMobile
     if (typeof message.content === 'object' && message.content !== null) {
       const content = message.content as any;
       
+      // Validate and filter solutions array with comprehensive debugging
+      let validSolutions = null;
+      if (content.solutions && Array.isArray(content.solutions)) {
+        console.log('🔍 Raw solutions received:', content.solutions);
+        
+        validSolutions = (content.solutions || []).filter((sol, index) => {
+          const isValid = sol && typeof sol === 'object' && sol.title;
+          if (!isValid) {
+            console.warn(`❌ Invalid solution at index ${index}:`, sol);
+          }
+          return isValid;
+        });
+        
+        console.log('✅ Valid solutions after filtering:', validSolutions);
+        // Only use solutions if we have valid ones
+        validSolutions = validSolutions.length > 0 ? validSolutions : null;
+      }
+
       return {
         text: content.answer || content.ai_summary || 'Processing your request...',
-        solutions: content.solutions || null,
+        solutions: validSolutions,
         items: content.items || content.documents_used || [],
         sources: content.sources || [],
         references: content.references || content.documents_used || [],
@@ -194,6 +212,7 @@ export function ChatMessage({ message, displayName, isDarkMode = false, isMobile
                   <textarea
                     value={editContent}
                     onChange={(e) => setEditContent(e.target.value)}
+                    className="edit-message-textarea"
                     style={{
                       width: '100%',
                       minHeight: '60px',
@@ -217,34 +236,66 @@ export function ChatMessage({ message, displayName, isDarkMode = false, isMobile
                       }
                     }}
                   />
-                  <div style={{ marginTop: '8px', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                  <div style={{ marginTop: '8px', display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                    {/* Cancel button - X icon */}
                     <button
                       onClick={handleCancelEdit}
+                      className="p-1.5 rounded-lg transition-all duration-200"
+                      title="Cancel edit"
                       style={{
-                        padding: '4px 12px',
-                        fontSize: '12px',
-                        color: isDarkMode ? 'rgba(246, 247, 251, 0.7)' : '#6b7280',
+                        padding: '6px',
+                        color: isDarkMode ? 'rgba(246, 247, 251, 0.6)' : '#9ca3af',
                         backgroundColor: 'transparent',
-                        border: `1px solid ${isDarkMode ? 'rgba(246, 247, 251, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`,
-                        borderRadius: '4px',
-                        cursor: 'pointer'
+                        border: '1px solid transparent',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        transition: 'all 200ms ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = isDarkMode 
+                          ? 'rgba(246, 247, 251, 0.08)' 
+                          : 'rgba(0, 0, 0, 0.04)';
+                        e.currentTarget.style.color = isDarkMode 
+                          ? 'rgba(246, 247, 251, 0.9)' 
+                          : '#374151';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.color = isDarkMode 
+                          ? 'rgba(246, 247, 251, 0.6)' 
+                          : '#9ca3af';
                       }}
                     >
-                      Cancel
+                      <X className="w-4 h-4" />
                     </button>
+                    {/* Save button - Check icon */}
                     <button
                       onClick={handleSaveEdit}
+                      className="p-1.5 rounded-lg transition-all duration-200"
+                      title="Save & send"
                       style={{
-                        padding: '4px 12px',
-                        fontSize: '12px',
-                        color: '#ffffff',
-                        backgroundColor: '#0070ff',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer'
+                        padding: '6px',
+                        color: '#10b981',
+                        backgroundColor: isDarkMode ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.08)',
+                        border: '1px solid transparent',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        transition: 'all 200ms ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = isDarkMode 
+                          ? 'rgba(16, 185, 129, 0.15)' 
+                          : 'rgba(16, 185, 129, 0.12)';
+                        e.currentTarget.style.color = '#059669';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = isDarkMode 
+                          ? 'rgba(16, 185, 129, 0.1)' 
+                          : 'rgba(16, 185, 129, 0.08)';
+                        e.currentTarget.style.color = '#10b981';
                       }}
                     >
-                      Save & Send
+                      <Check className="w-4 h-4" />
                     </button>
                   </div>
                 </div>

@@ -40,19 +40,16 @@ export const BackgroundSystem: React.FC<BackgroundSystemProps> = ({
       100% { opacity: 1; transform: scale(1); }
     }
     @keyframes ambientFloat {
-      0%, 100% { transform: translateY(0px) translateX(0px) scale(1); }
-      33% { transform: translateY(-20px) translateX(10px) scale(1.02); }
-      66% { transform: translateY(10px) translateX(-5px) scale(0.98); }
+      0%, 100% { transform: translate3d(0,0,0) scale(1); }
+      50% { transform: translate3d(0,-1%,0) scale(1.01); }
     }
     @keyframes ambientDrift {
-      0%, 100% { transform: translateX(0px) translateY(0px); }
-      25% { transform: translateX(30px) translateY(-15px); }
-      50% { transform: translateX(-20px) translateY(20px); }
-      75% { transform: translateX(15px) translateY(-10px); }
+      0%, 100% { transform: translate3d(0,0,0) scale(1); }
+      50% { transform: translate3d(0,-1%,0) scale(1.01); }
     }
     @keyframes subtlePulse {
-      0%, 100% { opacity: 0.3; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(1.05); }
+      0%, 100% { transform: translate3d(0,0,0) scale(1); }
+      50% { transform: translate3d(0,-1%,0) scale(1.01); }
     }
     @keyframes auroraWave {
       0% { transform: translateX(-100%) rotate(-5deg); }
@@ -70,56 +67,57 @@ export const BackgroundSystem: React.FC<BackgroundSystemProps> = ({
       
       {(!isLoggedIn || !isChatMode) ? (
         !isDarkMode ? (
-          /* Light Mode Dashboard - Professional Marine Theme */
+          /* Light Mode Dashboard - CelesteOS Ocean Gradient Theme */
           <>
-            {/* Base gradient */}
+            {/* Base unifying wash */}
             <div className="absolute inset-0 h-full w-full" style={{ 
-              background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0f9ff 100%)' 
+              background: 'linear-gradient(180deg, #f7fbff 0%, #BADDE9 100%)'
             }} />
             
-            {/* Animated aurora effect - subtle */}
+            {/* Layered ocean blues with brand logo gradient - Position 1: soft cyan glow */}
             <div className="absolute inset-0 h-full w-full" style={{ 
-              background: 'linear-gradient(90deg, transparent 0%, rgba(67, 166, 216, 0.05) 50%, transparent 100%)',
-              animation: 'auroraWave 20s ease-in-out infinite',
-              opacity: 0.5
+              background: 'radial-gradient(60vmax 60vmax at 18% 20%, rgba(47, 185, 232, 0.35) 0%, transparent 55%)',
+              filter: 'saturate(110%) contrast(102%)',
+              animation: 'ambientFloat 26s ease-in-out infinite'
             }} />
             
-            {/* Primary organic shapes with animation */}
+            {/* Position 2: pure blue glow */}
             <div className="absolute inset-0 h-full w-full" style={{ 
-              background: 'radial-gradient(circle at 25% -10%, rgba(67, 166, 216, 0.15) 0%, rgba(129, 200, 228, 0.1) 25%, transparent 50%)',
-              animation: 'ambientFloat 15s ease-in-out infinite'
+              background: 'radial-gradient(70vmax 70vmax at 82% 18%, rgba(0, 112, 255, 0.4) 0%, transparent 60%)',
+              filter: 'saturate(110%) contrast(102%)',
+              animation: 'ambientDrift 26s ease-in-out infinite'
             }} />
             
+            {/* Position 3: logo turquoise */}
             <div className="absolute inset-0 h-full w-full" style={{ 
-              background: 'radial-gradient(circle at 75% -5%, rgba(91, 184, 247, 0.12) 0%, rgba(67, 166, 216, 0.08) 30%, transparent 55%)',
-              animation: 'ambientDrift 20s ease-in-out infinite'
+              background: 'radial-gradient(70vmax 70vmax at 22% 78%, rgba(186, 221, 233, 0.6) 0%, transparent 55%)',
+              filter: 'saturate(110%) contrast(102%)',
+              animation: 'subtlePulse 26s ease-in-out infinite'
             }} />
             
+            {/* Position 4: navy lift */}
             <div className="absolute inset-0 h-full w-full" style={{ 
-              background: 'radial-gradient(circle at 50% 0%, rgba(129, 200, 228, 0.08) 0%, transparent 40%)',
-              animation: 'subtlePulse 10s ease-in-out infinite'
+              background: 'radial-gradient(85vmax 85vmax at 78% 82%, rgba(0, 40, 90, 0.18) 0%, transparent 65%)',
+              filter: 'saturate(110%) contrast(102%)'
             }} />
             
-            {/* Depth layers */}
-            <div className="absolute inset-0 h-full w-full" style={{ 
-              background: 'radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.6) 0%, transparent 40%)',
-              filter: 'blur(40px)'
+            {/* Vignette to hold focus center */}
+            <div className="absolute h-full w-full" style={{ 
+              position: 'absolute',
+              inset: '-10vmax',
+              background: 'radial-gradient(120vmax 90vmax at 50% 45%, transparent 0 64%, rgba(0, 15, 40, 0.06) 100%)',
+              pointerEvents: 'none',
+              mixBlendMode: 'multiply'
             }} />
             
+            {/* Grain to remove banding (very light) */}
             <div className="absolute inset-0 h-full w-full" style={{ 
-              background: 'radial-gradient(ellipse at 70% 30%, rgba(240, 248, 255, 0.5) 0%, transparent 50%)',
-              filter: 'blur(30px)'
-            }} />
-            
-            {/* Subtle mesh gradient overlay */}
-            <div className="absolute inset-0 h-full w-full" style={{ 
-              background: `
-                radial-gradient(at 40% 20%, rgba(67, 166, 216, 0.05) 0px, transparent 50%),
-                radial-gradient(at 80% 0%, rgba(129, 200, 228, 0.04) 0px, transparent 50%),
-                radial-gradient(at 10% 50%, rgba(91, 184, 247, 0.03) 0px, transparent 50%),
-                radial-gradient(at 90% 90%, rgba(67, 166, 216, 0.02) 0px, transparent 50%)
-              `,
-              backgroundBlendMode: 'normal'
+              pointerEvents: 'none',
+              opacity: 0.05,
+              mixBlendMode: 'overlay',
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E")`,
+              backgroundSize: '280px 280px',
+              animation: 'ambientFloat 26s ease-in-out infinite reverse'
             }} />
           </>
         ) : (

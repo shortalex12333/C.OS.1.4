@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CelesteOS • Dark Background</title>
+<style>
+  :root{
+    /* Dark field */
+    --ink-0: #000307;
+    --ink-1: #020812;
+    --ink-2: #081627; /* deep navy */
+
+    /* Brand blues */
+    --blue:   #0070FF;
+    --cyan:   #2FB9E8;
+    --pale:   #BADDE9;
+
+    /* Controls */
+    --glow-intensity: .18;  /* raise/lower overall glow */
+    --vignette: .26;        /* edge darkness */
+    --drift: 28s;
+  }
+
+  html,body{height:100%}
+  body{margin:0; background: var(--ink-1); overflow:hidden}
+
+  /* Background layers only */
+  .bg{position:fixed; inset:0; z-index:-1}
+
+  .bg::before{
+    content:""; position:absolute; inset:0;
+    /* Big, smooth layers only */
+    background:
+      /* center depth glow (subtle) */
+      radial-gradient(120vmax 95vmax at 50% 44%,
+        color-mix(in oklab, var(--blue) 60%, var(--cyan)) calc(0% + 0%),
+        rgba(0,0,0,0) 60%),
+      /* cool cyan lift, very faint */
+      radial-gradient(140vmax 110vmax at 50% 58%,
+        rgba(186,221,233,calc(var(--glow-intensity) - .10)), transparent 65%),
+      /* upper-left darkening */
+      radial-gradient(130vmax 120vmax at 18% 8%,
+        rgba(0,10,25,.55), transparent 70%),
+      /* lower-right darkening */
+      radial-gradient(160vmax 130vmax at 82% 92%,
+        rgba(0,8,20,.65), transparent 72%),
+      /* deep base */
+      linear-gradient(180deg, var(--ink-2) 0%, var(--ink-0) 100%);
+    /* Tone + subtle motion */
+    filter: saturate(110%) contrast(104%) brightness(.95);
+    animation: drift var(--drift) ease-in-out infinite;
+    will-change: transform;
+  }
+
+  /* Strong vignette to keep it dark */
+  .bg::after{
+    content:""; position:absolute; inset:-12vmax;
+    background: radial-gradient(120vmax 95vmax at 50% 50%,
+      rgba(0,0,0,0) 58%,
+      rgba(0,0,0,var(--vignette)) 100%);
+    mix-blend-mode:multiply; pointer-events:none;
+  }
+
+  /* Ultra-light grain to prevent banding on 4k/5k */
+  .grain{
+    position:fixed; inset:-1px; pointer-events:none;
+    opacity:.05; mix-blend-mode:overlay;
+    background-image: url('data:image/svg+xml;utf8,\
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">\
+        <filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/></filter>\
+        <rect width="100%" height="100%" filter="url(#n)" opacity="0.35"/>\
+      </svg>');
+    background-size: 300px 300px;
+    animation: drift var(--drift) ease-in-out infinite reverse;
+  }
+
+  @keyframes drift{
+    0%,100%{ transform: translate3d(0,0,0) scale(1) }
+    50%    { transform: translate3d(0,-0.6%,0) scale(1.005) }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .bg::before, .grain { animation: none }
+  }
+</style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="grain" aria-hidden="true"></div>
+</body>
+</html>

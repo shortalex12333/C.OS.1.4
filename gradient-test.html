@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CelesteOS • Gradient Background Only</title>
+<style>
+  /* ========= TOKENS ========= */
+  :root{
+    /* Brand palette */
+    --white: #FFFFFF;
+    --white-2: #FAFAFA;
+    --blue-1: #0070FF;
+    --blue-2: #00A4FF;
+    --blue-soft: #BADDE9;
+    --logo-from: #BADDE9;
+    --logo-to: #2FB9E8;
+
+    /* Gradient positions */
+    --p1: 18% 20%;  /* soft cyan glow */
+    --p2: 82% 18%;  /* pure blue glow */
+    --p3: 22% 78%;  /* logo turquoise */
+    --p4: 78% 82%;  /* navy lift */
+
+    /* Motion */
+    --drift: 26s;
+  }
+
+  html,body{
+    height:100%;
+    margin:0;
+    overflow:hidden;
+  }
+
+  body{
+    background: var(--white-2);
+  }
+
+  /* ========= BACKGROUND PAINTER ========= */
+  .bg{ 
+    position:fixed; 
+    inset:0; 
+  }
+  
+  .bg::before{
+    /* Layered "ocean" blues with brand logo gradient woven in */
+    content:"";
+    position:absolute; 
+    inset:0;
+    background:
+      radial-gradient(60vmax 60vmax at var(--p1), color-mix(in oklab, var(--logo-to) 35%, white) 0%, transparent 55%),
+      radial-gradient(70vmax 70vmax at var(--p2), color-mix(in oklab, var(--blue-1) 40%, white) 0%, transparent 60%),
+      radial-gradient(70vmax 70vmax at var(--p3), color-mix(in oklab, var(--logo-from) 60%, white) 0%, transparent 55%),
+      radial-gradient(85vmax 85vmax at var(--p4), rgba(0,40,90,.18) 0%, transparent 65%),
+      /* unifying wash */
+      linear-gradient(180deg, #f7fbff 0%, var(--blue-soft) 100%);
+    filter: saturate(110%) contrast(102%);
+    will-change: transform;
+    animation: drift var(--drift) ease-in-out infinite;
+  }
+  
+  /* Vignette to hold focus center */
+  .bg::after{
+    content:"";
+    position:absolute; 
+    inset:-10vmax;
+    background: radial-gradient(120vmax 90vmax at 50% 45%, transparent 0 64%, rgba(0,15,40,.06) 100%);
+    pointer-events:none;
+    mix-blend-mode:multiply;
+  }
+
+  /* Grain to remove banding (very light) */
+  .grain{
+    position:fixed; 
+    inset:-1px;
+    pointer-events:none;
+    opacity:.05; 
+    mix-blend-mode:overlay;
+    background-image: url('data:image/svg+xml;utf8,\
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">\
+        <filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/></filter>\
+        <rect width="100%" height="100%" filter="url(#n)" opacity="0.35"/>\
+      </svg>');
+    background-size: 280px 280px;
+    animation: drift var(--drift) ease-in-out infinite reverse;
+  }
+
+  @keyframes drift {
+    0%,100% { transform: translate3d(0,0,0) scale(1); }
+    50%     { transform: translate3d(0,-1%,0) scale(1.01); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .bg::before, .grain { animation: none; }
+  }
+</style>
+</head>
+<body>
+  <!-- Background Only -->
+  <div class="bg"></div>
+  <div class="grain" aria-hidden="true"></div>
+</body>
+</html>

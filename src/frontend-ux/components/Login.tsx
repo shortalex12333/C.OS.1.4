@@ -286,7 +286,13 @@ export function Login({ onLogin, onSignUp, isMobile = false, isDarkMode = false 
             {/* Header with Logo and Title */}
             <div className="text-center mb-8">
               <div className="flex justify-center mb-6">
-                <BrainLogo size={48} isDarkMode={false} className="transition-all duration-300" />
+                <img 
+                  src="/black-brain-logo.png" 
+                  alt="CelesteOS Logo" 
+                  width={56} 
+                  height={56}
+                  className="transition-all duration-300"
+                />
               </div>
               
               <h1 
@@ -295,19 +301,21 @@ export function Login({ onLogin, onSignUp, isMobile = false, isDarkMode = false 
                   fontSize: isMobile ? '24px' : '28px',
                   lineHeight: '1.2',
                   letterSpacing: '0.38px',
-                  color: '#181818'
+                  color: '#181818',
+                  fontWeight: '600'
                 }}
               >
-                <span style={{ color: '#181818' }}>
+                <span style={{ color: '#181818', fontWeight: '600' }}>
                   Celeste
                 </span>
                 <span 
                   style={{ 
-                    background: 'linear-gradient(115deg, #43a6d8 0%, #81c8e4 100%)',
+                    background: 'linear-gradient(-40deg, #4184A7 0%, #80C5DF 100%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                     backgroundClip: 'text',
-                    display: 'inline-block'
+                    display: 'inline-block',
+                    fontWeight: '600'
                   }}
                 >
                   OS
@@ -322,7 +330,7 @@ export function Login({ onLogin, onSignUp, isMobile = false, isDarkMode = false 
                   color: '#95979E'
                 }}
               >
-                Advanced AI Assistant for Yacht Engineering
+                Engineering Intelligence. Always On.
               </p>
             </div>
 
@@ -535,8 +543,7 @@ export function Login({ onLogin, onSignUp, isMobile = false, isDarkMode = false 
                   color: '#95979E'
                 }}
               >
-                The World's First Super Yacht AI<br />
-                Powered by our latest model, OS.3.1.
+                The only AI trained on your manuals, systems, and history — ready whenever you are.
               </p>
             </div>
           </div>

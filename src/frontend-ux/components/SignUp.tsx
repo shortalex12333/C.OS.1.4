@@ -84,12 +84,17 @@ export function SignUp({ onSignUp, onBack, isMobile = false, isDarkMode = false 
       });
 
       if (result.success) {
-        setSuccess('Account created successfully! Please check your email to verify your account.');
-        
-        // Clear form after 3 seconds and go back to login
-        setTimeout(() => {
-          onBack();
-        }, 3000);
+        if (result.needsEmailVerification) {
+          setSuccess('Account created successfully! Please check your email to verify your account.');
+          // Clear form after 3 seconds and go back to login
+          setTimeout(() => {
+            onBack();
+          }, 3000);
+        } else {
+          // User is immediately logged in (no email verification needed)
+          setSuccess('Account created successfully! You are now signed in.');
+          // Don't call onBack() - let the auth state change handle the navigation
+        }
       } else {
         // Handle specific error messages
         if (result.error?.includes('already registered')) {

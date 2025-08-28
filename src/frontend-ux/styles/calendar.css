@@ -1,0 +1,260 @@
+/* Schedule Call Modal Calendar Styles */
+
+/* Base calendar styles */
+.schedule-modal-calendar {
+  --rdp-cell-size: 36px;
+  --rdp-accent-color: #0070ff;
+  --rdp-background-color: transparent;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Light theme calendar */
+.light-calendar {
+  --rdp-color: #1a1a1a;
+  --rdp-accent-color: #0070ff;
+  --rdp-accent-color-dark: #0056cc;
+  --rdp-background-color: rgba(255, 255, 255, 0.95);
+  --rdp-outline: 2px solid #0070ff;
+  --rdp-outline-selected: 2px solid #0056cc;
+}
+
+.light-calendar .rdp-day_button {
+  color: #1a1a1a;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 400;
+  transition: all 0.2s ease;
+}
+
+.light-calendar .rdp-day_button:not([disabled]):hover {
+  background: rgba(0, 112, 255, 0.08);
+  border-color: rgba(0, 112, 255, 0.2);
+}
+
+.light-calendar .rdp-day_selected:not([disabled]) .rdp-day_button {
+  background: #0070ff !important;
+  color: white !important;
+  border-color: #0070ff !important;
+  font-weight: 500;
+}
+
+.light-calendar .rdp-day_today:not(.rdp-day_selected) .rdp-day_button {
+  background: rgba(0, 112, 255, 0.05);
+  border: 1px solid rgba(0, 112, 255, 0.3);
+  color: #0070ff;
+  font-weight: 500;
+}
+
+.light-calendar .rdp-day_disabled .rdp-day_button {
+  color: rgba(0, 0, 0, 0.3);
+  cursor: not-allowed;
+}
+
+.light-calendar .rdp-caption_label {
+  color: #1a1a1a;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.light-calendar .rdp-nav_button {
+  color: #1a1a1a;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.light-calendar .rdp-nav_button:hover:not([disabled]) {
+  background: rgba(0, 112, 255, 0.1);
+  border-color: rgba(0, 112, 255, 0.3);
+}
+
+.light-calendar .rdp-head_cell {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+/* Dark theme calendar */
+.dark-calendar {
+  --rdp-color: #ffffff;
+  --rdp-accent-color: #00a4ff;
+  --rdp-accent-color-dark: #0070ff;
+  --rdp-background-color: rgba(16, 18, 24, 0.95);
+  --rdp-outline: 2px solid #00a4ff;
+  --rdp-outline-selected: 2px solid #0070ff;
+}
+
+.dark-calendar .rdp-day_button {
+  color: #ffffff;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 400;
+  transition: all 0.2s ease;
+}
+
+.dark-calendar .rdp-day_button:not([disabled]):hover {
+  background: rgba(0, 164, 255, 0.15);
+  border-color: rgba(0, 164, 255, 0.3);
+}
+
+.dark-calendar .rdp-day_selected:not([disabled]) .rdp-day_button {
+  background: #00a4ff !important;
+  color: white !important;
+  border-color: #00a4ff !important;
+  font-weight: 500;
+}
+
+.dark-calendar .rdp-day_today:not(.rdp-day_selected) .rdp-day_button {
+  background: rgba(0, 164, 255, 0.1);
+  border: 1px solid rgba(0, 164, 255, 0.4);
+  color: #00a4ff;
+  font-weight: 500;
+}
+
+.dark-calendar .rdp-day_disabled .rdp-day_button {
+  color: rgba(255, 255, 255, 0.3);
+  cursor: not-allowed;
+}
+
+.dark-calendar .rdp-caption_label {
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.dark-calendar .rdp-nav_button {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.dark-calendar .rdp-nav_button:hover:not([disabled]) {
+  background: rgba(0, 164, 255, 0.2);
+  border-color: rgba(0, 164, 255, 0.4);
+}
+
+.dark-calendar .rdp-head_cell {
+  color: #9ca3af;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+/* Common calendar layout fixes */
+.schedule-modal-calendar .rdp {
+  margin: 0;
+  padding: 0;
+}
+
+.schedule-modal-calendar .rdp-months {
+  display: flex;
+  justify-content: center;
+}
+
+.schedule-modal-calendar .rdp-month {
+  width: 100%;
+}
+
+.schedule-modal-calendar .rdp-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 2px;
+}
+
+.schedule-modal-calendar .rdp-tbody {
+  display: table-row-group;
+}
+
+.schedule-modal-calendar .rdp-row {
+  display: table-row;
+}
+
+.schedule-modal-calendar .rdp-cell {
+  display: table-cell;
+  padding: 2px;
+  text-align: center;
+}
+
+.schedule-modal-calendar .rdp-day {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Navigation button icons */
+.schedule-modal-calendar .rdp-nav_button svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Caption (month/year) styles */
+.schedule-modal-calendar .rdp-caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4px 12px;
+  position: relative;
+}
+
+/* Ensure visibility in glassmorphism container */
+.schedule-modal-calendar .rdp-day_button,
+.schedule-modal-calendar .rdp-nav_button {
+  position: relative;
+  z-index: 1;
+}
+
+/* Fix for better contrast in glassmorphism */
+.light-calendar .rdp {
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.dark-calendar .rdp {
+  background: rgba(16, 18, 24, 0.6);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+/* Ensure proper focus styles */
+.schedule-modal-calendar .rdp-day_button:focus-visible,
+.schedule-modal-calendar .rdp-nav_button:focus-visible {
+  outline: 2px solid var(--rdp-accent-color);
+  outline-offset: 2px;
+}
+
+/* Animation for date selection */
+@keyframes selectDate {
+  0% {
+    transform: scale(0.9);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.schedule-modal-calendar .rdp-day_selected .rdp-day_button {
+  animation: selectDate 0.3s ease;
+}

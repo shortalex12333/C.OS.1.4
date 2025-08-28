@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { MainHeader } from './MainHeader';
 import { ChatMessage as ChatMessageComponent } from './ChatMessage';
 import { ThinkingIndicator } from './ThinkingIndicator';
@@ -17,6 +17,7 @@ interface ChatAreaProps {
   searchType?: 'yacht' | 'email' | 'email-yacht';
   onEditMessage?: (messageId: string, newContent: string) => void;
   onRegenerateResponse?: (messageId: string) => void;
+  onScheduleCallClick?: () => void;
 }
 
 export function ChatArea({ 
@@ -31,8 +32,23 @@ export function ChatArea({
   isWaitingForResponse = false,
   searchType = 'yacht',
   onEditMessage,
-  onRegenerateResponse
+  onRegenerateResponse,
+  onScheduleCallClick
 }: ChatAreaProps) {
+  // Ref for the scrollable messages container
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new messages are added
+  useEffect(() => {
+    if (messagesEndRef.current && (messages.length > 0 || isWaitingForResponse)) {
+      // Use smooth scrolling for a better user experience
+      messagesEndRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'end'
+      });
+    }
+  }, [messages.length, isWaitingForResponse]); // Trigger on message count change or waiting state change
   // Time-based greeting function
   const getTimeBasedGreeting = () => {
     try {
@@ -128,7 +144,7 @@ export function ChatArea({
           left: 0,
           right: 0,
           backgroundColor: 'transparent',
-          opacity: 0,
+          opacity: 1,
           borderBottom: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'}`,
           zIndex: 1000,
           backdropFilter: 'blur(10px)',
@@ -141,6 +157,7 @@ export function ChatArea({
             selectedModel={selectedModel}
             onModelChange={onModelChange}
             onFAQpageClick={onFAQpageClick}
+            onScheduleCallClick={onScheduleCallClick}
           />
         </div>
         
@@ -171,10 +188,13 @@ export function ChatArea({
                 lineHeight: isMobile ? '24px' : '28px',
                 color: isDarkMode ? 'rgba(246, 247, 251, 0.8)' : '#6b7280',
                 fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                letterSpacing: '-0.32px'
+                letterSpacing: '-0.32px',
+                textAlign: 'center'
               }}
             >
-              Welcome, you are using our latest models (2025), select your search intent, and type below
+              CelesteOS remembers every fix, every manual, every note.<br />
+              Ask your vessel's brain a question<br />
+              answers arrive instantly.
             </p>
           </div>
         </div>
@@ -190,7 +210,7 @@ export function ChatArea({
         top: 0,
         left: 0,
         right: 0,
-        backgroundColor: isDarkMode ? 'var(--background, #0f0b12)' : '#ffffff',
+        backgroundColor: isDarkMode ? '#2e2e2e' : '#ffffff',
         borderBottom: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'}`,
         zIndex: 1000,
         backdropFilter: 'blur(10px)',
@@ -203,17 +223,21 @@ export function ChatArea({
           selectedModel={selectedModel}
           onModelChange={onModelChange}
           onFAQpageClick={onFAQpageClick}
+          onScheduleCallClick={onScheduleCallClick}
         />
       </div>
       
       {/* Chat Messages Container */}
       <div 
+        ref={messagesContainerRef}
         className="flex flex-col h-full flex-1 chat_messages_container"
         style={{
-          maxWidth: isMobile ? '390px' : 'min(1200px, calc(100vw - 320px))',
+          width: isMobile ? '390px' : '1200px',
+          maxWidth: isMobile ? '390px' : 'calc(100vw - 320px)',
           margin: '0 auto',
           padding: isMobile ? '16px' : '24px',
-          overflowY: 'auto'
+          overflowY: 'auto',
+          scrollBehavior: 'smooth'
         }}
       >
         <div 
@@ -229,7 +253,9 @@ export function ChatArea({
                 key={message.id}
                 style={{
                   animation: index === messages.length - 1 && message.isUser
-                    ? 'messageAppear 0.5s cubic-bezier(0.22, 0.61, 0.36, 1)'
+                    ? isDarkMode 
+                      ? 'messageAppearDark 0.5s cubic-bezier(0.22, 0.61, 0.36, 1)'
+                      : 'messageAppear 0.5s cubic-bezier(0.22, 0.61, 0.36, 1)'
                     : 'none'
                 }}
               >
@@ -251,6 +277,9 @@ export function ChatArea({
               />
             )}
           </div>
+          
+          {/* Invisible scroll anchor - always stays at bottom */}
+          <div ref={messagesEndRef} style={{ height: '1px', visibility: 'hidden' }} />
 
           {/* Show welcome message when no chat messages */}
           {messages.length === 0 && (

@@ -112,10 +112,17 @@ class CompleteWebhookService {
   private extractSolutionsFromResponse(data: any, searchStrategy: string): any[] {
     // If solutions are already provided in correct format, return them
     if (data.solutions && Array.isArray(data.solutions)) {
-      return data.solutions.map((sol: any) => ({
-        ...sol,
+      return (data.solutions || []).map((sol: any) => ({
         solution_id: sol.solution_id || sol.id || `solution_${Date.now()}_${Math.random()}`,
-        confidenceScore: sol.confidenceScore || (sol.confidence ? Math.round(sol.confidence * 100) : 75)
+        title: sol.title || 'Solution',
+        description: sol.description || '',
+        steps: sol.steps || [],
+        confidence: sol.confidence || 0.75,
+        confidenceScore: sol.confidenceScore || (sol.confidence ? Math.round(sol.confidence * 100) : 75),
+        parts_needed: sol.parts_needed || [],
+        estimated_time: sol.estimated_time || '',
+        safety_warnings: sol.safety_warnings || [],
+        ...sol
       }));
     }
 
@@ -381,9 +388,14 @@ class CompleteWebhookService {
         
         // Convert Supabase format to webhook service format
         if (supabaseUser.id && supabaseUser.email) {
+          // Ensure userName is always a string
+          const displayName = String(supabaseUser.displayName || supabaseUser.firstName || supabaseUser.email.split('@')[0] || 'User');
+          
           this.currentUser = {
             userId: supabaseUser.id,
-            userName: supabaseUser.displayName || supabaseUser.email.split('@')[0],
+            userName: displayName,
+            firstName: supabaseUser.firstName || displayName.split(' ')[0],
+            lastName: supabaseUser.lastName || '',
             email: supabaseUser.email,
             sessionId: `supabase_session_${Date.now()}`
           };
@@ -578,9 +590,20 @@ class CompleteWebhookService {
 
     if (userStr) {
       try {
-        this.currentUser = JSON.parse(userStr);
+        const userData = JSON.parse(userStr);
+        // Ensure proper data types when restoring session
+        if (userData.userId) {
+          this.currentUser = {
+            userId: userData.userId || userData.id,
+            userName: String(userData.userName || userData.displayName || userData.email?.split('@')[0] || 'User'),
+            firstName: userData.firstName || '',
+            lastName: userData.lastName || '',
+            email: userData.email || '',
+            sessionId: userData.sessionId || `restored_session_${Date.now()}`
+          };
+        }
       } catch (e) {
-        console.error('Failed to restore user session');
+        console.error('Failed to restore user session:', e);
       }
     }
     
@@ -720,12 +743,15 @@ class CompleteWebhookService {
     }
 
     // Use stored firstName/lastName or extract from userName
+    // Ensure userName is always a string
+    const userNameStr = String(this.currentUser.userName || this.currentUser.email || 'User');
+    
     const firstName = this.currentUser.firstName || (() => {
-      const nameParts = this.currentUser.userName.trim().split(' ');
-      return nameParts[0] || this.currentUser.userName;
+      const nameParts = userNameStr.trim().split(' ');
+      return nameParts[0] || userNameStr;
     })();
     const lastName = this.currentUser.lastName || (() => {
-      const nameParts = this.currentUser.userName.trim().split(' ');
+      const nameParts = userNameStr.trim().split(' ');
       return nameParts.slice(1).join(' ') || '';
     })();
     
@@ -773,9 +799,23 @@ class CompleteWebhookService {
         if (firstItem.message && firstItem.message.content && firstItem.message.role === 'assistant') {
           const content = firstItem.message.content as OpenAIMessageContent;
           
-          // Convert documents to solutions if solutions array is empty
-          let solutions = content.solutions || [];
-          if ((!solutions || solutions.length === 0) && hasDocumentsUsed(content)) {
+          // Process solutions from response, ensuring proper format
+          let solutions = [];
+          if (content.solutions && Array.isArray(content.solutions)) {
+            solutions = (content.solutions || []).map((sol: any) => ({
+              solution_id: sol.solution_id || sol.id || `solution_${Date.now()}_${Math.random()}`,
+              title: sol.title || 'Solution',
+              description: sol.description || '',
+              steps: sol.steps || [],
+              confidence: sol.confidence || 0.75,
+              confidenceScore: sol.confidenceScore || (sol.confidence ? Math.round(sol.confidence * 100) : 75),
+              parts_needed: sol.parts_needed || [],
+              estimated_time: sol.estimated_time || '',
+              safety_warnings: sol.safety_warnings || [],
+              ...sol
+            }));
+          } else if (hasDocumentsUsed(content)) {
+            // Fallback: convert documents to solution cards
             solutions = this.convertDocumentsToSolutionCards(
               content.documents_used, 
               content.confidence_score

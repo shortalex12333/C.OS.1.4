@@ -1,6 +1,4 @@
 import React from 'react';
-import logoBlack from '../assets/logos/logo-black.png';
-import logoWhite from '../assets/logos/logo-white.png';
 
 interface BrainLogoProps {
   className?: string;
@@ -13,9 +11,8 @@ export function BrainLogo({
   size = 48,
   isDarkMode = false
 }: BrainLogoProps) {
-  // Use white logo for dark mode and login pages (which have dark backgrounds)
-  // Use black logo for light mode
-  const logoSrc = isDarkMode ? logoWhite : logoBlack;
+  // Use Blue Brain Logo from root directory
+  const logoSrc = "/blue-brain-logo.png";
   
   return (
     <img 

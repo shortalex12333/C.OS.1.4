@@ -109,9 +109,14 @@ export function Sidebar({
     // Using CSS string to apply !important for forcing glassmorphism
     const blurEffect = 'blur(24px) saturate(1.5) !important';
     
+    // Use different colors when chat has messages (isChatMode)
+    const backgroundColor = isChatMode 
+      ? (isDarkMode ? '#3C3C3C !important' : '#F5F5F5 !important')
+      : (isDarkMode ? '#292929 !important' : '#ffffff !important');
+    
     return {
-      backgroundColor: isDarkMode ? 'rgba(15, 11, 18, 0.65) !important' : 'rgba(255, 255, 255, 0.65) !important',
-      borderRight: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)'}`,
+      backgroundColor,
+      borderRight: `1px solid ${isDarkMode ? '#343434' : '#e7e7e7'}`,
       // Force glassmorphism effects - enhanced for visibility
       backdropFilter: blurEffect,
       WebkitBackdropFilter: blurEffect,
@@ -125,13 +130,7 @@ export function Sidebar({
     // Binds to: metadata.user_id, response.chat_history[], response.system_info.navigation
     <aside 
       className={`relative h-full flex flex-col transition-all duration-300 sidebar_navigation sidebar-glassmorphism ${isDarkMode ? 'sidebar-glassmorphism-dark' : 'sidebar-glassmorphism-light'}`}
-      style={{
-        width: '100%',
-        borderRight: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)'}`,
-        boxShadow: isDarkMode 
-          ? '0 25px 50px rgba(0, 0, 0, 0.25), inset -1px 0 0 rgba(255, 255, 255, 0.12)'
-          : '6px 0 24px rgba(0, 0, 0, 0.12), 2px 0 8px rgba(0, 0, 0, 0.06), inset -1px 0 0 rgba(255, 255, 255, 0.3)'
-      }}
+      style={getSidebarStyles()}
     >
       {/* Header Section */}
       <div 
@@ -145,8 +144,8 @@ export function Sidebar({
           <div className="flex justify-between items-center mb-4 sidebar_header_actions">
             {/* Logo - Desktop Only, shown when not collapsed */}
             {!isCollapsed && (
-              <div className="flex items-center">
-                <BrainLogo size={48} isDarkMode={isDarkMode} className="brain_logo_display" />
+              <div className="flex items-center justify-center">
+                <BrainLogo size={56} isDarkMode={isDarkMode} className="brain_logo_display" />
               </div>
             )}
             
@@ -175,7 +174,7 @@ export function Sidebar({
             onClick={handleNewChat}
             className={`flex items-center gap-3 w-full transition-all duration-300 ease-out new_chat_button ${isMobile ? 'p-2.5' : 'p-3'}`}
             style={{
-              fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
               fontSize: isMobile ? '15px' : '14px',
               fontWeight: '500',
               background: 'transparent',
@@ -204,7 +203,7 @@ export function Sidebar({
                 onClick={() => handleSearchTypeSelect('yacht')}
                 className={`flex items-center gap-3 w-full p-3 transition-all duration-200 yacht_search_button`}
                 style={{
-                  fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                  fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                   fontSize: '14px',
                   fontWeight: '500',
                   background: 'transparent',
@@ -241,7 +240,7 @@ export function Sidebar({
                 onClick={() => handleSearchTypeSelect('email-yacht')}
                 className={`flex items-center gap-3 w-full p-3 transition-all duration-200 email_search_button`}
                 style={{
-                  fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                  fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                   fontSize: '14px',
                   fontWeight: '500',
                   background: 'transparent',
@@ -290,7 +289,7 @@ export function Sidebar({
               className="flex items-center justify-between px-2 py-2 text-sm chat_history_header"
               style={{
                 fontSize: '12px',
-                fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                 color: isDarkMode ? 'rgba(246, 247, 251, 0.6)' : '#6b7280'
               }}
             >
@@ -346,7 +345,7 @@ export function Sidebar({
                           className="text-sm truncate chat_title_text"
                           style={{
                             fontSize: '13px',
-                            fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                            fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                             color: isDarkMode ? 'var(--headline, #f6f7fb)' : '#374151'
                           }}
                         >
@@ -357,7 +356,7 @@ export function Sidebar({
                           className="text-xs chat_timestamp"
                           style={{
                             fontSize: '11px',
-                            fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                            fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                             color: isDarkMode ? 'rgba(246, 247, 251, 0.5)' : '#9ca3af'
                           }}
                         >
@@ -433,7 +432,7 @@ export function Sidebar({
                 className="text-sm font-medium truncate user_display_name"
                 style={{
                   fontSize: '14px',
-                  fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                  fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                   color: isDarkMode ? 'var(--headline, #f6f7fb)' : '#374151'
                 }}
               >

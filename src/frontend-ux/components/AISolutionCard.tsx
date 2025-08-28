@@ -72,7 +72,7 @@ export function AISolutionCard({ solutions, isMobile = false, isDarkMode = false
   };
 
   const copyToClipboard = (solutionId: string) => {
-    const solution = solutions.find(s => (s.solution_id || s.id) === solutionId);
+    const solution = (solutions || []).find(s => (s.solution_id || s.id) === solutionId);
     if (solution && solution.steps) {
       const stepsText = solution.steps.map((step: any) => {
         const stepText = typeof step === 'string' ? step : step.text;
@@ -372,7 +372,13 @@ export function AISolutionCard({ solutions, isMobile = false, isDarkMode = false
         gap: isMobile ? '16px' : '20px' // Mobile: 16px, Desktop: 20px spacing
       }}
     >
-      {solutions.map((solution, index) => {
+      {(solutions || []).filter((solution, index) => {
+        const isValid = solution && typeof solution === 'object' && solution.title && typeof solution.title === 'string';
+        if (!isValid) {
+          console.warn(`❌ AISolutionCard: Invalid solution at index ${index}:`, solution);
+        }
+        return isValid;
+      }).map((solution, index) => {
         const solutionId = solution.solution_id || solution.id || `solution_${index}`;
         const isExpanded = expandedSolutions.has(solutionId);
         

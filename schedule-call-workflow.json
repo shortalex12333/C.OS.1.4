@@ -1,0 +1,172 @@
+{
+  "name": "Schedule Call Webhook Processor",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "schedule-call",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Schedule Call Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 300],
+      "webhookId": "schedule-call"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract and validate incoming webhook data\nconst body = $input.item(0).json.body;\n\n// Extract user information\nconst firstName = body.userMetadata?.firstName || \n                 body.displayName?.split(' ')[0] || \n                 body.email?.split('@')[0] || \n                 'Unknown';\n\nconst lastName = body.userMetadata?.lastName || \n                body.displayName?.split(' ').slice(1).join(' ') || \n                '';\n\n// Format the date and time\nconst selectedDate = new Date(body.selectedDate);\nconst formattedDate = selectedDate.toISOString().split('T')[0]; // YYYY-MM-DD format\nconst scheduledTime = body.selectedTime;\n\n// Clean up phone number\nconst phoneNumber = body.phone?.replace(/[^\\d+\\-\\s\\(\\)]/g, '') || '';\n\n// Extract yacht length from yacht size (extract numbers)\nconst yachtLength = body.yachtSize?.match(/\\d+/)?.[0] || null;\n\n// Prepare topics array (limit to prevent overflow)\nconst topics = (body.topics || []).slice(0, 50).map(topic => ({\n  question: topic.substring(0, 500), // Limit question length\n  timestamp: new Date().toISOString()\n}));\n\n// Prepare the cleaned data for processing\nreturn {\n  // User identification\n  userId: body.userId,\n  email: body.email,\n  firstName: firstName,\n  lastName: lastName,\n  displayName: body.displayName,\n  \n  // Scheduling details\n  selectedDate: formattedDate,\n  selectedTime: scheduledTime,\n  dateTimeLocal: body.dateTimeLocal,\n  timezone: body.timezone,\n  \n  // Contact information\n  phone: phoneNumber,\n  yachtSize: body.yachtSize,\n  yachtLength: yachtLength,\n  \n  // Analytics data\n  chatQueriesCount: body.chatQueriesCount || 0,\n  faqQueriesCount: body.faqQueriesCount || 0,\n  topics: topics,\n  \n  // Meta information\n  timestamp: body.timestamp,\n  source: body.source,\n  sessionId: body.sessionId,\n  \n  // Original payload for reference\n  originalPayload: body\n};"
+      },
+      "id": "data-processor",
+      "name": "Process Webhook Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "user",
+        "user": {
+          "__rl": true,
+          "value": "me",
+          "mode": "name"
+        },
+        "subject": "=New Schedule Call Request - {{ $json.firstName }} {{ $json.lastName }}",
+        "bodyContentType": "html",
+        "body": "=<!DOCTYPE html>\n<html>\n<head>\n    <style>\n        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }\n        .container { max-width: 600px; margin: 0 auto; padding: 20px; }\n        .header { background: linear-gradient(135deg, #004aff 0%, #0070ff 100%); color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }\n        .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px; }\n        .section { margin-bottom: 25px; }\n        .section h3 { color: #004aff; margin-bottom: 10px; font-size: 16px; }\n        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }\n        .info-item { background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #004aff; }\n        .info-label { font-weight: bold; color: #666; font-size: 12px; text-transform: uppercase; }\n        .info-value { color: #333; font-size: 14px; margin-top: 5px; }\n        .topics-list { background: white; padding: 15px; border-radius: 6px; max-height: 200px; overflow-y: auto; }\n        .topic-item { padding: 8px 0; border-bottom: 1px solid #eee; font-size: 13px; }\n        .stats { display: flex; justify-content: space-around; margin: 20px 0; }\n        .stat { text-align: center; }\n        .stat-number { font-size: 24px; font-weight: bold; color: #004aff; }\n        .stat-label { font-size: 12px; color: #666; }\n        .cta { background: #004aff; color: white; padding: 15px; text-align: center; border-radius: 6px; margin-top: 20px; }\n        .cta a { color: white; text-decoration: none; font-weight: bold; }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <div class=\"header\">\n            <h1>🎯 New Schedule Call Request</h1>\n            <p>{{ $json.firstName }} {{ $json.lastName }} wants to schedule a consultation</p>\n        </div>\n        \n        <div class=\"content\">\n            <div class=\"section\">\n                <h3>👤 Contact Information</h3>\n                <div class=\"info-grid\">\n                    <div class=\"info-item\">\n                        <div class=\"info-label\">Name</div>\n                        <div class=\"info-value\">{{ $json.firstName }} {{ $json.lastName }}</div>\n                    </div>\n                    <div class=\"info-item\">\n                        <div class=\"info-label\">Email</div>\n                        <div class=\"info-value\">{{ $json.email }}</div>\n                    </div>\n                    <div class=\"info-item\">\n                        <div class=\"info-label\">Phone</div>\n                        <div class=\"info-value\">{{ $json.phone }}</div>\n                    </div>\n                    <div class=\"info-item\">\n                        <div class=\"info-label\">Yacht Size</div>\n                        <div class=\"info-value\">{{ $json.yachtSize }}</div>\n                    </div>\n                </div>\n            </div>\n            \n            <div class=\"section\">\n                <h3>📅 Requested Schedule</h3>\n                <div class=\"info-grid\">\n                    <div class=\"info-item\">\n                        <div class=\"info-label\">Date</div>\n                        <div class=\"info-value\">{{ $json.selectedDate }}</div>\n                    </div>\n                    <div class=\"info-item\">\n                        <div class=\"info-label\">Time</div>\n                        <div class=\"info-value\">{{ $json.selectedTime }} ({{ $json.timezone }})</div>\n                    </div>\n                </div>\n            </div>\n            \n            <div class=\"section\">\n                <h3>📊 User Engagement Analytics</h3>\n                <div class=\"stats\">\n                    <div class=\"stat\">\n                        <div class=\"stat-number\">{{ $json.chatQueriesCount }}</div>\n                        <div class=\"stat-label\">Chat Queries</div>\n                    </div>\n                    <div class=\"stat\">\n                        <div class=\"stat-number\">{{ $json.faqQueriesCount }}</div>\n                        <div class=\"stat-label\">FAQ Queries</div>\n                    </div>\n                    <div class=\"stat\">\n                        <div class=\"stat-number\">{{ $json.topics.length }}</div>\n                        <div class=\"stat-label\">Topics Asked</div>\n                    </div>\n                </div>\n            </div>\n            \n            <div class=\"section\">\n                <h3>🗣️ Topics Discussed</h3>\n                <div class=\"topics-list\">\n                    {{#each $json.topics}}\n                    <div class=\"topic-item\">• {{ this.question }}</div>\n                    {{/each}}\n                    {{#if (eq $json.topics.length 0)}}\n                    <div class=\"topic-item\" style=\"font-style: italic; color: #666;\">No topics discussed yet</div>\n                    {{/if}}\n                </div>\n            </div>\n            \n            <div class=\"cta\">\n                <p><strong>Next Steps:</strong></p>\n                <p>• Review the user's engagement level and topics of interest<br>\n                   • Prepare a customized consultation approach<br>\n                   • Send calendar invite for {{ $json.dateTimeLocal }}</p>\n            </div>\n        </div>\n    </div>\n</body>\n</html>",
+        "options": {
+          "priority": "High"
+        }
+      },
+      "id": "outlook-email",
+      "name": "Send Outlook Notification",
+      "type": "n8n-nodes-base.microsoftOutlook",
+      "typeVersion": 2,
+      "position": [600, 200]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "insert",
+        "table": {
+          "__rl": true,
+          "value": "schedule_calls",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "firstName": "={{ $json.firstName }}",
+            "lastName": "={{ $json.lastName }}",
+            "email": "={{ $json.email }}",
+            "yacht_length": "={{ $json.yachtLength }}",
+            "time": "={{ $json.selectedTime }}",
+            "date": "={{ $json.selectedDate }}",
+            "chat_queries_count": "={{ $json.chatQueriesCount }}",
+            "faq_queries_count": "={{ $json.faqQueriesCount }}",
+            "topics": "={{ JSON.stringify($json.topics) }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "supabase-insert",
+      "name": "Store in Supabase",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [600, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Log the successful processing\nconsole.log('Schedule call request processed successfully:', {\n  email: $input.first().json.email,\n  name: `${$input.first().json.firstName} ${$input.first().json.lastName}`,\n  scheduledFor: $input.first().json.dateTimeLocal,\n  chatQueries: $input.first().json.chatQueriesCount,\n  faqQueries: $input.first().json.faqQueriesCount,\n  topicsCount: $input.first().json.topics.length\n});\n\n// Return success response\nreturn {\n  success: true,\n  message: 'Schedule call request processed successfully',\n  data: {\n    email: $input.first().json.email,\n    scheduledFor: $input.first().json.dateTimeLocal,\n    engagementLevel: {\n      chatQueries: $input.first().json.chatQueriesCount,\n      faqQueries: $input.first().json.faqQueriesCount,\n      topics: $input.first().json.topics.length\n    }\n  },\n  timestamp: new Date().toISOString()\n};"
+      },
+      "id": "success-response",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Handle any errors that occurred during processing\nconst error = $input.first().json.error || 'Unknown error occurred';\n\nconsole.error('Schedule call processing failed:', {\n  error: error,\n  timestamp: new Date().toISOString(),\n  originalData: $input.first().json\n});\n\n// Return error response\nreturn {\n  success: false,\n  error: error,\n  message: 'Failed to process schedule call request',\n  timestamp: new Date().toISOString()\n};"
+      },
+      "id": "error-handler",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 500]
+    }
+  ],
+  "connections": {
+    "Schedule Call Webhook": {
+      "main": [
+        [
+          {
+            "node": "Process Webhook Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Webhook Data": {
+      "main": [
+        [
+          {
+            "node": "Send Outlook Notification",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Store in Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Outlook Notification": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store in Supabase": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": {
+      "errorWorkflow": "error-handler"
+    }
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2024-01-15T10:00:00.000Z",
+      "updatedAt": "2024-01-15T10:00:00.000Z",
+      "id": "schedule-calls",
+      "name": "schedule-calls"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-15T10:00:00.000Z",
+  "versionId": "1"
+}

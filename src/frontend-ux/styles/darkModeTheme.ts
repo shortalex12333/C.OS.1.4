@@ -7,37 +7,37 @@
 export const darkTheme = {
   // Base backgrounds with subtle depth
   backgrounds: {
-    primary: '#0d0e11',      // Deep space black
-    secondary: '#161922',    // Elevated surface
-    tertiary: '#1e2129',     // Card background
-    elevated: '#252832',     // Raised elements
-    overlay: 'rgba(13, 14, 17, 0.95)', // Modal backdrop
+    primary: '#292929',      // Modal/Settings background
+    secondary: '#3C3C3C',    // Header/Sidebar background
+    tertiary: '#292929',     // Content area background
+    elevated: '#242424',     // Active item background
+    overlay: 'rgba(41, 41, 41, 0.95)', // Modal backdrop
   },
 
   // Input and interactive elements - Enterprise precision
   inputs: {
-    background: '#1a1d26',   // Dark blue-grey
-    backgroundHover: '#1f2330',
-    backgroundFocus: '#242837',
-    border: 'rgba(71, 85, 116, 0.3)',
-    borderHover: 'rgba(71, 85, 116, 0.5)',
-    borderFocus: '2px solid rgba(99, 110, 255, 0.5)', // 2px for visibility
-    text: '#e4e6eb',
-    textFocus: '#f0f2f5',    // Primary text on focus
-    placeholder: '#8892a0',  // Tertiary only for placeholders
-    label: '#b8bec9',        // Secondary for labels
-    helperText: '#b8bec9',   // Secondary for help text
+    background: '#292929',   // Settings background
+    backgroundHover: '#242424',
+    backgroundFocus: '#242424',
+    border: '#343434',       // Divider color
+    borderHover: '#343434',
+    borderFocus: '2px solid #0078fa', // Accent blue
+    text: '#ffffff',         // Primary text
+    textFocus: '#ffffff',    // Primary text on focus
+    placeholder: '#727272',  // Tertiary text
+    label: '#939293',        // Secondary text
+    helperText: '#939293',   // Secondary text
     errorText: '#ef4444',    // Error state
     errorBorder: '#ef4444',  // Error border
   },
 
   // Text hierarchy with proper contrast
   text: {
-    primary: '#f0f2f5',      // Main text (contrast ratio 15:1)
-    secondary: '#b8bec9',    // Secondary text (contrast ratio 8:1)
-    tertiary: '#8892a0',     // Muted text (contrast ratio 5:1)
-    inverse: '#0d0e11',      // For light backgrounds
-    accent: '#6366f1',       // Links and highlights
+    primary: '#ffffff',      // Primary text
+    secondary: '#939293',    // Secondary text
+    tertiary: '#727272',     // Tertiary text
+    inverse: '#0f0f0f',      // For light backgrounds
+    accent: '#0078fa',       // Accent blue (same as light)
     success: '#10b981',      // Success states
     warning: '#f59e0b',      // Warning states
     error: '#ef4444',        // Error states
@@ -46,72 +46,72 @@ export const darkTheme = {
   // Buttons with premium feel - CelesteOS blue CTAs
   buttons: {
     primary: {
-      background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-      backgroundHover: 'linear-gradient(135deg, #7c7ff3 0%, #9d71f8 100%)',
+      background: '#0078fa',   // Accent blue
+      backgroundHover: '#006fe3',
       text: '#ffffff',
-      shadow: '0 4px 14px rgba(99, 102, 241, 0.3)',
-      shadowHover: '0 6px 20px rgba(99, 102, 241, 0.4)', // Elevation on hover
+      shadow: '0 4px 14px rgba(0, 120, 250, 0.3)',
+      shadowHover: '0 6px 20px rgba(0, 120, 250, 0.4)', // Elevation on hover
       scale: 'scale(1.03)',  // Subtle scale for premium feel
     },
     secondary: {
-      background: '#252832',
-      backgroundHover: '#2d3142',
-      text: '#e4e6eb',
-      border: 'rgba(71, 85, 116, 0.3)',
+      background: '#292929',
+      backgroundHover: '#242424',
+      text: '#ffffff',
+      border: '#343434',
       shadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
     },
     disabled: {
-      background: '#252832',
-      text: '#8892a0',       // Tertiary for disabled
-      border: 'rgba(71, 85, 116, 0.3)',
+      background: '#292929',
+      text: '#727272',       // Tertiary for disabled
+      border: '#343434',
       tooltip: 'rgba(0, 0, 0, 0.9)', // Tooltip background
-      tooltipText: '#f0f2f5',
+      tooltipText: '#ffffff',
     },
     ghost: {
       background: 'transparent',
-      backgroundHover: 'rgba(71, 85, 116, 0.1)',
-      text: '#b8bec9',
-      textHover: '#f0f2f5',
+      backgroundHover: '#242424',
+      text: '#939293',
+      textHover: '#ffffff',
     },
   },
 
   // Sidebar specific - WCAG AAA compliant
   sidebar: {
-    background: '#12141a',
+    background: '#3C3C3C',
     itemBackground: 'transparent',
-    itemBackgroundHover: 'rgba(71, 85, 116, 0.1)',
-    itemBackgroundActive: 'rgba(99, 102, 241, 0.08)',  // Reduced from 0.1 for subtlety
-    itemText: '#8892a0',           // Tertiary - for inactive nav only
-    itemTextHover: '#e4e6eb',      // Input text level
-    itemTextActive: '#f0f2f5',     // PRIMARY TEXT - not indigo (WCAG fix)
-    itemActiveIndicator: '#818cf8', // Indigo indicator bar only
-    border: 'rgba(71, 85, 116, 0.2)',
+    itemBackgroundHover: '#242424',
+    itemBackgroundActive: '#242424',  // Active item background
+    itemText: '#939293',           // Secondary text for inactive
+    itemTextHover: '#ffffff',      // Primary text on hover
+    itemTextActive: '#ffffff',     // Primary text when active
+    itemActiveIndicator: '#0078fa', // Accent blue indicator
+    border: '#343434',             // Divider color
   },
 
   // Modal specific - Premium elevation
   modal: {
-    background: '#161922',         // Secondary background
-    header: '#12141a',            // Darker for contrast
-    border: 'rgba(71, 85, 116, 0.2)',
+    background: '#292929',         // Modal background
+    header: '#292929',            // Header background
+    border: '#343434',            // Border/divider color
     shadow: '0 25px 50px rgba(0, 0, 0, 0.7)',  // Heavy shadow for elevation
-    overlay: 'rgba(13, 14, 17, 0.95)',        // Specified overlay
+    overlay: 'rgba(41, 41, 41, 0.95)',        // Modal overlay
     backdropBlur: 'blur(20px)',               // Glass morphism
     borderRadius: '8px',                      // Container tier radius
   },
 
   // Accents and branding
   brand: {
-    primary: '#6366f1',
-    primaryLight: '#818cf8',
-    primaryDark: '#4f46e5',
-    gradient: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%)',
+    primary: '#0078fa',        // Accent blue
+    primaryLight: '#0078fa',
+    primaryDark: '#006fe3',
+    gradient: 'linear-gradient(135deg, #0078fa 0%, #006fe3 100%)',
   },
 
   // Subtle effects - Rolex-level precision
   effects: {
-    focusRing: '0 0 0 2px rgba(99, 110, 255, 0.5)', // Visible focus outline
-    focusGlow: '0 0 8px rgba(99, 110, 255, 0.2)',    // Subtle inner glow
-    buttonHover: '0 4px 16px rgba(99, 102, 241, 0.4)', // CTA elevation
+    focusRing: '0 0 0 2px rgba(0, 120, 250, 0.5)', // Visible focus outline using #0078fa
+    focusGlow: '0 0 8px rgba(0, 120, 250, 0.2)',    // Subtle inner glow using #0078fa
+    buttonHover: '0 4px 16px rgba(0, 120, 250, 0.4)', // CTA elevation using #0078fa
     modalEntrance: 'cubic-bezier(0.22, 0.61, 0.36, 1)', // CelesteOS easing
     microDelay: '240ms',                              // Standard interaction timing
     backdropBlur: 'blur(20px) saturate(1.8)',
@@ -122,97 +122,97 @@ export const darkTheme = {
 // Light theme for comparison and switching
 export const lightTheme = {
   backgrounds: {
-    primary: '#ffffff',
-    secondary: '#f8fafc',
-    tertiary: '#f1f5f9',
-    elevated: '#ffffff',
+    primary: '#ffffff',      // Modal/Settings background
+    secondary: '#ffffff',    // Header/Sidebar background
+    tertiary: '#ffffff',     // Content area background
+    elevated: '#f8f8f8',     // Active item background
     overlay: 'rgba(0, 0, 0, 0.5)',
   },
   inputs: {
     background: '#ffffff',
-    backgroundHover: '#f8fafc',
-    backgroundFocus: '#f1f5f9',
-    border: 'rgba(0, 0, 0, 0.12)',
-    borderHover: 'rgba(0, 0, 0, 0.2)',
-    borderFocus: '2px solid rgba(99, 102, 241, 0.5)',
-    text: '#1f2937',
-    textFocus: '#111827',
-    placeholder: '#6b7280',
-    label: '#374151',
-    helperText: '#6b7280',
+    backgroundHover: '#f8f8f8',
+    backgroundFocus: '#f8f8f8',
+    border: '#e7e7e7',       // Divider color
+    borderHover: '#e7e7e7',
+    borderFocus: '2px solid #0078fa', // Accent blue (same as dark)
+    text: '#0f0f0f',         // Primary text
+    textFocus: '#0f0f0f',    // Primary text on focus
+    placeholder: '#b7b7b7',  // Tertiary text
+    label: '#8a8a8a',        // Secondary text
+    helperText: '#8a8a8a',   // Secondary text
     errorText: '#ef4444',
     errorBorder: '#ef4444',
   },
   text: {
-    primary: '#111827',
-    secondary: '#374151',
-    tertiary: '#6b7280',
+    primary: '#0f0f0f',      // Primary text
+    secondary: '#8a8a8a',    // Secondary text
+    tertiary: '#b7b7b7',     // Tertiary text
     inverse: '#ffffff',
-    accent: '#6366f1',
+    accent: '#0078fa',       // Accent blue (same as dark)
     success: '#059669',
     warning: '#d97706',
     error: '#dc2626',
   },
   buttons: {
     primary: {
-      background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-      backgroundHover: 'linear-gradient(135deg, #5b5ff8 0%, #8456f5 100%)',
+      background: '#0078fa',   // Accent blue
+      backgroundHover: '#006fe3',
       text: '#ffffff',
-      shadow: '0 4px 14px rgba(99, 102, 241, 0.25)',
-      shadowHover: '0 6px 20px rgba(99, 102, 241, 0.35)',
+      shadow: '0 4px 14px rgba(0, 120, 250, 0.25)',
+      shadowHover: '0 6px 20px rgba(0, 120, 250, 0.35)',
       scale: 'scale(1.03)',
     },
     secondary: {
       background: '#ffffff',
-      backgroundHover: '#f8fafc',
-      text: '#374151',
-      border: 'rgba(0, 0, 0, 0.12)',
+      backgroundHover: '#f8f8f8',
+      text: '#0f0f0f',
+      border: '#e7e7e7',
       shadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
     },
     disabled: {
-      background: '#f1f5f9',
-      text: '#9ca3af',
-      border: 'rgba(0, 0, 0, 0.08)',
+      background: '#f8f8f8',
+      text: '#b7b7b7',       // Tertiary for disabled
+      border: '#e7e7e7',
       tooltip: 'rgba(0, 0, 0, 0.8)',
       tooltipText: '#ffffff',
     },
     ghost: {
       background: 'transparent',
-      backgroundHover: 'rgba(0, 0, 0, 0.05)',
-      text: '#6b7280',
-      textHover: '#374151',
+      backgroundHover: '#f8f8f8',
+      text: '#8a8a8a',
+      textHover: '#0f0f0f',
     },
   },
   sidebar: {
     background: '#ffffff',
     itemBackground: 'transparent',
-    itemBackgroundHover: 'rgba(0, 0, 0, 0.05)',
-    itemBackgroundActive: 'rgba(99, 102, 241, 0.08)',
-    itemText: '#6b7280',
-    itemTextHover: '#374151',
-    itemTextActive: '#111827',
-    itemActiveIndicator: '#6366f1',
-    border: 'rgba(0, 0, 0, 0.08)',
+    itemBackgroundHover: '#f8f8f8',
+    itemBackgroundActive: '#f8f8f8',  // Active item background
+    itemText: '#0f0f0f',           // All text is primary in light mode
+    itemTextHover: '#0f0f0f',      // Primary text on hover
+    itemTextActive: '#0f0f0f',     // Primary text when active
+    itemActiveIndicator: '#0078fa', // Accent blue indicator
+    border: '#e7e7e7',             // Divider color
   },
   modal: {
-    background: '#ffffff',
-    header: '#f8fafc',
-    border: 'rgba(0, 0, 0, 0.08)',
+    background: '#ffffff',         // Modal background
+    header: '#ffffff',            // Header background
+    border: '#e7e7e7',            // Border/divider color
     shadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
     overlay: 'rgba(0, 0, 0, 0.5)',
     backdropBlur: 'blur(20px)',
     borderRadius: '8px',
   },
   brand: {
-    primary: '#6366f1',
-    primaryLight: '#818cf8',
-    primaryDark: '#4f46e5',
-    gradient: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%)',
+    primary: '#0078fa',        // Accent blue (same as dark)
+    primaryLight: '#0078fa',
+    primaryDark: '#006fe3',
+    gradient: 'linear-gradient(135deg, #0078fa 0%, #006fe3 100%)',
   },
   effects: {
-    focusRing: '0 0 0 2px rgba(99, 102, 241, 0.5)',
-    focusGlow: '0 0 8px rgba(99, 102, 241, 0.15)',
-    buttonHover: '0 4px 16px rgba(99, 102, 241, 0.25)',
+    focusRing: '0 0 0 2px rgba(0, 120, 250, 0.5)',  // Using #0078fa
+    focusGlow: '0 0 8px rgba(0, 120, 250, 0.15)',   // Using #0078fa
+    buttonHover: '0 4px 16px rgba(0, 120, 250, 0.25)', // Using #0078fa
     modalEntrance: 'cubic-bezier(0.22, 0.61, 0.36, 1)',
     microDelay: '240ms',
     backdropBlur: 'blur(20px) saturate(1.8)',

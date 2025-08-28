@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CelesteOS • Dark Luxury Background</title>
+<style>
+  :root{
+    /* Base field (deep navy → near-black) */
+    --ink-hi: #0b1320;
+    --ink-lo: #03070c;
+
+    /* Brand blues (muted for luxury) */
+    --blue:  #0070ff;     /* accent hue */
+    --cyan:  #2fb9e8;     /* logo end */
+
+    /* Controls */
+    --glow: .20;          /* overall glow strength */
+    --vignette: .34;      /* edge darkness */
+    --grain: .045;        /* grain visibility */
+    --drift: 28s;         /* slow background motion */
+  }
+
+  html,body{height:100%}
+  body{margin:0; background: var(--ink-lo); overflow:hidden}
+
+  /* ==== BACKGROUND PAINTER ONLY ==== */
+  .bg{position:fixed; inset:0; z-index:-1}
+
+  /* Large non-uniform layers */
+  .bg::before{
+    content:""; position:absolute; inset:-4vmax;
+    background:
+      /* base wash */
+      linear-gradient(180deg, var(--ink-hi) 0%, var(--ink-lo) 100%),
+
+      /* irregular conic shading (barely visible, breaks uniformity) */
+      conic-gradient(from 210deg at 58% 42%,
+        rgba(0,0,0,.12) 0 25%,
+        rgba(255,255,255,.04) 25% 40%,
+        rgba(0,0,0,.10) 40% 70%,
+        rgba(255,255,255,.03) 70% 85%,
+        rgba(0,0,0,.12) 85% 100%),
+
+      /* big cyan/blue glows (elliptical & off-center) */
+      radial-gradient(120vmax 90vmax at 28% 22%,
+        color-mix(in oklab, var(--cyan) 35%, transparent) 0%,
+        transparent 64%),
+      radial-gradient(130vmax 100vmax at 76% 18%,
+        color-mix(in oklab, var(--blue) 36%, transparent) 0%,
+        transparent 66%),
+      radial-gradient(150vmax 120vmax at 24% 86%,
+        color-mix(in oklab, var(--blue) 18%, black) 0%,
+        transparent 70%),
+      radial-gradient(160vmax 130vmax at 82% 88%,
+        rgba(0,18,38,.35) 0%, transparent 72%);
+    background-blend-mode: normal, soft-light, screen, screen, screen, multiply;
+    filter: saturate(108%) contrast(104%) brightness(.94);
+    animation: drift var(--drift) ease-in-out infinite;
+    will-change: transform;
+  }
+
+  /* Focus vignette (keeps the middle readable and the edges rich) */
+  .bg::after{
+    content:""; position:absolute; inset:-12vmax;
+    background: radial-gradient(120vmax 95vmax at 50% 48%,
+      transparent 58%,
+      rgba(0,0,0,var(--vignette)) 100%);
+    pointer-events:none; mix-blend-mode:multiply;
+  }
+
+  /* Ultra-subtle texture to prevent LCD banding at 4–5k */
+  .texture{
+    position:fixed; inset:-1px; pointer-events:none; z-index:-1;
+    opacity: var(--grain); mix-blend-mode: overlay;
+    background-image: url('data:image/svg+xml;utf8,\
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">\
+        <filter id="n">\
+          <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="2" seed="7" />\
+          <feColorMatrix values=\"1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.3 0\"/>\
+        </filter>\
+        <rect width="100%" height="100%" filter="url(#n)" />\
+      </svg>');
+    background-size: 900px 900px;
+    animation: drift calc(var(--drift) * 1.2) ease-in-out infinite reverse;
+  }
+
+  @keyframes drift{
+    0%,100%{ transform: translate3d(0,0,0) scale(1) }
+    50%    { transform: translate3d(0,-0.8%,0) scale(1.006) }
+  }
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce){
+    .bg::before, .texture { animation: none }
+  }
+</style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="texture" aria-hidden="true"></div>
+</body>
+</html>

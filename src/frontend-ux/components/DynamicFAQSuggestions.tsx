@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { HelpCircle, Book, AlertTriangle, Settings, Shield, Wrench, DollarSign, Navigation, FileText } from 'lucide-react';
-import { searchFAQ, getTopFAQs, FAQItem } from '../../data/faqDatabase';
+import { HelpCircle, Book, AlertTriangle, Settings, Shield, Wrench, DollarSign, Navigation, FileText, Mail } from 'lucide-react';
+import { searchFAQ, getTopFAQs, getTopFAQsBySearchType, FAQItem } from '../../data/faqDatabase';
 
 interface DynamicFAQSuggestionsProps {
   onQuestionClick: (question: string) => void;
@@ -10,6 +10,7 @@ interface DynamicFAQSuggestionsProps {
   maxSuggestions?: number;
   showCategories?: boolean;
   className?: string;
+  searchType?: 'yacht' | 'email' | 'email-yacht';
 }
 
 const categoryIcons: { [key: string]: React.ReactNode } = {
@@ -21,7 +22,8 @@ const categoryIcons: { [key: string]: React.ReactNode } = {
   'Operations': <Navigation size={16} />,
   'Maintenance': <Wrench size={16} />,
   'Safety': <AlertTriangle size={16} />,
-  'Documents': <FileText size={16} />
+  'Documents': <FileText size={16} />,
+  'Email Search': <Mail size={16} />
 };
 
 export function DynamicFAQSuggestions({ 
@@ -31,18 +33,19 @@ export function DynamicFAQSuggestions({
   isMobile = false,
   maxSuggestions = 6,
   showCategories = false,
-  className = ''
+  className = '',
+  searchType = 'yacht'
 }: DynamicFAQSuggestionsProps) {
   const [displayedSuggestions, setDisplayedSuggestions] = useState<FAQItem[]>([]);
 
-  // Memoize FAQ suggestions based on search query
+  // Memoize FAQ suggestions based on search query and search type
   const suggestions = useMemo(() => {
     if (searchQuery.trim().length >= 2) {
       return searchFAQ(searchQuery, maxSuggestions);
     } else {
-      return getTopFAQs(maxSuggestions);
+      return getTopFAQsBySearchType(searchType, maxSuggestions);
     }
-  }, [searchQuery, maxSuggestions]);
+  }, [searchQuery, maxSuggestions, searchType]);
 
   // Animate suggestions change
   useEffect(() => {
@@ -56,9 +59,9 @@ export function DynamicFAQSuggestions({
 
   const baseTextColor = isDarkMode ? '#ffffff' : '#1f2937';
   const secondaryTextColor = isDarkMode ? 'rgba(255, 255, 255, 0.7)' : '#6b7280';
-  const backgroundColor = isDarkMode ? 'rgba(255, 255, 255, 0.05)' : '#ffffff';
-  const borderColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : '#e5e7eb';
-  const hoverBackgroundColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : '#f9fafb';
+  const backgroundColor = isDarkMode ? 'rgba(255, 255, 255, 0.03)' : 'rgba(255, 255, 255, 0.95)';
+  const borderColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(229, 231, 235, 0.95)';
+  const hoverBackgroundColor = isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(249, 250, 251, 0.95)';
 
   if (displayedSuggestions.length === 0) {
     return null;
@@ -110,7 +113,7 @@ export function DynamicFAQSuggestions({
             margin: '0 0 4px 0',
             fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
           }}>
-            Try these example questions
+            Here's what CelesteOS can solve in seconds
           </h3>
           <p style={{
             fontSize: '14px',
@@ -118,7 +121,7 @@ export function DynamicFAQSuggestions({
             margin: 0,
             fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
           }}>
-            Click any question below to see how CelesteOS can help
+            Tap a question — see how your yacht's knowledge comes alive.
           </p>
         </div>
       )}
@@ -141,6 +144,8 @@ export function DynamicFAQSuggestions({
               gap: '12px',
               padding: '16px',
               background: backgroundColor,
+              backdropFilter: 'blur(12px) saturate(1.2)',
+              WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
               border: `1px solid ${borderColor}`,
               borderRadius: '4px', // Base tier for inner elements // Container tier for cards
               cursor: 'pointer',
@@ -154,6 +159,8 @@ export function DynamicFAQSuggestions({
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = hoverBackgroundColor;
+              e.currentTarget.style.backdropFilter = 'blur(16px) saturate(1.3)';
+              e.currentTarget.style.webkitBackdropFilter = 'blur(16px) saturate(1.3)';
               e.currentTarget.style.transform = 'translateY(-2px)';
               e.currentTarget.style.boxShadow = isDarkMode 
                 ? '0 4px 16px rgba(0, 0, 0, 0.4)' 
@@ -161,6 +168,8 @@ export function DynamicFAQSuggestions({
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = backgroundColor;
+              e.currentTarget.style.backdropFilter = 'blur(12px) saturate(1.2)';
+              e.currentTarget.style.webkitBackdropFilter = 'blur(12px) saturate(1.2)';
               e.currentTarget.style.transform = 'translateY(0)';
               e.currentTarget.style.boxShadow = isDarkMode 
                 ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
@@ -173,11 +182,11 @@ export function DynamicFAQSuggestions({
               width: '36px',
               height: '36px',
               borderRadius: '4px', // Base tier for inner elements
-              background: isDarkMode ? 'rgba(186, 221, 233, 0.2)' : 'rgba(186, 221, 233, 0.1)',
+              background: isDarkMode ? 'rgba(186, 221, 233, 0.2)' : 'rgba(54, 54, 54, 0.1)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#BADDE9'
+              color: isDarkMode ? '#BADDE9' : '#363636'
             }}>
               {categoryIcons[item.category] || <HelpCircle size={16} />}
             </div>
@@ -206,8 +215,8 @@ export function DynamicFAQSuggestions({
                   <span style={{
                     fontSize: '11px',
                     fontWeight: '500',
-                    color: '#BADDE9',
-                    background: isDarkMode ? 'rgba(186, 221, 233, 0.15)' : 'rgba(186, 221, 233, 0.1)',
+                    color: isDarkMode ? '#BADDE9' : '#363636',
+                    background: isDarkMode ? 'rgba(186, 221, 233, 0.15)' : 'rgba(54, 54, 54, 0.1)',
                     padding: '2px 6px',
                     borderRadius: '2px', // Micro tier for badges
                     textTransform: 'uppercase',
@@ -287,7 +296,7 @@ export function DynamicFAQSuggestions({
         }
 
         .faq-suggestion-card:focus {
-          outline: 2px solid #BADDE9;
+          outline: 2px solid ${isDarkMode ? '#BADDE9' : '#363636'};
           outline-offset: 2px;
         }
 

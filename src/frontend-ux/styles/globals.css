@@ -100,11 +100,11 @@ html, body, #root {
 }
 
 .sidebar-glassmorphism-dark {
-  background-color: rgba(15, 11, 18, 0.65) !important;
+  background-color: rgba(60, 60, 60, 0.65) !important;
 }
 
 .sidebar-glassmorphism-light {
-  background-color: rgba(255, 255, 255, 0.65) !important;
+  background-color: rgba(245, 245, 245, 0.65) !important;
 }
 
 .glass-input {
@@ -297,6 +297,53 @@ html, body, #root {
   font-family: 'Eloquia Text', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
+/* Hide scrollbar for edit message textarea while keeping functionality */
+.edit-message-textarea::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  opacity: 0;
+  background: transparent;
+}
+
+.edit-message-textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.edit-message-textarea::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+}
+
+/* Firefox */
+.edit-message-textarea {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+/* Hide scrollbar for chat messages container - maintains functionality */
+.chat_messages_container::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+  opacity: 0;
+  background: transparent;
+}
+
+.chat_messages_container::-webkit-scrollbar-track {
+  background: transparent;
+  border: none;
+}
+
+.chat_messages_container::-webkit-scrollbar-thumb {
+  background: transparent;
+  border: none;
+}
+
+/* Firefox */
+.chat_messages_container {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
 /* Dark Theme Variables - Premium solution cards */
 body.dark-theme, html.dark, .dark-theme, .dark {
   /* Premium confidence level colors for solution cards - Dark Theme */
@@ -379,11 +426,36 @@ html.dark .solution-cards-dark-theme,
   }
 }
 
+/* Light mode message animation - subtle gray sweep */
 @keyframes messageAppear {
   0% {
-    opacity: 0;
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0%, transparent 50%);
+    background-size: 200% 100%;
+    background-position: -100% 0;
+  }
+  50% {
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0%, transparent 50%);
+    background-size: 200% 100%;
+    background-position: 100% 0;
   }
   100% {
-    opacity: 1;
+    background: transparent;
+  }
+}
+
+/* Dark mode message animation - white sweep */
+@keyframes messageAppearDark {
+  0% {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    background-size: 200% 100%;
+    background-position: -100% 0;
+  }
+  50% {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    background-size: 200% 100%;
+    background-position: 100% 0;
+  }
+  100% {
+    background: transparent;
   }
 }

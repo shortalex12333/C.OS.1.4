@@ -16,7 +16,7 @@ export const SectionHeader = ({ title, isMobile = false, isDarkMode = false }: S
         fontSize: isMobile ? '20px' : '22px',
         lineHeight: isMobile ? '26px' : '28px',
         fontWeight: '400',
-        color: isDarkMode ? darkTheme.text.primary : '#1f2937',
+        color: isDarkMode ? '#ffffff' : '#0f0f0f',
         fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         margin: '0'
       }}
@@ -55,7 +55,7 @@ export const FormGroup = ({ label, children, description, isDarkMode = false }: 
           fontSize: '13px',
           lineHeight: '18px',
           fontWeight: '400',
-          color: isDarkMode ? darkTheme.text.secondary : '#6b7280',
+          color: isDarkMode ? '#939293' : '#8a8a8a',
           fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
           marginTop: 'var(--spacing-1)',
           margin: '0'
@@ -96,6 +96,7 @@ export const AppleSettingsRow = ({
       alignItems: 'center',
       justifyContent: 'space-between',
       padding: isMobile ? 'var(--spacing-3) var(--spacing-4)' : 'var(--spacing-4)',
+      border: 'none',
       borderBottom: isDarkMode ? `1px solid ${darkTheme.sidebar.border}` : '1px solid rgba(255, 255, 255, 0.2)',
       minHeight: isMobile ? '44px' : '48px',
       background: isDarkMode ? darkTheme.backgrounds.tertiary : 'rgba(255, 255, 255, 0.4)',
@@ -109,7 +110,7 @@ export const AppleSettingsRow = ({
         fontSize: isMobile ? '14px' : '16px',
         lineHeight: isMobile ? '44px' : '48px',
         fontWeight: '400',
-        color: isDarkMode ? darkTheme.text.primary : '#1f2937',
+        color: isDarkMode ? '#ffffff' : '#0f0f0f',
         fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         flex: '0 0 auto',
         marginRight: 'var(--spacing-2)',
@@ -150,7 +151,7 @@ export const AppleSettingsRow = ({
                 fontSize: isMobile ? '13px' : '16px',
                 lineHeight: 'normal',
                 fontWeight: '400',
-                color: isDarkMode ? darkTheme.inputs.text : '#6b7280',
+                color: isDarkMode ? '#939293' : '#8a8a8a',
                 fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                 textAlign: 'right',
                 cursor: 'pointer',
@@ -169,7 +170,7 @@ export const AppleSettingsRow = ({
                 e.target.style.background = isDarkMode ? darkTheme.inputs.backgroundFocus : 'rgba(255, 255, 255, 0.8)';
                 e.target.style.color = isDarkMode ? darkTheme.inputs.textFocus : '#1f2937';
                 e.target.style.borderColor = isDarkMode ? darkTheme.inputs.borderFocus : 'rgba(255, 255, 255, 0.5)';
-                e.target.style.boxShadow = isDarkMode ? `${darkTheme.inputs.focusRing}, ${darkTheme.inputs.focusGlow}` : '0 0 0 2px rgba(59, 130, 246, 0.1)';
+                e.target.style.boxShadow = 'none';
               }}
               onBlur={(e) => {
                 e.target.style.background = isDarkMode ? darkTheme.inputs.background : 'rgba(255, 255, 255, 0.6)';
@@ -227,7 +228,7 @@ export const AppleSettingsRow = ({
               e.target.style.background = isDarkMode ? darkTheme.inputs.backgroundFocus : 'rgba(255, 255, 255, 0.8)';
               e.target.style.color = isDarkMode ? darkTheme.inputs.textFocus : '#1f2937';
               e.target.style.borderColor = isDarkMode ? darkTheme.inputs.borderFocus : 'rgba(255, 255, 255, 0.5)';
-              e.target.style.boxShadow = isDarkMode ? `${darkTheme.inputs.focusRing}, ${darkTheme.inputs.focusGlow}` : '0 0 0 2px rgba(59, 130, 246, 0.1)';
+              e.target.style.boxShadow = 'none';
               e.target.style.transition = `all ${darkTheme.effects.timingFast} ${darkTheme.effects.easingDefault}`;
             }}
             onBlur={(e) => {
@@ -244,7 +245,7 @@ export const AppleSettingsRow = ({
             fontSize: isMobile ? '13px' : '16px',
             lineHeight: 'normal',
             fontWeight: '400',
-            color: isDarkMode ? darkTheme.text.secondary : '#6b7280',
+            color: isDarkMode ? '#939293' : '#8a8a8a',
             fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
             textAlign: 'right',
             whiteSpace: 'nowrap',
@@ -282,6 +283,7 @@ export const SwitchRow = ({
       alignItems: 'flex-start',
       justifyContent: 'space-between',
       padding: isMobile ? 'var(--spacing-3) var(--spacing-4)' : 'var(--spacing-4)',
+      border: 'none',
       borderBottom: isDarkMode ? `1px solid ${darkTheme.sidebar.border}` : '1px solid rgba(255, 255, 255, 0.2)',
       minHeight: isMobile ? '44px' : '48px',
       background: isDarkMode ? darkTheme.backgrounds.tertiary : 'rgba(255, 255, 255, 0.4)',
@@ -295,7 +297,7 @@ export const SwitchRow = ({
           fontSize: isMobile ? '15px' : '16px',
           lineHeight: '20px',
           fontWeight: '400',
-          color: isDarkMode ? darkTheme.text.primary : '#1f2937',
+          color: isDarkMode ? '#ffffff' : '#0f0f0f',
           fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
           marginBottom: description ? 'var(--spacing-1)' : '0'
         }}
@@ -308,7 +310,7 @@ export const SwitchRow = ({
             fontSize: isMobile ? '13px' : '14px',
             lineHeight: '18px',
             fontWeight: '400',
-            color: isDarkMode ? darkTheme.text.secondary : '#6b7280',
+            color: isDarkMode ? '#939293' : '#8a8a8a',
             fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
           }}
         >
@@ -361,7 +363,7 @@ export const UnifiedTextarea = ({ value, onChange, placeholder, rows = 4, isDark
     onFocus={(e) => {
       e.target.style.background = isDarkMode ? darkTheme.inputs.backgroundFocus : 'rgba(255, 255, 255, 0.8)';
       e.target.style.borderColor = isDarkMode ? darkTheme.inputs.borderFocus : 'rgba(59, 130, 246, 0.4)';
-      e.target.style.boxShadow = isDarkMode ? `0 0 0 3px ${darkTheme.inputs.borderFocus}33` : '0 0 0 3px rgba(59, 130, 246, 0.1)';
+      e.target.style.boxShadow = 'none';
     }}
     onBlur={(e) => {
       e.target.style.background = isDarkMode ? darkTheme.inputs.background : 'rgba(255, 255, 255, 0.6)';
@@ -399,7 +401,7 @@ export const MobileSectionHeader = ({
         border: '1px solid rgba(255, 255, 255, 0.3)',
         borderRadius: '12px',
         marginBottom: isExpanded ? '0' : 'var(--spacing-3)',
-        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.05)',
+        boxShadow: 'none',
         cursor: 'pointer'
       }}
       onMouseEnter={(e) => {

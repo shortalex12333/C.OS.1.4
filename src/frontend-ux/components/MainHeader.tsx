@@ -15,6 +15,7 @@ interface MainHeaderProps {
   selectedModel?: string;
   onModelChange?: (modelId: string) => void;
   onFAQpageClick?: () => void;
+  onScheduleCallClick?: () => void;
 }
 
 const models: ModelType[] = [
@@ -38,7 +39,7 @@ const models: ModelType[] = [
   }
 ];
 
-export function MainHeader({ isMobile = false, isDarkMode = false, isChatMode = false, selectedModel = 'air', onModelChange, onFAQpageClick }: MainHeaderProps) {
+export function MainHeader({ isMobile = false, isDarkMode = false, isChatMode = false, selectedModel = 'air', onModelChange, onFAQpageClick, onScheduleCallClick }: MainHeaderProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleModelSelect = (modelId: string) => {
@@ -80,7 +81,7 @@ export function MainHeader({ isMobile = false, isDarkMode = false, isChatMode = 
                 fontWeight: 400,
                 lineHeight: isMobile ? '24px' : '28px',
                 fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                color: isDarkMode ? 'var(--headline, #f6f7fb)' : '#1f2937',
+                color: isDarkMode ? '#FFFFFF' : '#040404',
                 margin: 0
               }}
             >
@@ -88,9 +89,10 @@ export function MainHeader({ isMobile = false, isDarkMode = false, isChatMode = 
               <span 
                 className="celeste_os_suffix"
                 style={{
-                  color: isDarkMode 
-                    ? 'var(--opulent-gold, #BADDE9)' 
-                    : '#2563eb',
+                  background: 'linear-gradient(-40deg, #4184A7 0%, #80C5DF 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
                   fontWeight: 500
                 }}
               >
@@ -117,7 +119,7 @@ export function MainHeader({ isMobile = false, isDarkMode = false, isChatMode = 
               fontSize: isMobile ? '10px' : '11px',
               fontWeight: 500,
               lineHeight: isMobile ? '12px' : '14px',
-              fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
               color: isDarkMode 
                 ? 'rgba(246, 247, 251, 0.65)' 
                 : 'rgba(31, 41, 55, 0.6)',
@@ -269,7 +271,7 @@ export function MainHeader({ isMobile = false, isDarkMode = false, isChatMode = 
                           <div 
                             className="text-sm"
                             style={{
-                              fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                              fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                               fontSize: isMobile ? '13px' : '14px',
                               lineHeight: '18px',
                               color: isDarkMode 
@@ -319,26 +321,56 @@ export function MainHeader({ isMobile = false, isDarkMode = false, isChatMode = 
         </div>
       )}
       
-      {/* FAQpage Button - Always visible in top right */}
-      {onFAQpageClick && (
-        <button
-          onClick={onFAQpageClick}
-          className="absolute top-4 right-4 flex items-center gap-2 px-4 py-2 transition-all"
-          style={{
-            background: isDarkMode ? '#ffffff' : '#000000',
-            color: isDarkMode ? '#000000' : '#ffffff',
-            border: 'none',
-            borderRadius: '6px',
-            fontSize: isMobile ? '13px' : '14px',
-            fontWeight: 600,
-            fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-            cursor: 'pointer',
-            zIndex: 1000
-          }}
-        >
-          <span>Explore FAQ</span>
-        </button>
-      )}
+      {/* Action Buttons - Always visible in top right */}
+      <div className="absolute top-4 right-4 flex items-center gap-3" style={{ zIndex: 1000 }}>
+        {/* FAQ Button */}
+        {onFAQpageClick && (
+          <button
+            onClick={onFAQpageClick}
+            className="flex items-center gap-2 px-4 py-2 transition-all"
+            style={{
+              background: isDarkMode ? '#ffffff' : '#000000',
+              color: isDarkMode ? '#000000' : '#ffffff',
+              border: 'none',
+              borderRadius: '50px', // Completely rounded (pill shape)
+              fontSize: isMobile ? '13px' : '14px',
+              fontWeight: 600,
+              fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              cursor: 'pointer'
+            }}
+          >
+            <span>Explore FAQ</span>
+          </button>
+        )}
+        
+        {/* Schedule Call Button */}
+        {onScheduleCallClick && (
+          <button
+            onClick={onScheduleCallClick}
+            className="flex items-center gap-2 px-4 py-2 transition-all"
+            style={{
+              background: '#3b82f6',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '50px', // Completely rounded (pill shape)
+              fontSize: isMobile ? '13px' : '14px',
+              fontWeight: 600,
+              fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              cursor: 'pointer'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#2563eb';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#3b82f6';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            <span>Schedule a call</span>
+          </button>
+        )}
+      </div>
     </div>
   );
 }

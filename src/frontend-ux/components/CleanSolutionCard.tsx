@@ -64,7 +64,7 @@ export function CleanSolutionCard({ solutions, isDarkMode = false }: SolutionCar
 
   return (
     <div className="space-y-4">
-      {solutions.map((solution, index) => {
+      {(solutions || []).filter(solution => solution && solution.title).map((solution, index) => {
         const solutionId = solution.solution_id || solution.id || `solution_${index}`;
         const isExpanded = expandedSolutions.has(solutionId);
         const confidence = solution.confidence || 0.5;

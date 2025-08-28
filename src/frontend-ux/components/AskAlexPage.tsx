@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Search, ChevronRight, ArrowLeft, Send, Bot, User } from 'lucide-react';
 import { StreamingText } from './StreamingText';
 import { BrainLogo } from './BrainLogo';
+import { ScheduleCallModal } from './ScheduleCallModal';
 
 interface FAQItem {
   id: string;
@@ -24,9 +25,11 @@ interface AskAlexPageProps {
   onBack: () => void;
   isDarkMode?: boolean;
   isMobile?: boolean;
+  onFaqQuery?: (query: string) => void;
+  onTopicTracked?: (topic: string) => void;
 }
 
-export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: AskAlexPageProps) {
+export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFaqQuery, onTopicTracked }: AskAlexPageProps) {
   // FAQ page always uses dark theme regardless of user preference
   const useDarkTheme = true;
   const displayName = 'User'; // Default display name for FAQ page
@@ -37,69 +40,92 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
   const [showChat, setShowChat] = useState(false);
   const [hasFirstMessage, setHasFirstMessage] = useState(false);
   const [showScheduleCallPopup, setShowScheduleCallPopup] = useState(false);
+  const [hasShownSchedulePopup, setHasShownSchedulePopup] = useState(false); // Track if popup was already shown
+  const [faqQueriesCount, setFaqQueriesCount] = useState(0);
+  const [topicsAsked, setTopicsAsked] = useState<string[]>([]);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLTextAreaElement>(null);
 
   const faqItems: FAQItem[] = [
     {
-      id: 'cloud',
-      question: 'Is CelesteOS cloud based?',
-      answer: "No, CelesteOS is not cloud-based. Everything runs on-premise in your network. Your documents never leave your infrastructure, never get uploaded anywhere. That's by design - I know how sensitive technical documentation can be."
+      id: 'quick-setup',
+      question: 'How long does it take to get running?',
+      answer: "Most yachts are live the 2 days. Plug in the Mac Studio, give us NAS access, and we configure remotely."
     },
     {
-      id: 'installs',
-      question: 'How do installs work?',
-      answer: "Installation typically takes 2-4 weeks. We handle document ingestion, system integration, crew training. Most clients see immediate ROI from day one due to faster troubleshooting."
+      id: 'folder-structure',
+      question: 'Do I need to restructure my folders?',
+      answer: "No — we respect your existing NAS structure. Engineering sees Engineering, Bridge sees Bridge, etc."
     },
     {
-      id: 'security',
-      question: 'Can my crew use it securely?',
-      answer: "Absolutely. The interface is designed for engineers, not IT specialists. If your crew can use a search engine, they can use CelesteOS. We provide hands-on training during implementation."
+      id: 'required-info',
+      question: 'What information do you need from us?',
+      answer: "Just read-only NAS credentials and Wi-Fi details. Nothing more."
     },
     {
-      id: 'internet',
+      id: 'file-safety',
+      question: 'Will CelesteOS ever change or delete files?',
+      answer: "No. It mounts in read-only mode, so your originals remain untouched."
+    },
+    {
+      id: 'data-privacy',
+      question: 'Does my data leave the yacht?',
+      answer: "No, unless you request optional cloud backup. All processing happens onboard."
+    },
+    {
+      id: 'email-privacy',
+      question: 'Can the Captain see my emails?',
+      answer: "No — email search is strictly per-user. Each crew member only sees their own inbox."
+    },
+    {
+      id: 'offline-capability',
       question: 'What happens if we lose internet?',
-      answer: "CelesteOS works completely offline once installed. No internet required for searches or document access. The only time you need connectivity is for initial setup and updates."
+      answer: "CelesteOS works fully offline. Searches, documents, and email history remain available at sea."
+    },
+    {
+      id: 'power-loss',
+      question: 'What if the yacht loses power?',
+      answer: "It auto-restarts when power returns. We recommend a UPS for seamless uptime."
+    },
+    {
+      id: 'software-updates',
+      question: 'How do you handle software updates?',
+      answer: "Updates run overnight, off-hours. You'll always be notified in advance, and you can defer if needed."
+    },
+    {
+      id: 'concurrent-users',
+      question: 'How many people can use it at once?',
+      answer: "Up to 16 crew at the same time."
     },
     {
       id: 'search-speed',
-      question: 'How fast is document search?',
-      answer: "Sub-second search across all your technical documentation. We index everything - PDFs, manuals, procedures, even handwritten notes. The AI understands technical context, not just keywords."
+      question: 'How fast are searches?',
+      answer: "Most answers appear in seconds, including results from scanned PDFs."
     },
     {
-      id: 'cloud-uploads',
-      question: 'No cloud uploads',
-      answer: "Correct - zero cloud uploads. Everything stays on your hardware, under your control. On-premise deployment, read-only system architecture, encrypted document processing."
+      id: 'system-integration',
+      question: 'What systems does it integrate with?',
+      answer: "Your NAS and each crew member's Outlook inbox. It doesn't interfere with bridge or engine controls."
+    },
+    {
+      id: 'fix-reliability',
+      question: 'How do we know shared fixes are reliable?',
+      answer: "Each fix is tracked for success rate and cross-referenced with manuals and OEM bulletins."
+    },
+    {
+      id: 'wrong-rating',
+      question: 'What if someone clicks the wrong rating?',
+      answer: "There's an undo. One mis-click doesn't affect the fleet database."
     },
     {
       id: 'pricing',
-      question: 'What does CelesteOS cost?',
-      answer: "Pricing is tailored to vessel size and complexity. Most super yachts see ROI within 6 months through reduced downtime and faster problem resolution. Contact us for a custom quote based on your specific needs."
+      question: 'What is the typical pricing?',
+      answer: "Only €15,000 for install + Mac Studio, plus ~€1200/month subscription."
     },
     {
-      id: 'training',
-      question: 'How long does training take?',
-      answer: "Basic training takes 2-3 hours for crew members. Advanced training for chief engineers takes about a day. We provide on-site training during installation and remote support afterwards."
-    },
-    {
-      id: 'updates',
-      question: 'How are updates handled?',
-      answer: "Updates are delivered quarterly and can be installed offline via USB or when connected to port WiFi. Updates include improved AI models, new features, and expanded technical knowledge bases."
-    },
-    {
-      id: 'languages',
-      question: 'What languages are supported?',
-      answer: "CelesteOS supports English, Spanish, Italian, French, and German. The system automatically detects document language and can translate technical terms between languages."
-    },
-    {
-      id: 'compatibility',
-      question: 'What systems does it integrate with?',
-      answer: "CelesteOS integrates with most yacht management systems including ISM, PMS, and bridge systems. We support standard formats like PDF, DWG, Excel, and can index scanned documents."
-    },
-    {
-      id: 'accuracy',
-      question: 'How accurate is the AI?',
-      answer: "Our AI achieves 95%+ accuracy on technical queries. It's trained specifically on marine engineering documentation and continuously improves through usage patterns. Incorrect answers can be flagged for review."
+      id: 'roi-timeline',
+      question: 'How fast does it pay for itself?',
+      answer: "Crews save 10–15 hours per week. Preventing one major fault or survey failure pays for the system many times over."
     }
   ];
 
@@ -128,6 +154,10 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
     
     setShowChat(true);
     setIsLoading(true);
+    
+    // Track FAQ query and topic for analytics
+    onFaqQuery?.(searchQuery);
+    onTopicTracked?.(searchQuery);
     
     // Add user message
     const userMessage: ChatMessage = {
@@ -278,27 +308,48 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
     const userMessages = chatMessages.filter(message => message.isUser);
     const userMessageCount = userMessages.length;
     
-    // Trigger popup when user sends their 5th message in FAQ
-    if (userMessageCount === 5 && !showScheduleCallPopup) {
+    // Update FAQ queries count
+    setFaqQueriesCount(userMessageCount);
+    
+    // Collect topics from user messages
+    const topics = userMessages.map(msg => msg.content);
+    setTopicsAsked(topics);
+    
+    // Trigger popup when user sends their 5th message in FAQ (only once per session)
+    if (userMessageCount === 5 && !showScheduleCallPopup && !hasShownSchedulePopup) {
       console.log('🎯 FAQ: Triggering schedule call popup - user has sent 5 messages');
       setShowScheduleCallPopup(true);
+      setHasShownSchedulePopup(true); // Mark that we've shown the popup
     }
-  }, [chatMessages, showScheduleCallPopup]);
+  }, [chatMessages, showScheduleCallPopup, hasShownSchedulePopup]);
 
   // Auto-resize search input
   const adjustSearchInputHeight = () => {
     const textarea = searchInputRef.current;
     if (textarea) {
-      textarea.style.height = '24px'; // Reset to min height
+      // Reset to auto first to get natural height
+      textarea.style.height = 'auto';
       const scrollHeight = textarea.scrollHeight;
+      const minHeight = 48; // Minimum height for better interaction
       const maxHeight = 120; // Max ~5 lines
-      textarea.style.height = Math.min(scrollHeight, maxHeight) + 'px';
+      const newHeight = Math.max(minHeight, Math.min(scrollHeight, maxHeight));
+      textarea.style.height = newHeight + 'px';
     }
   };
 
   useEffect(() => {
     adjustSearchInputHeight();
   }, [searchQuery]);
+
+  // Auto-focus the input when component mounts
+  useEffect(() => {
+    if (searchInputRef.current) {
+      // Small delay to ensure proper focus
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 100);
+    }
+  }, []);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -351,6 +402,40 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
           Back
         </button>
 
+        {/* Schedule Call Button - Always visible */}
+        <button
+          onClick={() => setShowScheduleCallPopup(true)}
+          style={{
+            position: 'absolute',
+            top: '20px',
+            right: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 16px',
+            background: '#3b82f6',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '50px', // Completely rounded (pill shape)
+            fontSize: isMobile ? '13px' : '14px',
+            fontWeight: 600,
+            fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            zIndex: 10005
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#2563eb';
+            e.currentTarget.style.transform = 'translateY(-1px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = '#3b82f6';
+            e.currentTarget.style.transform = 'translateY(0)';
+          }}
+        >
+          Schedule a call
+        </button>
+
         {/* Centered Container */}
         <div style={{
           maxWidth: '760px',
@@ -374,8 +459,8 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
               marginBottom: '32px'
             }}>
               <img 
-                src="/dark-faq-logo.png" 
-                alt="CelesteOS Logo" 
+                src="/faq-image.png"
+                alt="FAQ Logo" 
                 style={{
                   width: '256px',
                   height: '256px',
@@ -384,21 +469,23 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
               />
             </div>
             <h1 style={{
-              fontSize: '32px',
+              fontSize: isMobile ? '48px' : '64px',
               fontWeight: '600',
-              color: '#004aff',
+              color: '#ffffff',
               marginBottom: '12px',
-              letterSpacing: '-0.5px',
+              lineHeight: isMobile ? '52px' : '68px',
+              letterSpacing: '-0.32px',
               fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
             }}>
               FAQ
             </h1>
             <p style={{
-              fontSize: '16px',
-              color: 'rgba(255, 255, 255, 0.7)',
+              fontSize: isMobile ? '15px' : '16px',
+              color: 'rgba(246, 247, 251, 0.7)',
               textAlign: 'center',
               maxWidth: '400px',
-              lineHeight: '1.5',
+              lineHeight: isMobile ? '22px' : '24px',
+              letterSpacing: '-0.32px',
               fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
             }}>
               Search topics, or just ask
@@ -435,11 +522,13 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
                   background: 'transparent',
                   border: 'none',
                   outline: 'none',
-                  color: '#ffffff',
-                  fontSize: '17px',
-                  lineHeight: '24px',
-                  minHeight: '24px',
-                  height: '24px'
+                  color: 'var(--headline, #f6f7fb)',
+                  fontSize: isMobile ? '15px' : '16px',
+                  lineHeight: isMobile ? '22px' : '24px',
+                  letterSpacing: '-0.32px',
+                  fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                  minHeight: '48px',
+                  height: '48px'
                 }}
               />
               <button
@@ -496,11 +585,13 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
             animation: 'slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.4s both'
           }}>
             <h2 style={{
-              fontSize: '24px',
+              fontSize: isMobile ? '20px' : '24px',
               fontWeight: '600',
-              color: '#ffffff',
+              color: 'var(--headline, #f6f7fb)',
               marginBottom: '24px',
               textAlign: 'center',
+              lineHeight: isMobile ? '24px' : '28px',
+              letterSpacing: '-0.32px',
               fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
             }}>
               Explore Frequently Asked Questions
@@ -518,7 +609,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
                 <div
                   key={item.id}
                   style={{
-                    background: '#000000',
+                    background: '#181818',
                     borderBottom: index < filteredItems.length - 1 ? '1px solid rgba(255, 255, 255, 0.08)' : 'none'
                   }}
                 >
@@ -540,9 +631,11 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                   >
                     <span style={{
-                      fontSize: '16px',
-                      color: '#ffffff',
+                      fontSize: isMobile ? '15px' : '16px',
+                      color: 'var(--headline, #f6f7fb)',
                       fontWeight: '500',
+                      lineHeight: isMobile ? '22px' : '24px',
+                      letterSpacing: '-0.32px',
                       fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                     }}>
                       {item.question}
@@ -563,9 +656,10 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
                       animation: 'fadeIn 0.3s ease'
                     }}>
                       <p style={{
-                        fontSize: '15px',
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        lineHeight: '1.6',
+                        fontSize: isMobile ? '14px' : '15px',
+                        color: 'rgba(246, 247, 251, 0.7)',
+                        lineHeight: isMobile ? '20px' : '22px',
+                        letterSpacing: '-0.32px',
                         fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>
                         {item.answer}
@@ -578,111 +672,21 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
           </div>
         </div>
 
-        {/* Schedule Call Popup - Triggered on 5th FAQ message */}
+        {/* Schedule Call Modal - Triggered on 5th FAQ message */}
         {showScheduleCallPopup && (
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 20000,
-            backdropFilter: 'blur(12px)'
-          }}>
-            <div style={{
-              background: '#0f1117',
-              borderRadius: '8px',
-              padding: '32px',
-              maxWidth: isMobile ? '90%' : '500px',
-              width: '100%',
-              margin: '20px',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.9)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              animation: 'popupAppear 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-            }}>
-              <h3 style={{
-                fontSize: '24px',
-                fontWeight: '600',
-                color: '#ffffff',
-                marginBottom: '16px',
-                textAlign: 'center',
-                fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-              }}>
-                🎯 Great questions!
-              </h3>
-              <p style={{
-                fontSize: '16px',
-                color: 'rgba(255, 255, 255, 0.8)',
-                marginBottom: '24px',
-                lineHeight: '1.5',
-                textAlign: 'center',
-                fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-              }}>
-                You're really diving deep into CelesteOS! Let's schedule a personalized demo to show you exactly how it works for your specific setup.
-              </p>
-              <div style={{
-                display: 'flex',
-                gap: '12px',
-                justifyContent: 'center',
-                flexWrap: 'wrap'
-              }}>
-                <button
-                  onClick={() => {
-                    window.open('https://calendly.com/celesteos/demo', '_blank');
-                    handleCloseScheduleCallPopup();
-                  }}
-                  style={{
-                    backgroundColor: '#0070ff',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '12px 24px',
-                    fontSize: '16px',
-                    fontWeight: '500',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  Book a Demo
-                </button>
-                <button
-                  onClick={handleCloseScheduleCallPopup}
-                  style={{
-                    backgroundColor: 'transparent',
-                    color: 'rgba(255, 255, 255, 0.7)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    borderRadius: '8px',
-                    padding: '12px 24px',
-                    fontSize: '16px',
-                    fontWeight: '500',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  Continue Exploring
-                </button>
-              </div>
-            </div>
-          </div>
+          <ScheduleCallModal 
+            isOpen={showScheduleCallPopup}
+            onClose={handleCloseScheduleCallPopup}
+            isDarkMode={useDarkTheme}
+            isMobile={isMobile}
+            chatQueriesCount={0} // No chat queries on FAQ page
+            faqQueriesCount={faqQueriesCount}
+            topicsAsked={topicsAsked}
+          />
         )}
 
         {/* Animation Styles */}
         <style>{`
-          @keyframes popupAppear {
-            0% {
-              opacity: 0;
-              transform: scale(0.9) translateY(-20px);
-            }
-            100% {
-              opacity: 1;
-              transform: scale(1) translateY(0);
-            }
-          }
-          
           @keyframes fadeIn {
             from {
               opacity: 0;
@@ -726,7 +730,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
         position: 'fixed',
         inset: 0,
         zIndex: 10005,
-        background: 'rgba(15, 17, 23, 0)', // 0% opacity background
+        background: '#0f1117', // Solid dark background
         overflow: 'hidden',
         fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         display: 'flex',
@@ -759,6 +763,40 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
         Back
       </button>
 
+      {/* Schedule Call Button - Always visible */}
+      <button
+        onClick={() => setShowScheduleCallPopup(true)}
+        style={{
+          position: 'absolute',
+          top: '20px',
+          right: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '8px 16px',
+          background: '#3b82f6',
+          color: '#ffffff',
+          border: 'none',
+          borderRadius: '50px', // Completely rounded (pill shape)
+          fontSize: isMobile ? '13px' : '14px',
+          fontWeight: 600,
+          fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+          zIndex: 100
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = '#2563eb';
+          e.currentTarget.style.transform = 'translateY(-1px)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = '#3b82f6';
+          e.currentTarget.style.transform = 'translateY(0)';
+        }}
+      >
+        Schedule a call
+      </button>
+
       {/* Left Column - Chat Area */}
       <div style={{
         flex: '1 1 60%',
@@ -773,7 +811,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
         <div style={{
           padding: '60px 40px 30px',
           borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-          background: '#000000'
+          background: '#2e2e2e'
         }}>
           <div style={{
             display: 'flex',
@@ -784,7 +822,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
               marginBottom: '20px'
             }}>
               <img 
-                src="/dark-faq-logo.png" 
+                src="/light-faq-circle.png"
                 alt="CelesteOS Logo" 
                 style={{
                   width: '128px',
@@ -794,18 +832,22 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
               />
             </div>
             <h1 style={{
-              fontSize: '24px',
+              fontSize: isMobile ? '36px' : '48px',
               fontWeight: '600',
-              color: '#004aff',
+              color: '#ffffff',
               marginBottom: '8px',
+              lineHeight: isMobile ? '40px' : '52px',
+              letterSpacing: '-0.32px',
               fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
             }}>
               FAQ
             </h1>
             <p style={{
               fontSize: '14px',
-              color: 'rgba(255, 255, 255, 0.6)',
+              color: 'rgba(246, 247, 251, 0.7)',
               textAlign: 'center',
+              lineHeight: '20px',
+              letterSpacing: '-0.32px',
               fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
             }}>
               Search topics, or just ask
@@ -826,8 +868,11 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: 'rgba(255, 255, 255, 0.4)',
-              fontSize: '15px',
+              color: 'rgba(246, 247, 251, 0.7)',
+              fontSize: isMobile ? '15px' : '16px',
+              lineHeight: isMobile ? '22px' : '24px',
+              letterSpacing: '-0.32px',
+              fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
               textAlign: 'center'
             }}>
               Start a conversation by typing a question below
@@ -880,7 +925,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
                       style={{
                         fontSize: '14px',
                         lineHeight: '20px',
-                        fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                        fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                         color: 'rgba(246, 247, 251, 0.7)',
                         textAlign: message.isUser ? 'right' : 'left'
                       }}
@@ -896,8 +941,8 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
                           fontSize: isMobile ? '15px' : '16px',
                           lineHeight: isMobile ? '22px' : '24px',
                           letterSpacing: '-0.32px',
-                          fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                          color: '#f6f7fb',
+                          fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                          color: 'var(--headline, #f6f7fb)',
                           textAlign: message.isUser ? 'right' : 'left'
                         }}
                       >
@@ -1047,7 +1092,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
         <div style={{
           padding: '20px 40px 30px',
           borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-          background: '#000000'
+          background: '#2e2e2e'
         }}>
           <div style={{
             display: 'flex',
@@ -1070,8 +1115,11 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
                 background: 'transparent',
                 border: 'none',
                 outline: 'none',
-                color: '#ffffff',
-                fontSize: '15px'
+                color: 'var(--headline, #f6f7fb)',
+                fontSize: isMobile ? '15px' : '16px',
+                lineHeight: isMobile ? '22px' : '24px',
+                letterSpacing: '-0.32px',
+                fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
               }}
             />
             <button
@@ -1138,9 +1186,11 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
           borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
         }}>
           <h2 style={{
-            fontSize: '20px',
+            fontSize: isMobile ? '18px' : '20px',
             fontWeight: '600',
-            color: '#ffffff',
+            color: 'var(--headline, #f6f7fb)',
+            lineHeight: isMobile ? '22px' : '24px',
+            letterSpacing: '-0.32px',
             fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
           }}>
             Explore Frequently Asked Questions
@@ -1148,8 +1198,11 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
           {searchQuery && (
             <p style={{
               fontSize: '13px',
-              color: 'rgba(255, 255, 255, 0.5)',
-              marginTop: '8px'
+              color: 'rgba(246, 247, 251, 0.7)',
+              marginTop: '8px',
+              lineHeight: '18px',
+              letterSpacing: '-0.32px',
+              fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
             }}>
               {filteredItems.length} results for "{searchQuery}"
             </p>
@@ -1192,10 +1245,12 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
                 onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
                 <span style={{
-                  fontSize: '15px',
-                  color: '#ffffff',
+                  fontSize: isMobile ? '14px' : '15px',
+                  color: 'var(--headline, #f6f7fb)',
                   fontWeight: '500',
                   paddingRight: '12px',
+                  lineHeight: isMobile ? '20px' : '22px',
+                  letterSpacing: '-0.32px',
                   fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                 }}>
                   {item.question}
@@ -1217,9 +1272,10 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
                   animation: 'fadeIn 0.3s ease'
                 }}>
                   <p style={{
-                    fontSize: '14px',
-                    color: 'rgba(255, 255, 255, 0.7)',
-                    lineHeight: '1.6',
+                    fontSize: isMobile ? '13px' : '14px',
+                    color: 'rgba(246, 247, 251, 0.7)',
+                    lineHeight: isMobile ? '18px' : '20px',
+                    letterSpacing: '-0.32px',
                     fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                   }}>
                     {item.answer}
@@ -1231,111 +1287,21 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
         </div>
       </div>
 
-      {/* Schedule Call Popup - Triggered on 5th FAQ message */}
+      {/* Schedule Call Modal - Triggered on 5th FAQ message */}
       {showScheduleCallPopup && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 20000,
-          backdropFilter: 'blur(12px)'
-        }}>
-          <div style={{
-            background: '#0f1117',
-            borderRadius: '8px',
-            padding: '32px',
-            maxWidth: isMobile ? '90%' : '500px',
-            width: '100%',
-            margin: '20px',
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.9)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            animation: 'popupAppear 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-          }}>
-            <h3 style={{
-              fontSize: '24px',
-              fontWeight: '600',
-              color: '#ffffff',
-              marginBottom: '16px',
-              textAlign: 'center',
-              fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-            }}>
-              🎯 Great questions!
-            </h3>
-            <p style={{
-              fontSize: '16px',
-              color: 'rgba(255, 255, 255, 0.8)',
-              marginBottom: '24px',
-              lineHeight: '1.5',
-              textAlign: 'center',
-              fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-            }}>
-              You're really diving deep into CelesteOS! Let's schedule a personalized demo to show you exactly how it works for your specific setup.
-            </p>
-            <div style={{
-              display: 'flex',
-              gap: '12px',
-              justifyContent: 'center',
-              flexWrap: 'wrap'
-            }}>
-              <button
-                onClick={() => {
-                  window.open('https://calendly.com/celesteos/demo', '_blank');
-                  handleCloseScheduleCallPopup();
-                }}
-                style={{
-                  backgroundColor: '#0070ff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '12px 24px',
-                  fontSize: '16px',
-                  fontWeight: '500',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-              >
-                Book a Demo
-              </button>
-              <button
-                onClick={handleCloseScheduleCallPopup}
-                style={{
-                  backgroundColor: 'transparent',
-                  color: 'rgba(255, 255, 255, 0.7)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  borderRadius: '8px',
-                  padding: '12px 24px',
-                  fontSize: '16px',
-                  fontWeight: '500',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-              >
-                Continue Exploring
-              </button>
-            </div>
-          </div>
-        </div>
+        <ScheduleCallModal 
+          isOpen={showScheduleCallPopup}
+          onClose={handleCloseScheduleCallPopup}
+          isDarkMode={useDarkTheme}
+          isMobile={isMobile}
+          chatQueriesCount={0} // No chat queries on FAQ page
+          faqQueriesCount={faqQueriesCount}
+          topicsAsked={topicsAsked}
+        />
       )}
 
       {/* Animation Styles */}
       <style>{`
-        @keyframes popupAppear {
-          0% {
-            opacity: 0;
-            transform: scale(0.9) translateY(-20px);
-          }
-          100% {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-        }
-        
         @keyframes fadeIn {
           from {
             opacity: 0;

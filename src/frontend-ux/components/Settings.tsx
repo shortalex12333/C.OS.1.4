@@ -20,45 +20,45 @@ const MODAL_DESIGN = {
   modal: {
     width: '800px',
     height: '650px',
-    background: '#ffffff',
+    background: '#FFFFFF',
     borderRadius: '8px',
     boxShadow: '0 32px 64px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05)',
     border: '1px solid rgba(0, 0, 0, 0.06)',
     // Dark mode premium modal
     dark: {
-      background: darkTheme.backgrounds.secondary, // #13151a - elevated modal
-      boxShadow: darkTheme.effects.elevationHigh,
-      border: `1px solid ${darkTheme.modal.border}`,
+      background: '#292929', // Dark mode modal background
+      boxShadow: '0 32px 64px rgba(0, 0, 0, 0.3)',
+      border: '1px solid #343434',
       backdropFilter: 'blur(8px)'
     }
   },
   header: {
-    background: '#f8f9fa',
-    borderBottom: '1px solid #e9ecef',
+    background: '#FFFFFF',
+    borderBottom: '1px solid #e7e7e7',
     padding: '18px 24px',
     height: '60px',
     // Dark mode header with gradient
     dark: {
-      background: darkTheme.modal.header,
-      borderBottom: `1px solid ${darkTheme.modal.headerBorder}`
+      background: '#292929',
+      borderBottom: '1px solid #343434'
     }
   },
   sidebar: {
     width: '220px',
-    background: '#f8f9fa',
-    borderRight: '1px solid #e9ecef',
+    background: '#F5F5F5',
+    borderRight: '1px solid #e7e7e7',
     // Dark mode sidebar
     dark: {
-      background: darkTheme.backgrounds.primary, // #0a0b0d - deep ocean
-      borderRight: `1px solid ${darkTheme.sidebar.border}`
+      background: '#3C3C3C',
+      borderRight: '1px solid #343434'
     }
   },
   content: {
-    background: '#ffffff',
+    background: '#FFFFFF',
     padding: '28px 36px',
     // Dark mode content
     dark: {
-      background: darkTheme.backgrounds.secondary // #13151a - elevated
+      background: '#292929' // Dark mode content
     }
   },
   nav: {
@@ -146,7 +146,9 @@ export function Settings({
         }
         
         // Fallback to display name based email
-        const emailFromDisplay = displayName.toLowerCase().replace(/\s+/g, '.') + '@company.com';
+        const emailFromDisplay = typeof displayName === 'string' 
+          ? displayName.toLowerCase().replace(/\s+/g, '.') + '@company.com'
+          : 'user@company.com';
         setUserEmail(emailFromDisplay);
       } catch (error) {
         console.error('Error getting user email:', error);
@@ -281,7 +283,7 @@ export function Settings({
       <div 
         className="absolute inset-0 transition-opacity duration-300"
         style={{
-          background: isDarkMode ? darkTheme.modal.overlay : 'rgba(0, 0, 0, 0.5)',
+          background: isDarkMode ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.5)',
           backdropFilter: isDarkMode ? darkTheme.modal.backdropBlur : 'blur(8px)',
           WebkitBackdropFilter: isDarkMode ? darkTheme.modal.backdropBlur : 'blur(8px)'
         }}
@@ -296,10 +298,10 @@ export function Settings({
           height: isMobile ? '100%' : MODAL_DESIGN.modal.height,
           maxWidth: isMobile ? '100%' : '90vw',
           maxHeight: isMobile ? '100%' : '90vh',
-          background: isDarkMode ? darkTheme.modal.background : MODAL_DESIGN.modal.background,
+          background: isDarkMode ? '#292929' : '#FFFFFF',
           borderRadius: isMobile ? '0' : (isDarkMode ? darkTheme.modal.borderRadius : MODAL_DESIGN.modal.borderRadius),
           boxShadow: isDarkMode ? darkTheme.modal.shadow : MODAL_DESIGN.modal.boxShadow,
-          border: isDarkMode ? `1px solid ${darkTheme.modal.border}` : MODAL_DESIGN.modal.border,
+          border: isDarkMode ? '1px solid #343434' : '1px solid #e7e7e7',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
@@ -310,8 +312,8 @@ export function Settings({
         {/* Header - CelesteOS Styling */}
         <div 
           style={{
-            background: isDarkMode ? darkTheme.modal.header : MODAL_DESIGN.header.background,
-            borderBottom: isDarkMode ? `1px solid ${darkTheme.modal.border}` : MODAL_DESIGN.header.borderBottom,
+            background: isDarkMode ? '#292929' : '#FFFFFF',
+            borderBottom: isDarkMode ? '1px solid #343434' : '1px solid #e7e7e7',
             padding: MODAL_DESIGN.header.padding,
             height: MODAL_DESIGN.header.height,
             display: 'flex',
@@ -324,7 +326,7 @@ export function Settings({
           <h1 style={{
             fontSize: '18px',
             fontWeight: '600',
-            color: isDarkMode ? darkTheme.text.primary : '#212529',
+            color: isDarkMode ? '#ffffff' : '#0f0f0f',
             margin: 0,
             fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
           }}>
@@ -335,7 +337,7 @@ export function Settings({
             style={{
               background: 'transparent',
               border: 'none',
-              color: isDarkMode ? darkTheme.text.tertiary : '#6c757d',
+              color: isDarkMode ? '#727272' : '#b7b7b7',
               cursor: 'pointer',
               padding: '4px',
               borderRadius: '4px',
@@ -344,8 +346,8 @@ export function Settings({
               justifyContent: 'center',
               transition: `color ${darkTheme.effects.microDelay} cubic-bezier(0.22, 0.61, 0.36, 1)`
             }}
-            onMouseEnter={(e) => e.currentTarget.style.color = isDarkMode ? darkTheme.text.primary : '#212529'}
-            onMouseLeave={(e) => e.currentTarget.style.color = isDarkMode ? darkTheme.text.tertiary : '#6c757d'}
+            onMouseEnter={(e) => e.currentTarget.style.color = isDarkMode ? '#ffffff' : '#0f0f0f'}
+            onMouseLeave={(e) => e.currentTarget.style.color = isDarkMode ? '#727272' : '#b7b7b7'}
           >
             <X className="w-5 h-5" />
           </button>
@@ -357,8 +359,8 @@ export function Settings({
           <div 
             style={{
               width: isMobile ? '160px' : MODAL_DESIGN.sidebar.width,
-              background: isDarkMode ? darkTheme.sidebar.background : MODAL_DESIGN.sidebar.background,
-              borderRight: isDarkMode ? `1px solid ${darkTheme.sidebar.border}` : MODAL_DESIGN.sidebar.borderRight,
+              background: isDarkMode ? '#3C3C3C' : '#F5F5F5',
+              borderRight: isDarkMode ? '1px solid #343434' : '1px solid #e7e7e7',
               padding: isMobile ? '8px 0' : '12px 0',
               overflowX: 'hidden',
               overflowY: 'hidden',
@@ -381,13 +383,13 @@ export function Settings({
                     width: '100%',
                     position: 'relative',
                     background: isActive 
-                      ? (isDarkMode ? darkTheme.sidebar.itemBackgroundActive : '#e9ecef')
+                      ? (isDarkMode ? '#242424' : '#f8f8f8')
                       : 'transparent',
                     color: isActive 
-                      ? (isDarkMode ? darkTheme.sidebar.itemTextActive : '#212529')  // PRIMARY TEXT for active
-                      : (isDarkMode ? darkTheme.sidebar.itemText : '#6c757d'),       // TERTIARY for inactive
+                      ? (isDarkMode ? '#ffffff' : '#0f0f0f')  // PRIMARY TEXT for active
+                      : (isDarkMode ? '#939293' : '#8a8a8a'),       // TERTIARY for inactive
                     border: 'none',
-                    borderLeft: isActive && isDarkMode ? `2px solid ${darkTheme.sidebar.itemActiveIndicator}` : '2px solid transparent',
+                    borderLeft: isActive && isDarkMode ? '2px solid #0078fa' : '2px solid transparent',
                     padding: isDarkMode && isActive 
                       ? `${MODAL_DESIGN.nav.item.padding.split(' ')[0]} calc(${MODAL_DESIGN.nav.item.padding.split(' ')[1]} - 2px)`
                       : MODAL_DESIGN.nav.item.padding,
@@ -405,14 +407,14 @@ export function Settings({
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive) {
-                      e.currentTarget.style.background = isDarkMode ? darkTheme.sidebar.itemBackgroundHover : '#f8f9fa';
-                      e.currentTarget.style.color = isDarkMode ? darkTheme.sidebar.itemTextHover : '#212529';
+                      e.currentTarget.style.background = isDarkMode ? '#343434' : '#f8f8f8';
+                      e.currentTarget.style.color = isDarkMode ? '#ffffff' : '#0f0f0f';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isActive) {
                       e.currentTarget.style.background = 'transparent';
-                      e.currentTarget.style.color = isDarkMode ? darkTheme.sidebar.itemText : '#6c757d';
+                      e.currentTarget.style.color = isDarkMode ? '#939293' : '#8a8a8a';
                     }
                   }}
                 >
@@ -427,10 +429,10 @@ export function Settings({
           <div 
             style={{
               flex: 1,
-              background: isDarkMode ? '#1a1a1a' : MODAL_DESIGN.content.background,
+              background: isDarkMode ? '#292929' : '#FFFFFF',
               padding: MODAL_DESIGN.content.padding,
               overflowY: 'auto',
-              color: isDarkMode ? '#f0f0f0' : '#212529'
+              color: isDarkMode ? '#ffffff' : '#0f0f0f'
             }}
           >
             <SectionHeader 

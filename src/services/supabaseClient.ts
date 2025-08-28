@@ -72,6 +72,8 @@ class SupabaseAuthService {
       localStorage.setItem('celesteos_user', JSON.stringify({
         id: session.user.id,
         email: session.user.email,
+        firstName: session.user.user_metadata?.firstName || session.user.user_metadata?.display_name?.split(' ')[0] || session.user.email?.split('@')[0],
+        lastName: session.user.user_metadata?.lastName || session.user.user_metadata?.display_name?.split(' ')[1] || '',
         displayName: session.user.user_metadata?.display_name || session.user.email?.split('@')[0],
         createdAt: session.user.created_at
       }));
@@ -104,6 +106,8 @@ class SupabaseAuthService {
       localStorage.setItem('celesteos_user', JSON.stringify({
         id: session.user.id,
         email: session.user.email,
+        firstName: session.user.user_metadata?.firstName || session.user.user_metadata?.display_name?.split(' ')[0] || session.user.email?.split('@')[0],
+        lastName: session.user.user_metadata?.lastName || session.user.user_metadata?.display_name?.split(' ')[1] || '',
         displayName: session.user.user_metadata?.display_name || session.user.email?.split('@')[0],
         createdAt: session.user.created_at
       }));
@@ -147,7 +151,7 @@ class SupabaseAuthService {
   /**
    * Sign up new user
    */
-  async signUp(email: string, password: string, displayName: string) {
+  async signUp(email: string, password: string, metadata: { firstName: string; lastName: string; displayName: string }) {
     try {
       console.log('📝 Signing up user:', email);
       
@@ -156,7 +160,9 @@ class SupabaseAuthService {
         password,
         options: {
           data: {
-            display_name: displayName,
+            display_name: metadata.displayName,
+            firstName: metadata.firstName,
+            lastName: metadata.lastName,
             created_via: 'celesteos_v1.4'
           },
           emailRedirectTo: `${window.location.origin}/auth/callback`

@@ -13,6 +13,7 @@ import { AskAlexPage } from './frontend-ux/components/AskAlexPage';
 import { DesktopMobileComparison } from './frontend-ux/components/DesktopMobileComparison';
 import { BackgroundSystem } from './frontend-ux/components/BackgroundSystem';
 import { MobileHeader } from './frontend-ux/components/MobileHeader';
+import { ScheduleCallModal } from './frontend-ux/components/ScheduleCallModal';
 import { getSidebarWidth, checkIsMobile, checkComparisonMode } from './frontend-ux/utils/appUtils';
 import completeWebhookService from './services/webhookServiceComplete';
 import { authService } from './services/supabaseClient';
@@ -44,7 +45,13 @@ export default function App() {
   const [displayName, setDisplayName] = useState<string>('User');
   const [currentSearchType, setCurrentSearchType] = useState<SearchType>('yacht');
   const [selectedModel, setSelectedModel] = useState<string>('air');
-  const [showIntro, setShowIntro] = useState(false);
+  // Check if user has seen intro before - if not, show it immediately
+  const [showIntro, setShowIntro] = useState(() => {
+    const hasSeenIntro = localStorage.getItem('hasSeenIntro');
+    const hasSession = localStorage.getItem('celesteos_user');
+    // Show intro if: first time visitor (no hasSeenIntro) AND no existing session
+    return !hasSeenIntro && !hasSession;
+  });
   const [showTutorial, setShowTutorial] = useState(false);
   const [showWhiteFade, setShowWhiteFade] = useState(false);
   const [fadeToInterface, setFadeToInterface] = useState(false);
@@ -61,7 +68,13 @@ export default function App() {
     searchType: SearchType;
   }>>([]);
   const [showScheduleCallPopup, setShowScheduleCallPopup] = useState(false);
+  const [hasShownSchedulePopup, setHasShownSchedulePopup] = useState(false); // Track if popup was already shown
   const [messageCount, setMessageCount] = useState(0);
+  
+  // Tracking for analytics and scheduling
+  const [chatQueriesCount, setChatQueriesCount] = useState(0);
+  const [faqQueriesCount, setFaqQueriesCount] = useState(0);
+  const [topicsAsked, setTopicsAsked] = useState<string[]>([]);
   
   // Theme change handler for Settings component
   const handleAppearanceChange = (newAppearance: string) => {
@@ -121,9 +134,9 @@ export default function App() {
           const savedUser = localStorage.getItem('celesteos_user');
           if (savedUser) {
             const userData = JSON.parse(savedUser);
-            setDisplayName(userData.displayName || user.email?.split('@')[0] || 'User');
+            setDisplayName(userData.firstName || userData.displayName?.split(' ')[0] || user.email?.split('@')[0] || 'User');
           } else {
-            setDisplayName(user.user_metadata?.display_name || user.email?.split('@')[0] || 'User');
+            setDisplayName(user.user_metadata?.firstName || user.user_metadata?.display_name?.split(' ')[0] || user.email?.split('@')[0] || 'User');
           }
           
           // Sync webhook service with restored auth state
@@ -150,7 +163,7 @@ export default function App() {
     const unsubscribe = authService.onAuthStateChange((user) => {
       if (user) {
         console.log('🔄 Auth state changed - User logged in:', user.email);
-        setDisplayName(user.user_metadata?.display_name || user.email?.split('@')[0] || 'User');
+        setDisplayName(user.user_metadata?.firstName || user.user_metadata?.display_name?.split(' ')[0] || user.email?.split('@')[0] || 'User');
         
         // Only show white fade for actual login action, not on refresh
         // Check if this is a new login by checking if user was previously not logged in
@@ -206,7 +219,10 @@ export default function App() {
       if (!isLoggedIn && completeWebhookService.isLoggedIn()) {
         const user = completeWebhookService.getCurrentUser();
         if (user) {
-          const name = user.userName || user.email || 'User';
+          // Ensure name is always a string
+          const name = typeof user.userName === 'string' 
+            ? user.userName 
+            : (user.firstName || user.email?.split('@')[0] || 'User');
           setDisplayName(name);
           setIsLoggedIn(true);
           console.log('✅ Restored webhook session for:', name);
@@ -214,13 +230,13 @@ export default function App() {
         }
       }
       
-      // Always show intro for unauthenticated users
-      if (!isLoggedIn) {
+      // Show intro for unauthenticated users after auth check is complete
+      if (!isLoggedIn && !isAuthLoading) {
         setShowIntro(true);
       }
     };
     checkSession();
-  }, []);
+  }, [isLoggedIn, isAuthLoading]);
 
   // Check if device is mobile
   useEffect(() => {
@@ -251,15 +267,16 @@ export default function App() {
     const userMessages = chatMessages.filter(message => message.isUser);
     const userMessageCount = userMessages.length;
     
-    // Trigger popup when user sends their 10th message
-    if (userMessageCount === 10 && !showScheduleCallPopup) {
+    // Trigger popup when user sends their 10th message (only once per session)
+    if (userMessageCount === 10 && !showScheduleCallPopup && !hasShownSchedulePopup) {
       console.log('🎯 Triggering schedule call popup - user has sent 10 messages');
       setShowScheduleCallPopup(true);
+      setHasShownSchedulePopup(true); // Mark that we've shown the popup
     }
     
     // Update message count for debugging
     setMessageCount(userMessageCount);
-  }, [chatMessages, showScheduleCallPopup]);
+  }, [chatMessages, showScheduleCallPopup, hasShownSchedulePopup]);
 
   // Apply chat mode class to body for clean white workspace
   useEffect(() => {
@@ -349,6 +366,9 @@ export default function App() {
       setCurrentSearchType(searchType);
       console.log('Starting chat with search type:', searchType);
     }
+    
+    // Increment chat queries count for analytics
+    setChatQueriesCount(prev => prev + 1);
     
     // Add user message to chat immediately
     const userMessageId = `msg_${Date.now()}_user`;
@@ -544,29 +564,36 @@ export default function App() {
       // Send new request to webhook
       setIsWaitingForResponse(true);
       
-      const response = await completeWebhookService.sendTextChatRequest({
-        userId: localStorage.getItem('user_id') || `user_${Date.now()}`,
-        user_id: localStorage.getItem('user_id') || `user_${Date.now()}`,
-        firstName: displayName.split(' ')[0] || 'User',
-        lastName: displayName.split(' ')[1] || '',
-        email: 'user@company.com',
-        conversation_id: currentConversationId,
-        session_id: currentConversationId,
-        message: newContent,
-        search_type: currentSearchType,
-        model: selectedModel
-      });
+      // Use the same method as handleStartChat for consistency
+      const webhookSearchType = currentSearchType === 'email-yacht' ? 'email' : (currentSearchType || 'local');
+      const response = await completeWebhookService.sendTextChat(newContent, webhookSearchType as 'local' | 'yacht' | 'email');
 
-      if (response) {
-        const aiMessage = {
-          id: `ai_${Date.now()}`,
-          content: response,
+      if (response.success && response.data) {
+        // Check if response contains JSON with solution cards
+        const isJSON = typeof response.data === 'object' && 
+          (response.data.items || response.data.solutions || response.data.sources);
+        
+        if (isJSON) {
+          setHasReceivedJSON(true);
+        }
+        
+        // Add bot response to chat
+        const botMessageId = `msg_${Date.now()}_bot`;
+        const botMessage: ChatMessage = {
+          id: botMessageId,
+          content: response.data,
           isUser: false,
           timestamp: new Date().toISOString(),
           isStreaming: false
         };
+        setChatMessages(prev => [...prev, botMessage]);
         
-        setChatMessages(prev => [...prev, aiMessage]);
+        // Trigger feedback request after 10 messages
+        if (messageCount === 9) {
+          setTimeout(() => setShowScheduleCallPopup(true), 2000);
+        }
+      } else {
+        console.error('❌ Failed to get response from backend');
       }
       
     } catch (error) {
@@ -602,29 +629,31 @@ export default function App() {
       // Send new request to webhook
       setIsWaitingForResponse(true);
       
-      const response = await completeWebhookService.sendTextChatRequest({
-        userId: localStorage.getItem('user_id') || `user_${Date.now()}`,
-        user_id: localStorage.getItem('user_id') || `user_${Date.now()}`,
-        firstName: displayName.split(' ')[0] || 'User',
-        lastName: displayName.split(' ')[1] || '',
-        email: 'user@company.com',
-        conversation_id: currentConversationId,
-        session_id: currentConversationId,
-        message: typeof userMessage.content === 'string' ? userMessage.content : String(userMessage.content),
-        search_type: currentSearchType,
-        model: selectedModel
-      });
+      // Use the same method as handleStartChat for consistency
+      const messageContent = typeof userMessage.content === 'string' ? userMessage.content : String(userMessage.content);
+      const webhookSearchType = currentSearchType === 'email-yacht' ? 'email' : (currentSearchType || 'local');
+      const response = await completeWebhookService.sendTextChat(messageContent, webhookSearchType as 'local' | 'yacht' | 'email');
 
-      if (response) {
-        const newAiMessage = {
-          id: `ai_${Date.now()}`,
-          content: response,
+      if (response.success && response.data) {
+        // Check if response contains JSON with solution cards
+        const isJSON = typeof response.data === 'object' && 
+          (response.data.items || response.data.solutions || response.data.sources);
+        
+        if (isJSON) {
+          setHasReceivedJSON(true);
+        }
+        
+        // Add bot response to chat
+        const newAiMessage: ChatMessage = {
+          id: `msg_${Date.now()}_bot`,
+          content: response.data,
           isUser: false,
           timestamp: new Date().toISOString(),
           isStreaming: false
         };
-        
         setChatMessages(prev => [...prev, newAiMessage]);
+      } else {
+        console.error('❌ Failed to regenerate response from backend');
       }
       
     } catch (error) {
@@ -693,6 +722,8 @@ export default function App() {
           isVisible={showIntro}
           onComplete={() => {
             setShowIntro(false);
+            // Mark that user has seen the intro
+            localStorage.setItem('hasSeenIntro', 'true');
           }}
           isDarkMode={isDarkMode}
         />
@@ -739,6 +770,8 @@ export default function App() {
               onBack={() => setShowAskAlex(false)}
               isDarkMode={isDarkMode}
               isMobile={isMobile}
+              onFaqQuery={() => setFaqQueriesCount(prev => prev + 1)}
+              onTopicTracked={(topic) => setTopicsAsked(prev => [...prev, topic])}
             />
           ) : (
             <>
@@ -752,6 +785,7 @@ export default function App() {
                 isChatMode={isChatMode}
                 appearance={appearance}
                 onAppearanceChange={handleAppearanceChange}
+                isDarkMode={isDarkMode}
               />
 
               <div className="relative flex h-full w-full flex-1 transition-colors z-10">
@@ -822,6 +856,7 @@ export default function App() {
                           searchType={currentSearchType}
                           onEditMessage={handleEditMessage}
                           onRegenerateResponse={handleRegenerateResponse}
+                          onScheduleCallClick={() => setShowScheduleCallPopup(true)}
                         />
                       </div>
                       {/* Show preloaded questions when no messages, regardless of chat mode */}
@@ -831,6 +866,7 @@ export default function App() {
                             onQuestionClick={handleStartChat}
                             isDarkMode={isDarkMode}
                             isMobile={isMobile}
+                            searchType={currentSearchType}
                           />
                         </div>
                       )}
@@ -851,96 +887,15 @@ export default function App() {
             </>
           )}
 
-          {/* Schedule Call Popup - Triggered on 10th message */}
+          {/* Schedule Call Modal - Triggered on 10th message */}
           {showScheduleCallPopup && (
-            <div style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.7)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 10000,
-              backdropFilter: 'blur(8px)'
-            }}>
-              <div style={{
-                background: isDarkMode ? 'var(--background, #0f0b12)' : '#ffffff',
-                borderRadius: '8px',
-                padding: '32px',
-                maxWidth: isMobile ? '90%' : '500px',
-                width: '100%',
-                margin: '20px',
-                boxShadow: isDarkMode 
-                  ? '0 20px 40px rgba(0, 0, 0, 0.8)' 
-                  : '0 20px 40px rgba(0, 0, 0, 0.15)',
-                border: isDarkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.06)',
-                animation: 'popupAppear 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-              }}>
-                <h3 style={{
-                  fontSize: '24px',
-                  fontWeight: '600',
-                  color: isDarkMode ? 'var(--headline, #f6f7fb)' : '#1f2937',
-                  marginBottom: '16px',
-                  textAlign: 'center'
-                }}>
-                  🎯 Ready to take the next step?
-                </h3>
-                <p style={{
-                  fontSize: '16px',
-                  color: isDarkMode ? 'rgba(246, 247, 251, 0.8)' : '#6b7280',
-                  marginBottom: '24px',
-                  lineHeight: '1.5',
-                  textAlign: 'center'
-                }}>
-                  You've been actively exploring CelesteOS! Let's schedule a quick call to show you how it can solve your specific engineering challenges.
-                </p>
-                <div style={{
-                  display: 'flex',
-                  gap: '12px',
-                  justifyContent: 'center',
-                  flexWrap: 'wrap'
-                }}>
-                  <button
-                    onClick={() => {
-                      window.open('https://calendly.com/celesteos/demo', '_blank');
-                      handleCloseScheduleCallPopup();
-                    }}
-                    style={{
-                      backgroundColor: '#3b82f6',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      padding: '12px 24px',
-                      fontSize: '16px',
-                      fontWeight: '500',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    Schedule a Demo
-                  </button>
-                  <button
-                    onClick={handleCloseScheduleCallPopup}
-                    style={{
-                      backgroundColor: 'transparent',
-                      color: isDarkMode ? 'rgba(246, 247, 251, 0.7)' : '#6b7280',
-                      border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.2)' : '#e5e7eb'}`,
-                      borderRadius: '8px',
-                      padding: '12px 24px',
-                      fontSize: '16px',
-                      fontWeight: '500',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    Maybe Later
-                  </button>
-                </div>
-              </div>
-            </div>
+            <ScheduleCallModal 
+              isOpen={showScheduleCallPopup}
+              onClose={handleCloseScheduleCallPopup}
+              chatQueriesCount={chatQueriesCount}
+              faqQueriesCount={faqQueriesCount}
+              topicsAsked={topicsAsked}
+            />
           )}
 
           {/* Debug Message Count Display - Remove in production */}
@@ -963,21 +918,21 @@ export default function App() {
           )}
 
         </>
-      ) : null}
+      ) : (
+        // Fallback loading state for edge cases (prevents white screen)
+        <div className={`flex h-full w-full items-center justify-center ${isDarkMode ? 'dark' : ''}`} style={{
+          backgroundColor: isDarkMode ? '#0f0b12' : '#ffffff',
+          minHeight: '100vh'
+        }}>
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Loading...</p>
+          </div>
+        </div>
+      )}
       
       {/* Premium Animation Styles */}
       <style>{`
-        @keyframes popupAppear {
-          0% {
-            opacity: 0;
-            transform: scale(0.9) translateY(-20px);
-          }
-          100% {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-        }
-        
         @keyframes whiteFadeInOut {
           0% {
             opacity: 0;

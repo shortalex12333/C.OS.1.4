@@ -1,0 +1,995 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "text-chat",
+        "responseMode": "responseNode",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "name": "Text Chat Entry",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        -14540,
+        1193.75
+      ],
+      "typeVersion": 2,
+      "webhookId": "text-chat-ultra",
+      "id": "c30033cd-df48-47ba-8a4b-3f6e8c78ac0a"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"model\":\"gpt-4o-mini\",\"messages\":[{\"role\":\"system\",\"content\":\"Extract entities and output ONLY valid JSON:{\\\"equipment\\\":[],\\\"parts\\\":[],\\\"manufacturers\\\":[],\\\"fault_codes\\\":[],\\\"people\\\":[],\\\"companies\\\":[],\\\"document_types\\\":[],\\\"locations\\\":[],\\\"symptoms\\\":[],\\\"time_references\\\":[]}\"},{\"role\":\"user\",\"content\":\"{{$json.body.message}}\"}],\"temperature\":0.1,\"response_format\":{\"type\":\"json_object\"}}",
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "name": "Extract Entities",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -14320,
+        1193.75
+      ],
+      "typeVersion": 4.2,
+      "id": "2cb57a1b-ad7e-44df-8ba8-f4916ed17f58",
+      "credentials": {
+        "openAiApi": {
+          "id": "trAmlWz7YdldnThl",
+          "name": "OpenAi"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate cache key and routing\nconst webhook = $('Text Chat Entry').first().json.body;\nconst llm = $input.first().json;\n\nlet entities = {};\ntry {\n  const content = llm.choices[0].message.content;\n  entities = JSON.parse(content);\n} catch (e) {\n  entities = {equipment:[], parts:[], fault_codes:[], manufacturers:[], people:[], companies:[]};\n}\n\n// Generate deterministic cache key using simple hash function\nfunction simpleHash(str) {\n  let hash = 0;\n  for (let i = 0; i < str.length; i++) {\n    const char = str.charCodeAt(i);\n    hash = ((hash << 5) - hash) + char;\n    hash = hash & hash; // Convert to 32bit integer\n  }\n  return Math.abs(hash).toString(36);\n}\n\nconst cacheKey = simpleHash(\n  JSON.stringify({\n    equipment: (entities.equipment || []).sort(),\n    parts: (entities.parts || []).sort(),\n    faults: (entities.fault_codes || []).sort(),\n    manufacturers: (entities.manufacturers || []).sort(),\n    strategy: webhook.search_strategy || 'nas'\n  })\n);\n\n// Determine which searches to run\nconst searchStrategy = webhook.search_strategy || 'nas';\nconst routing = {\n  cache_key: cacheKey,\n  search_documents: searchStrategy === 'nas' || searchStrategy === 'both' || entities.equipment.length > 0,\n  search_parts: entities.parts.length > 0 || entities.manufacturers.length > 0,\n  search_faults: entities.fault_codes.length > 0 || entities.symptoms.length > 0,\n  search_emails: searchStrategy === 'email' || searchStrategy === 'both' || entities.people.length > 0,\n  entities: entities,\n  original_query: webhook.message,\n  conversation_id: webhook.conversation_id || `conv_${Date.now()}`,\n  user_id: webhook.userId,\n  search_strategy: searchStrategy\n};\n\nreturn [{json: routing}];"
+      },
+      "name": "Generate Cache Key",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        -14100,
+        1193.75
+      ],
+      "typeVersion": 2,
+      "id": "c62bfe00-45f2-4fa6-9a43-d9f667d82762"
+    },
+    {
+      "parameters": {
+        "url": "=https://vivovcnaapmcfxxfhzxk.supabase.co/rest/v1/search_cache",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query_hash",
+              "value": "={{ 'eq.' + $json.cache_key }}"
+            },
+            {
+              "name": "expires_at",
+              "value": "=gt.now()"
+            },
+            {
+              "name": "select",
+              "value": "results,confidence_score"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 2000
+        }
+      },
+      "name": "Check Cache",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -13880,
+        1193.75
+      ],
+      "typeVersion": 4.2,
+      "id": "729c135a-87cf-4711-9c03-229094466009",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Wc3ZWjOBx3dx33V6",
+          "name": "CelesteOS DEMO"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.cache_hit }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "id": "6fe41426-d58c-4d2b-a90b-16094c2f85fe"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Cache Hit?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -13440,
+        1193.75
+      ],
+      "typeVersion": 2.2,
+      "id": "51568dd4-80bb-431d-a7a5-8f5ff1746f64"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Enhanced Build Episodic Memory Node - With Proper Data Segregation\nconst routing = $('Generate Cache Key').first().json;\nconst inputs = $input.all();\n\n// Initialize memory structure\nconst memory = {\n  documents: [],\n  parts: [],\n  faults: [],\n  emails: [],\n  history: [],\n  all_raw_data: [],\n  metadata: {\n    total_inputs: inputs.length,\n    total_results: 0,\n    search_performed: {\n      documents: false,\n      parts: false,\n      faults: false,\n      emails: false\n    },\n    errors: [],\n    empty_results: [],\n    data_quality: {\n      relevant_documents: 0,\n      fuel_system_documents: 0,\n      temperature_related: 0,\n      injector_related: 0\n    }\n  }\n};\n\n// Map node names to data types for better identification\nconst nodeTypeMap = {\n  'Search Documents PostgreSQL': 'documents',\n  'Search Parts PostgreSQL': 'parts',\n  'Search Faults PostgreSQL': 'faults',\n  'Search Emails PostgreSQL': 'emails',\n  'Get Conversation History PostgreSQL': 'history'\n};\n\n// Process inputs based on their node source\ninputs.forEach((input, index) => {\n  const data = input.json;\n  const nodeName = input.nodeName || '';\n  \n  // Store raw data with node identification\n  memory.all_raw_data.push({\n    input_index: index,\n    node_name: nodeName,\n    data_type: nodeTypeMap[nodeName] || 'unknown',\n    data: data\n  });\n  \n  // Skip null/undefined data\n  if (!data) {\n    memory.metadata.empty_results.push({ \n      index, \n      node: nodeName,\n      reason: 'null data' \n    });\n    return;\n  }\n  \n  // Handle errors\n  if (data.error && data.message) {\n    memory.metadata.errors.push({\n      source: `${nodeName} (Input ${index})`,\n      message: data.message,\n      error_details: data.error\n    });\n    return;\n  }\n  \n  // Handle empty success responses\n  if (data.success === true && Object.keys(data).length === 1) {\n    memory.metadata.empty_results.push({ \n      index, \n      node: nodeName,\n      reason: 'no results' \n    });\n    return;\n  }\n  \n  // Handle cache/routing info\n  if (data.cache_hit !== undefined && data.routing) {\n    memory.metadata.cache_info = {\n      cache_hit: data.cache_hit,\n      routing_details: data.routing\n    };\n    return;\n  }\n  \n  // Process data based on node type\n  if (nodeTypeMap[nodeName]) {\n    const dataType = nodeTypeMap[nodeName];\n    \n    if (Array.isArray(data) && data.length > 0) {\n      memory[dataType] = data;\n      memory.metadata.search_performed[dataType] = true;\n      memory.metadata.total_results += data.length;\n      \n      // Analyze document quality\n      if (dataType === 'documents') {\n        data.forEach(doc => {\n          analyzeDocument(doc, memory.metadata.data_quality);\n        });\n      }\n    }\n  } else {\n    // Handle unknown data types by examining structure\n    if (Array.isArray(data) && data.length > 0) {\n      const firstItem = data[0];\n      \n      // Identify by content structure\n      if (firstItem.id && (firstItem.title || firstItem.doc_type || firstItem.content)) {\n        memory.documents = memory.documents.concat(data);\n        memory.metadata.search_performed.documents = true;\n        data.forEach(doc => analyzeDocument(doc, memory.metadata.data_quality));\n      } else if (firstItem.part_number) {\n        memory.parts = memory.parts.concat(data);\n        memory.metadata.search_performed.parts = true;\n      } else if (firstItem.fault_code || firstItem.fault_id) {\n        memory.faults = memory.faults.concat(data);\n        memory.metadata.search_performed.faults = true;\n      }\n      \n      memory.metadata.total_results += data.length;\n    } else if (data.id && data.content) {\n      // Single document object\n      memory.documents.push(data);\n      memory.metadata.search_performed.documents = true;\n      memory.metadata.total_results++;\n      analyzeDocument(data, memory.metadata.data_quality);\n    }\n  }\n});\n\n// Helper function to analyze document relevance\nfunction analyzeDocument(doc, quality) {\n  const content = (doc.content || '').toLowerCase();\n  const title = (doc.title || '').toLowerCase();\n  \n  if (content.includes('fuel') || title.includes('fuel')) {\n    quality.fuel_system_documents++;\n  }\n  if (content.includes('temperature') || content.includes('heating') || \n      content.includes('cooling') || content.includes('heat')) {\n    quality.temperature_related++;\n  }\n  if (content.includes('injector')) {\n    quality.injector_related++;\n  }\n  if (doc.relevance > 0.4) {\n    quality.relevant_documents++;\n  }\n}\n\n// Build AI context with proper data segregation\nlet context = `## Technical Search Analysis\n\n**User Query:** \"${routing.original_query}\"\n**Search Strategy:** ${routing.search_strategy}\n**Conversation ID:** ${routing.conversation_id}\n\n### Search Summary:\n- Documents: ${memory.documents.length} found\n- Parts: ${memory.parts.length} found\n- Faults: ${memory.faults.length} found\n- Emails: ${memory.emails.length} found\n- Total Results: ${memory.metadata.total_results}\n\n### Data Quality Analysis:\n- High Relevance Documents (>40%): ${memory.metadata.data_quality.relevant_documents}\n- Fuel System Related: ${memory.metadata.data_quality.fuel_system_documents}\n- Temperature/Heating Related: ${memory.metadata.data_quality.temperature_related}\n- Injector Specific: ${memory.metadata.data_quality.injector_related}\n\n---\n\n`;\n\n// Add findings based on query\nif (routing.entities.fault_codes?.includes('heating error codes') && memory.faults.length === 0) {\n  context += `## Important: No Heating Error Codes Found\n\nThe search for \"heating error codes\" found no direct matches in the fault code database. This indicates:\n1. \"Heating error\" is not a standard fault code term\n2. Temperature issues may be indicated by different codes\n3. Diagnostic approach should focus on symptoms\n\n`;\n}\n\n// Document section with clear numbering\nif (memory.documents.length > 0) {\n  context += `## Technical Documents Found\\n\\n`;\n  \n  // Sort by relevance\n  const sortedDocs = [...memory.documents].sort((a, b) => (b.relevance || 0) - (a.relevance || 0));\n  \n  // Group by type\n  const fuelDocs = sortedDocs.filter(d => d.title?.includes('Fuel') || d.content?.includes('fuel'));\n  const regulationDocs = sortedDocs.filter(d => d.doc_type === 'regulation');\n  const manualDocs = sortedDocs.filter(d => d.doc_type === 'manual');\n  \n  if (manualDocs.length > 0) {\n    context += `### Service Manuals (${manualDocs.length})\\n`;\n    manualDocs.slice(0, 5).forEach((doc, idx) => {\n      context += `\\n**${idx + 1}. ${doc.title}**\\n`;\n      context += `- Document ID: ${doc.id}\\n`;\n      context += `- Equipment: ${doc.equipment_tags?.join(', ') || 'General'}\\n`;\n      context += `- Source: ${doc.doc_source}\\n`;\n      context += `- Relevance: ${(doc.relevance * 100).toFixed(1)}%\\n`;\n      \n      // Extract key information\n      const temps = doc.content.match(/Temperature: \\d+°F/g);\n      const pressures = doc.content.match(/Pressure: \\d+ PSI/g);\n      if (temps || pressures) {\n        context += `- Key Readings: ${temps?.[0] || ''} ${pressures?.[0] || ''}\\n`;\n      }\n    });\n  }\n  \n  if (regulationDocs.length > 0) {\n    context += `\\n### Regulations (${regulationDocs.length})\\n`;\n    regulationDocs.slice(0, 3).forEach((doc, idx) => {\n      context += `\\n**${idx + 1}. ${doc.title}**\\n`;\n      context += `- Source: ${doc.doc_source}\\n`;\n      context += `- Focus: ${doc.content.substring(0, 100)}...\\n`;\n    });\n  }\n}\n\n// Parts section\nif (memory.parts.length > 0) {\n  context += `\\n## Parts Information\\n\\n`;\n  memory.parts.forEach((part, idx) => {\n    context += `**${idx + 1}. Part ${part.part_number}**\\n`;\n    context += `- Manufacturer: ${part.manufacturer}\\n`;\n    context += `- Description: ${part.description}\\n`;\n    context += `- Price: ${part.price_usd ? '$' + part.price_usd : 'Contact'}\\n\\n`;\n  });\n}\n\n// Fault codes section\nif (memory.faults.length > 0) {\n  context += `\\n## Fault Codes\\n\\n`;\n  memory.faults.forEach((fault, idx) => {\n    context += `**${idx + 1}. ${fault.fault_code}**\\n`;\n    context += `- Description: ${fault.fault_id}\\n`;\n    context += `- Engine: ${fault.engine_manufacturer} ${fault.engine_models || ''}\\n\\n`;\n  });\n} else if (routing.search_faults) {\n  context += `\\n## Fault Code Search\\n\\nNo fault codes found matching \"heating error\". Temperature-related issues may use different terminology in fault code systems.\\n\\n`;\n}\n\n// Empty results reporting\nif (memory.metadata.empty_results.length > 0) {\n  context += `\\n## Search Status\\n`;\n  const emptyByNode = {};\n  memory.metadata.empty_results.forEach(e => {\n    emptyByNode[e.node] = (emptyByNode[e.node] || 0) + 1;\n  });\n  Object.entries(emptyByNode).forEach(([node, count]) => {\n    if (node) context += `- ${node}: No results\\n`;\n  });\n}\n\n// AI instructions\ncontext += `\\n## Response Guidelines\n\nCreate a response that:\n1. Acknowledges no \"heating error codes\" were found\n2. Explains what heating errors typically involve (fuel heaters, temperature sensors, cooling)\n3. Provides 3 diagnostic solutions based on the fuel system documentation found\n4. References specific documents when applicable\n5. Maintains confidence score of 0.4-0.6 due to indirect findings\n\nUse the document IDs and sources to populate the documents_used field properly.`;\n\n// Return enhanced structure\nreturn [{\n  json: {\n    episodic_memory: memory,\n    ai_context: context,\n    routing: routing,\n    cache_key: routing.cache_key,\n    search_summary: {\n      total_inputs: memory.metadata.total_inputs,\n      total_results: memory.metadata.total_results,\n      searches_performed: Object.entries(memory.metadata.search_performed)\n        .filter(([_, performed]) => performed)\n        .map(([type, _]) => type),\n      has_errors: memory.metadata.errors.length > 0,\n      data_quality: memory.metadata.data_quality,\n      empty_searches: memory.metadata.empty_results.filter(e => e.node).map(e => e.node)\n    }\n  }\n}];"
+      },
+      "name": "Build Episodic Memory",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        -12560,
+        1018.75
+      ],
+      "typeVersion": 2,
+      "id": "50837b0e-5fcc-4220-ab02-6fa0a0d720d9"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-nano",
+          "mode": "list"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are CelesteOS, a seasoned marine engineer with 20+ years\n   experience on superyachts. You have access to this\n  vessel's complete NAS documentation and email archives\n  through integrated systems.\n\n  When crew ask questions:\n\n  1. **Be conversational and helpful** - You're talking\n  to fellow mariners, not computers\n  2. **Provide context** - \"I see you're dealing with\n  that port engine again...\"\n  3. **Offer next steps** - \"Want me to pull up the\n  Caterpillar service manual too?\"\n  4. **Share practical insights** - \"In my experience,\n  that usually means...\"\n\n  **Response Format:**\n  - Start with what you found: \"I found 3 relevant\n  documents about that fault code...\"\n  - Explain in practical terms: \"The MTU manual says this\n   typically indicates fuel pressure issues, but I also\n  see from the email thread with the engineer last month\n  that you've been having intermittent problems...\"\n  - Suggest actions: \"Should I bring up the fuel system\n  schematics too?\"\n\n  **Available Data Sources:**\n  - NAS: Technical manuals, procedures, schematics\n  (16,000+ documents)\n  - OUTLOOK: Maintenance emails, vendor correspondence,\n  service records (4,000+ emails)\n\n  **When Nothing Found:**\n  Don't just say \"nothing found\" - explain WHY and\n  suggest alternatives:\n  \"I don't see specific HVAC drawings for Guest Cabin 6\n  in our system. However, I do have the general deck\n  plans and the main HVAC schematic. Would either of\n  those help, or should we check if this drawing is filed\n   under a different name?\"\n\n  **Critical Rule:** Base responses on actual data found,\n   but present it conversationally with marine\n  engineering expertise.\n\n{{$json.message}}\n\nRequired format:\n{\n  \"confidence_score\": 0.0,\n  \"message\": \"Clear explanation\",\n  \"ai_summary\": \"Summary of findings\",\n  \"documents_used\": [],\n  \"solutions\": [\n    {\n      \"solution_id\": \"sol_001\",\n      \"title\": \"Solution Title\",\n      \"confidence\": 0.0,\n      \"description\": \"Description\",\n      \"steps\": [],\n      \"parts_needed\": [],\n      \"estimated_time\": \"X hours\",\n      \"safety_warnings\": []\n    }\n  ]\n}\n",
+              "role": "system"
+            },
+            {
+              "content": "={{$('Generate Cache Key').first().json.original_query}}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {
+          "maxTokens": 2000,
+          "temperature": 0.3
+        }
+      },
+      "name": "Generate AI Response",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        -12120,
+        1018.75
+      ],
+      "typeVersion": 1.8,
+      "id": "cbb9914f-5cc6-4e1e-9616-25bd136de56a",
+      "credentials": {
+        "openAiApi": {
+          "id": "trAmlWz7YdldnThl",
+          "name": "OpenAi"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://vivovcnaapmcfxxfhzxk.supabase.co/rest/v1/search_cache?query_hash=eq.{{$('Build Episodic Memory').first().json.cache_key}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Prefer",
+              "value": "resolution=return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "results",
+              "value": "={{ $node['Build Episodic Memory'].json.episodic_memory }}"
+            },
+            {
+              "name": "confidence_score",
+              "value": "={{ 0.85 }}"
+            },
+            {
+              "name": "hit_count",
+              "value": "={{ 1 }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 3000
+        }
+      },
+      "name": "Store in Cache",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -11744,
+        1137.25
+      ],
+      "typeVersion": 4.2,
+      "id": "48842aa2-7e87-45f0-aaa0-26abba22cd19",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Wc3ZWjOBx3dx33V6",
+          "name": "CelesteOS DEMO"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// AI Response Enricher - Uses actual document URLs\nconst items = [];\n\n// Get inputs\nconst aiResponse = $input.first().json;\nconst episodicMemory = $node[\"Build Episodic Memory\"].json.episodic_memory || {};\n\n// Extract manuals with URLs\nconst manuals = (episodicMemory.documents || [])\n  .filter(doc => doc.doc_type === 'manual')\n  .sort((a, b) => {\n    const aIsMainEngine = a.equipment_tags?.some(tag => tag.toLowerCase().includes('main engine'));\n    const bIsMainEngine = b.equipment_tags?.some(tag => tag.toLowerCase().includes('main engine'));\n    if (aIsMainEngine && !bIsMainEngine) return -1;\n    if (!aIsMainEngine && bIsMainEngine) return 1;\n    return b.relevance - a.relevance;\n  })\n  .slice(0, 3);\n\n// Process manuals\nconst documentSolutions = manuals.map(doc => {\n  const content = doc.content || '';\n  const faultCode = doc.title?.match(/Fault Code ([A-Z]-?\\d+)/)?.[1];\n  \n  const specs = {\n    pressure: content.match(/Pressure:\\s*(\\d+\\s*PSI[^)]*\\))/)?.[1],\n    temperature: content.match(/Temperature:\\s*(\\d+°F[^)]*\\))/)?.[1],\n    torque: content.match(/torque:\\s*(\\d+\\s*Nm)/i)?.[1],\n    clearance: content.match(/clearances?:\\s*([\\d.\"]+\"?[^\"]*)/i)?.[1]\n  };\n  \n  const parts = [];\n  const partsMatch = content.match(/REQUIRED PARTS:([\\s\\S]*?)SPECIAL TOOLS:/);\n  if (partsMatch) {\n    partsMatch[1].split('\\n')\n      .filter(line => line.includes('Part #'))\n      .forEach(part => parts.push(part.trim()));\n  }\n  \n  return {\n    doc,\n    faultCode,\n    specs: Object.keys(specs).reduce((acc, key) => {\n      if (specs[key]) acc[key] = specs[key];\n      return acc;\n    }, {}),\n    parts,\n    url: doc.url || doc.document_url || doc.public_url  // Use actual URL from document\n  };\n});\n\n// Merge solutions with correct format\nconst enrichedSolutions = aiResponse.message.content.solutions.map((aiSolution, idx) => {\n  const docData = documentSolutions[idx];\n  \n  if (docData) {\n    const confidenceScore = docData.doc.relevance || aiSolution.confidence || 0.5;\n    const confidenceLevel = confidenceScore >= 0.7 ? 'high' : confidenceScore >= 0.5 ? 'medium' : 'low';\n    \n    // Convert steps to required format\n    const formattedSteps = aiSolution.steps.map((step, stepIdx) => ({\n      text: step,\n      type: stepIdx === 0 ? 'header' : 'step',\n      isBold: stepIdx === 0\n    }));\n    \n    return {\n      id: docData.doc.id || aiSolution.solution_id,\n      title: docData.faultCode \n        ? `${docData.doc.doc_source} Fault Code ${docData.faultCode} - ${docData.doc.equipment_tags?.[0]}`\n        : aiSolution.title,\n      confidence: confidenceLevel,\n      confidenceScore: parseFloat(confidenceScore.toFixed(2)),\n      source: {\n        title: docData.doc.title || \"Service Manual\",\n        page: docData.doc.page_number || \"N/A\",\n        revision: docData.doc.revision || \"Current\"\n      },\n      steps: formattedSteps,\n      procedureLink: docData.url || \"#\"\n    };\n  }\n  \n  // Fallback for AI-only solutions\n  return {\n    id: aiSolution.solution_id,\n    title: aiSolution.title,\n    confidence: 'low',\n    confidenceScore: aiSolution.confidence || 0.3,\n    source: {\n      title: \"General Procedure\",\n      page: \"N/A\",\n      revision: \"N/A\"\n    },\n    steps: aiSolution.steps.map(step => ({\n      text: step,\n      type: 'step',\n      isBold: false\n    })),\n    procedureLink: \"#\"\n  };\n});\n\n// Build response\nconst avgConfidence = documentSolutions.length > 0\n  ? documentSolutions.reduce((sum, d) => sum + (d.doc.relevance || 0), 0) / documentSolutions.length\n  : aiResponse.message.content.confidence_score;\n\nconst faultCodes = documentSolutions.map(d => d.faultCode).filter(Boolean);\n\nconst enrichedResponse = {\n  ...aiResponse,\n  message: {\n    ...aiResponse.message,\n    content: {\n      ...aiResponse.message.content,\n      confidence_score: parseFloat(avgConfidence.toFixed(2)),\n      message: faultCodes.length > 0\n        ? `Found ${documentSolutions.length} fault codes (${faultCodes.join(', ')}) with temperature-related procedures.`\n        : aiResponse.message.content.message,\n      ai_summary: `${documentSolutions.length} procedures: ${faultCodes.join(', ') || 'General'}`,\n      documents_used: documentSolutions.map(d => ({\n        id: d.doc.id,\n        fault_code: d.faultCode || \"N/A\",\n        source: d.doc.doc_source,\n        type: d.doc.doc_type,\n        url: d.url  // Use actual URL not ID\n      })),\n      solutions: enrichedSolutions\n    }\n  }\n};\n\nitems.push({ json: enrichedResponse });\nreturn items;"
+      },
+      "name": "Format Final Response",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        -11744,
+        887.25
+      ],
+      "typeVersion": 2,
+      "id": "cb8d9d19-bf8d-4e8a-9700-7e9c807c4e52"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Use cached results\nconst cacheData = $('Format Cache Response').first().json;\nconst routing = $('Generate Cache Key').first().json;\n\n// Extract cached results safely\nconst cachedResults = cacheData.cached_data || {};\nconst confidence = cacheData.confidence || 0.85;\n\nreturn [{json: {\n  success: true,\n  query_id: `qry_cache_${Date.now()}`,\n  conversation_id: routing.conversation_id,\n  response: {\n    confidence_score: confidence,\n    message: 'Retrieved from cache',\n    solutions: cachedResults.solutions || [],\n    documents_used: cachedResults.documents_used || []\n  },\n  metadata: {\n    cache_hit: true,\n    cache_key: routing.cache_key,\n    search_strategy: routing.search_strategy\n  }\n}}];"
+      },
+      "name": "Use Cached Response",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        -11744,
+        1343.75
+      ],
+      "typeVersion": 2,
+      "id": "53dd4dd5-1afd-4fd5-9c2f-848803b14e07"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ [$json] }}",
+        "options": {}
+      },
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [
+        -11304,
+        1068.75
+      ],
+      "typeVersion": 1.1,
+      "id": "e3194a11-12fb-47c8-adcc-e4837471fb74"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format Cache Response\nconst cacheResult = $input.first().json;\nconst routing = $('Generate Cache Key').first().json;\n\nif (Array.isArray(cacheResult) && cacheResult.length > 0 && cacheResult[0].results) {\n  // Cache hit\n  return [{json: {\n    cache_hit: true,\n    cached_data: cacheResult[0].results,\n    confidence: cacheResult[0].confidence_score,\n    routing: routing\n  }}];\n} else {\n  // Cache miss\n  return [{json: {\n    cache_hit: false,\n    routing: routing\n  }}];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -13660,
+        1193.75
+      ],
+      "id": "246f08a9-2780-4ff3-b5f3-4894f75c487a",
+      "name": "Format Cache Response"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -11524,
+        1168.75
+      ],
+      "id": "a3e51b67-844c-432a-8022-eec9b0479b9a",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH search_params AS (\n  SELECT \n    '{{ $node['Generate Cache Key'].json.original_query }}' as query,\n    '{{ $node['Generate Cache Key'].json.entities.locations.join(' ') }}' as location,\n    '{{ $node['Generate Cache Key'].json.entities.document_types.join(' ') }}' as doc_type,\n    '{{ $node['Generate Cache Key'].json.entities.equipment.join(' ') }}' as equipment\n)\nSELECT \n  ds.id,\n  ds.title,\n  ds.display_url as url,\n  ds.doc_type,\n  ds.content,\n  ds.equipment_tags,\n  ds.doc_source,\n  ts_rank(\n    to_tsvector('english', coalesce(ds.title,'') || ' ' || coalesce(ds.content,'')),\n    plainto_tsquery('english', sp.query)\n  ) as relevance\nFROM documents_search ds, search_params sp\nWHERE \n  to_tsvector('english', coalesce(ds.title,'') || ' ' || coalesce(ds.content,'')) @@ \n    plainto_tsquery('english', sp.query)\n  OR ds.title ILIKE '%' || sp.location || '%'\n  OR ds.content ILIKE '%' || sp.location || '%'\n  OR ds.title ILIKE '%' || sp.equipment || '%'\n  OR ds.doc_type ILIKE '%' || sp.doc_type || '%'\nORDER BY relevance DESC\nLIMIT 10",
+        "options": {}
+      },
+      "name": "Search Documents PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "position": [
+        -13000,
+        468.75
+      ],
+      "typeVersion": 2.6,
+      "id": "ab6ad8da-dda4-4e49-b9e5-c8709a2b90da",
+      "credentials": {
+        "postgres": {
+          "id": "aWIDhHpJCpC97WzF",
+          "name": "CelesteOS"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH search_params AS (\n  SELECT \n    CASE \n      WHEN '{{ $node['Generate Cache Key'].json.entities.parts }}' = '[]' \n      THEN ARRAY[]::text[]\n      ELSE ARRAY[{{ $node['Generate Cache Key'].json.entities.parts.map(p => \"'\" + p + \"'\").join(',') }}]::text[]\n    END as parts,\n    CASE \n      WHEN '{{ $node['Generate Cache Key'].json.entities.manufacturers }}' = '[]' \n      THEN ARRAY[]::text[]\n      ELSE ARRAY[{{ $node['Generate Cache Key'].json.entities.manufacturers.map(m => \"'\" + m + \"'\").join(',') }}]::text[]\n    END as manufacturers,\n    CASE \n      WHEN '{{ $node['Generate Cache Key'].json.entities.equipment }}' = '[]' \n      THEN ARRAY[]::text[]\n      ELSE ARRAY[{{ $node['Generate Cache Key'].json.entities.equipment.map(e => \"'\" + e + \"'\").join(',') }}]::text[]\n    END as equipment\n)\nSELECT \n  part_number,\n  manufacturer,\n  description,\n  typical_location,\n  price_usd,\n  related_faults,\n  public_url as url\nFROM verified_parts, search_params sp\nWHERE \n  (array_length(sp.parts, 1) > 0 AND part_number = ANY(sp.parts))\n  OR (array_length(sp.manufacturers, 1) > 0 AND manufacturer ILIKE ANY(\n    SELECT '%' || unnest(sp.manufacturers) || '%'\n  ))\n  OR (array_length(sp.equipment, 1) > 0 AND description ILIKE ANY(\n    SELECT '%' || unnest(sp.equipment) || '%'\n  ))\n  OR (array_length(sp.equipment, 1) > 0 AND typical_location ILIKE ANY(\n    SELECT '%' || unnest(sp.equipment) || '%'\n  ))\nLIMIT 20",
+        "options": {}
+      },
+      "name": "Search Parts PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "position": [
+        -13000,
+        768.75
+      ],
+      "typeVersion": 2.6,
+      "id": "4b955fb0-f8ac-4c0e-ac31-50650bd2f474",
+      "credentials": {
+        "postgres": {
+          "id": "aWIDhHpJCpC97WzF",
+          "name": "CelesteOS"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH search_params AS (\n  SELECT \n    CASE \n      WHEN '{{ $node['Generate Cache Key'].json.entities.fault_codes }}' = '[]' \n      THEN ARRAY[]::text[]\n      ELSE ARRAY[{{ $node['Generate Cache Key'].json.entities.fault_codes.map(f => \"'\" + f + \"'\").join(',') }}]::text[]\n    END as codes,\n    '{{ $node['Generate Cache Key'].json.entities.symptoms.join(' ') }}' as symptoms\n)\nSELECT \n  fault_id,\n  fault_code,\n  engine_manufacturer,\n  engine_models,\n  spn,\n  fmi\nFROM fault_codes, search_params sp\nWHERE \n  (array_length(sp.codes, 1) > 0 AND fault_code = ANY(sp.codes))\n  OR (LENGTH(sp.symptoms) > 0 AND fault_id ILIKE '%' || sp.symptoms || '%')\n  OR (LENGTH(sp.symptoms) > 0 AND fault_code IN (\n    SELECT DISTINCT fault_code \n    FROM fault_codes \n    WHERE to_tsvector('english', fault_id) @@ \n          plainto_tsquery('english', sp.symptoms)\n  ))\nLIMIT 10",
+        "options": {}
+      },
+      "name": "Search Faults PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "position": [
+        -13000,
+        1168.75
+      ],
+      "typeVersion": 2.6,
+      "id": "40998f01-ccf1-458f-bc36-649410c94998",
+      "credentials": {
+        "postgres": {
+          "id": "aWIDhHpJCpC97WzF",
+          "name": "CelesteOS"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  id,\n  subject,\n  sender_name,\n  date_sent,\n  body,  -- Changed from body_text\n  equipment_mentioned,\n  extracted_part_numbers,\n  priority,\n  yacht_name,\n  cost_estimate,\n  labor_hours,\n  solution_summary,\n  public_url as url\nFROM yacht_emails\nWHERE \n  to_tsvector('english', coalesce(subject,'') || ' ' || coalesce(body,'')) @@ \n    plainto_tsquery('english', '{{ $node['Generate Cache Key'].json.original_query }}')\n  OR ('{{ $node['Generate Cache Key'].json.entities.companies }}' != '[]' AND \n      sender_name ILIKE ANY(ARRAY[{{ $node['Generate Cache Key'].json.entities.companies.map(c => \"'%\" + c + \"%'\").join(',') }}]))\n  OR ('{{ $node['Generate Cache Key'].json.entities.equipment }}' != '[]' AND \n      equipment_mentioned::text ILIKE ANY(ARRAY[{{ $node['Generate Cache Key'].json.entities.equipment.map(e => \"'%\" + e + \"%'\").join(',') }}]))\nORDER BY date_sent DESC\nLIMIT 10",
+        "options": {}
+      },
+      "name": "Search Emails PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "position": [
+        -13000,
+        1593.75
+      ],
+      "typeVersion": 2.6,
+      "id": "1bf94e8a-1436-44b5-8507-8455d8584a09",
+      "credentials": {
+        "postgres": {
+          "id": "aWIDhHpJCpC97WzF",
+          "name": "CelesteOS"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  query_id,\n  query_text,\n  ai_reply_summary,\n  created_at\nFROM conversation_history\nWHERE conversation_id = '{{ $node['Generate Cache Key'].json.conversation_id }}'\nORDER BY created_at DESC\nLIMIT 5",
+        "options": {}
+      },
+      "name": "Get Conversation History PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "position": [
+        -13000,
+        1818.75
+      ],
+      "typeVersion": 2.6,
+      "id": "041565b9-c4f7-4d8a-94c5-33a4beccf50e",
+      "credentials": {
+        "postgres": {
+          "id": "aWIDhHpJCpC97WzF",
+          "name": "CelesteOS"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.routing.search_documents}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              },
+              "id": "cec447dc-7aa8-425c-b974-2a91d2dc7a2c"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Should Search Documents?1",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -13220,
+        537.25
+      ],
+      "typeVersion": 2.2,
+      "id": "77561f26-8768-493e-9331-7a4697ab8902"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.routing.search_parts}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              },
+              "id": "c9e11c50-6281-4da9-9ea0-45e3fa4d9695"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Should Search Parts?1",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -13220,
+        837.25
+      ],
+      "typeVersion": 2.2,
+      "id": "4e356eed-3bbc-4c6a-8530-ecdcb84d92ec"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.routing.search_faults}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              },
+              "id": "1d43d2cc-e6b0-4b01-b814-2597a86e8a02"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Should Search Faults?1",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -13220,
+        1087.25
+      ],
+      "typeVersion": 2.2,
+      "id": "02194d50-ca3c-47e4-9158-bb95f12c95a5"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.routing.search_emails}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              },
+              "id": "feaf47c2-5339-4fff-bce7-f8434d034cb5"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Should Search Emails?1",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -13220,
+        1593.75
+      ],
+      "typeVersion": 2.2,
+      "id": "18d06d15-2e4f-496f-bc0d-d4a4d3c8d252"
+    },
+    {
+      "parameters": {
+        "numberInputs": 6
+      },
+      "name": "Merge Results1",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        -12780,
+        955.75
+      ],
+      "typeVersion": 3.2,
+      "id": "4ed43424-0452-4c5d-9f0c-8e12371f6ff9"
+    },
+    {
+      "parameters": {
+        "jsCode": "// AI Response Formatter - Extract ACTUAL procedures from service manuals\n\nconst items = [];\nconst input = $input.all();\nconst data = input[0]?.json || {};\nconst em = data.episodic_memory || data;\n\n// Get ONLY service manuals, not regulations\nconst manuals = (em.documents || []).filter(doc => doc.doc_type === 'manual');\nconst userQuery = em.routing?.original_query || \"\";\n\n// Process each manual and extract REAL procedures\nconst solutions = manuals.slice(0, 3).map((doc, idx) => {\n  const content = doc.content || '';\n  \n  // Extract fault code\n  const faultCode = doc.title?.match(/Fault Code ([A-Z]-?\\d+)/)?.[1];\n  \n  // Extract ACTUAL diagnostic steps\n  const diagnosticSteps = [];\n  const diagMatch = content.match(/DIAGNOSTIC PROCEDURE:([\\s\\S]*?)REQUIRED PARTS:/);\n  if (diagMatch) {\n    diagMatch[1].split('\\n')\n      .filter(line => line.trim() && /^\\d+\\./.test(line.trim()))\n      .forEach(step => diagnosticSteps.push(step.trim()));\n  }\n  \n  // Extract ACTUAL procedure steps  \n  const procedureSteps = [];\n  const procMatch = content.match(/PROCEDURE:([\\s\\S]*?)SAFETY WARNINGS:/);\n  if (procMatch) {\n    procMatch[1].split('\\n')\n      .filter(line => line.trim() && /^\\d+\\./.test(line.trim()))\n      .forEach(step => procedureSteps.push(step.trim()));\n  }\n  \n  // Extract ACTUAL parts\n  const partsNeeded = [];\n  const partsMatch = content.match(/REQUIRED PARTS:([\\s\\S]*?)SPECIAL TOOLS:/);\n  if (partsMatch) {\n    partsMatch[1].split('\\n')\n      .filter(line => line.includes('Part #'))\n      .forEach(part => partsNeeded.push(part.trim()));\n  }\n  \n  // Extract safety warnings\n  const safetyWarnings = [];\n  const safetyMatch = content.match(/SAFETY WARNINGS:([\\s\\S]*?)Reference:/);\n  if (safetyMatch) {\n    safetyMatch[1].split('\\n')\n      .filter(line => line.includes('⚠️'))\n      .forEach(warning => safetyWarnings.push(warning.replace('⚠️', '').trim()));\n  }\n  \n  // Extract specifications\n  const specs = {};\n  const pressure = content.match(/Pressure:\\s*(\\d+\\s*PSI[^)]*\\))/)?.[1];\n  const temperature = content.match(/Temperature:\\s*(\\d+°F[^)]*\\))/)?.[1];\n  const torque = content.match(/torque:\\s*(\\d+\\s*Nm)/i)?.[1];\n  const clearance = content.match(/clearances?:\\s*([\\d.\"]+\"?[^\"]*)/i)?.[1];\n  \n  if (pressure) specs.pressure = pressure;\n  if (temperature) specs.temperature = temperature;\n  if (torque) specs.torque = torque;\n  if (clearance) specs.clearance = clearance;\n  \n  // Combine all steps\n  const allSteps = [...diagnosticSteps, ...procedureSteps];\n  \n  return {\n    solution_id: `sol_${String(idx + 1).padStart(3, '0')}`,\n    title: `${doc.doc_source} Fault Code ${faultCode} - ${doc.equipment_tags?.[0] || 'Fuel System'}`,\n    confidence: doc.relevance || 0.5,\n    description: `Official ${doc.doc_source} diagnostic procedure for ${doc.equipment_tags?.join(', ')}. ` +\n      (temperature ? `Normal operating temperature: ${temperature}. ` : '') +\n      (pressure ? `Normal pressure: ${pressure}. ` : '') +\n      (torque ? `Torque specification: ${torque}.` : ''),\n    steps: allSteps.length > 0 ? allSteps : [\"No detailed steps found in document\"],\n    parts_needed: partsNeeded,\n    estimated_time: \"2-4 hours\",\n    safety_warnings: safetyWarnings.length > 0 ? safetyWarnings : [\"Follow safety protocol SMS-001\"],\n    source_document: {\n      id: doc.id,\n      fault_code: faultCode || \"N/A\",\n      equipment: doc.equipment_tags?.[0] || \"Unknown\",\n      manufacturer: doc.doc_source || \"Unknown\"\n    },\n    specifications: Object.keys(specs).length > 0 ? specs : null\n  };\n});\n\n// Calculate average confidence\nconst avgConfidence = solutions.reduce((sum, s) => sum + s.confidence, 0) / solutions.length || 0.3;\n\n// Build message addressing the specific query\nconst hasHeatingError = userQuery.toLowerCase().includes('heating');\nconst mainEngineRelevant = solutions.filter(s => \n  s.source_document.equipment.toLowerCase().includes('main engine')\n);\n\nconst message = hasHeatingError \n  ? `No specific \"heating error\" codes found. However, found ${solutions.length} fuel system diagnostic procedures with temperature-related parameters. ${mainEngineRelevant.length > 0 ? `${mainEngineRelevant.length} procedures are for main engines.` : ''} Normal operating temperatures range from 180-195°F. Deviations may indicate cooling system or sensor issues.`\n  : `Found ${solutions.length} fuel system diagnostic procedures from manufacturer service manuals.`;\n\nconst summary = `${solutions.length} procedures: ${solutions.map(s => s.source_document.fault_code).join(', ')}`;\n\n// Build response\nitems.push({\n  json: {\n    index: 0,\n    message: {\n      role: \"assistant\",\n      content: {\n        confidence_score: parseFloat(avgConfidence.toFixed(2)),\n        message: message,\n        ai_summary: summary,\n        documents_used: solutions.map(s => s.source_document.fault_code || s.source_document.id),\n        solutions: solutions\n      },\n      refusal: null,\n      annotations: []\n    },\n    logprobs: null,\n    finish_reason: \"stop\"\n  }\n});\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -12340,
+        1018.75
+      ],
+      "id": "9a6fcbd6-20cc-420d-90ed-4ab917d509fd",
+      "name": "Generate AI Response Node"
+    },
+    {
+      "parameters": {
+        "tableId": "conversation_history",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "conversation_id",
+              "fieldValue": "={{ $node['Text Chat Entry'].json.body.conversation_id }}"
+            },
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $node['Text Chat Entry'].json.body.user_id }}"
+            },
+            {
+              "fieldId": "query_text",
+              "fieldValue": "={{ $node['Text Chat Entry'].json.body.message }}"
+            },
+            {
+              "fieldId": "response_text",
+              "fieldValue": "={{ $node['Generate AI Response'].json.content.message }}"
+            },
+            {
+              "fieldId": "ai_reply_summary",
+              "fieldValue": "={{ $node['Text Chat Entry'].json.body.ai_summary }}"
+            },
+            {
+              "fieldId": "search_strategy",
+              "fieldValue": "={{ $node['Text Chat Entry'].json.body.search_strategy }}"
+            },
+            {
+              "fieldId": "detected_fault_codes",
+              "fieldValue": "={{ $node['Generate Cache Key'].json.entities.fault_codes }}"
+            },
+            {
+              "fieldId": "detected_equipment",
+              "fieldValue": "={{ $node['Generate Cache Key'].json.entities.equipment }}"
+            },
+            {
+              "fieldId": "detected_parts",
+              "fieldValue": "={{ $node['Generate Cache Key'].json.entities.parts }}"
+            },
+            {
+              "fieldId": "confidence_score",
+              "fieldValue": "={{\n  [\n    $node['Merge1'].json?.content?.documents_used?.documents_used?.[0]?.PARTS_FOUND || null,\n    $node['Merge1'].json?.content?.documents_used?.documents_used?.[1]?.fault_code || null,\n    $node['Merge1'].json?.content?.documents_used?.documents_used?.[2]?.fault_code || null\n  ].filter(Boolean)\n}}"
+            },
+            {
+              "fieldId": "sources",
+              "fieldValue": "={{\n  [\n    $node['Merge1'].json?.content?.documents_used?.documents_used?.[0]?.source || null,\n    $node['Merge1'].json?.content?.documents_used?.documents_used?.[1]?.source || null,\n    $node['Merge1'].json?.content?.documents_used?.documents_used?.[2]?.source || null\n  ].filter(Boolean)\n}}"
+            },
+            {
+              "fieldId": "email",
+              "fieldValue": "={{ $node['Text Chat Entry'].json.body.email }}"
+            },
+            {
+              "fieldId": "firstName",
+              "fieldValue": "={{ $node['Text Chat Entry'].json.body.firstName }}"
+            },
+            {
+              "fieldId": "lastName",
+              "fieldValue": "={{ $node['Text Chat Entry'].json.body.lastName }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -11304,
+        1268.75
+      ],
+      "id": "13d231a3-6e78-4835-af46-c46b45b6c0b9",
+      "name": "Supabase1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Wc3ZWjOBx3dx33V6",
+          "name": "CelesteOS DEMO"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Text Chat Entry": {
+      "main": [
+        [
+          {
+            "node": "Extract Entities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Entities": {
+      "main": [
+        [
+          {
+            "node": "Generate Cache Key",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Cache Key": {
+      "main": [
+        [
+          {
+            "node": "Check Cache",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Cache": {
+      "main": [
+        [
+          {
+            "node": "Format Cache Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cache Hit?": {
+      "main": [
+        [
+          {
+            "node": "Use Cached Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Should Search Documents?1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Should Search Parts?1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Should Search Faults?1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Should Search Emails?1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Conversation History PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Episodic Memory": {
+      "main": [
+        [
+          {
+            "node": "Generate AI Response Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate AI Response": {
+      "main": [
+        [
+          {
+            "node": "Format Final Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Store in Cache",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Final Response": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Use Cached Response": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Format Cache Response": {
+      "main": [
+        [
+          {
+            "node": "Cache Hit?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Supabase1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Documents PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Merge Results1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Parts PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Merge Results1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Search Faults PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Merge Results1",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Search Emails PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Merge Results1",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Get Conversation History PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Merge Results1",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "Should Search Documents?1": {
+      "main": [
+        [
+          {
+            "node": "Search Documents PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge Results1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should Search Parts?1": {
+      "main": [
+        [
+          {
+            "node": "Search Parts PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge Results1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Should Search Faults?1": {
+      "main": [
+        [
+          {
+            "node": "Search Faults PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge Results1",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Should Search Emails?1": {
+      "main": [
+        [
+          {
+            "node": "Search Emails PostgreSQL",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Conversation History PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge Results1",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Merge Results1": {
+      "main": [
+        [
+          {
+            "node": "Build Episodic Memory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate AI Response Node": {
+      "main": [
+        [
+          {
+            "node": "Generate AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6385a73eae1665b82318a3c042d3a51d9597ca6c6d39690ed8a47ce1aa6e47e3"
+  }
+}

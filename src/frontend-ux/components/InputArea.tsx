@@ -114,7 +114,7 @@ export function InputArea({
     <div 
       className="flex flex-col query_input_container"
       style={{
-        maxWidth: isMobile ? '390px' : 'min(1200px, calc(100vw - 320px))',
+        maxWidth: isMobile ? '390px' : 'min(790px, calc(100vw - 320px))',
         margin: '0 auto',
         padding: isMobile ? '16px' : '24px'
       }}
@@ -152,8 +152,9 @@ export function InputArea({
       {/* Main Input Area */}
       <form onSubmit={handleSubmit} className="relative">
         <div 
-          className="relative rounded-2xl transition-all duration-300 glass-subtle"
+          className="relative transition-all duration-300 glass-subtle"
           style={{
+            borderRadius: '4px',
             backgroundColor: isDarkMode 
               ? 'rgba(15, 11, 18, 0.95)' 
               : 'rgba(255, 255, 255, 0.95)',

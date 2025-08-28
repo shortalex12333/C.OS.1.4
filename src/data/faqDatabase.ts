@@ -9,10 +9,10 @@ export interface FAQItem {
 }
 
 export const faqDatabase: FAQItem[] = [
-  // Priority Guided Prompts (Always shown first)
+  // Priority Guided Prompts - YACHT/NAS MODE (Always shown first for yacht searches)
   {
     id: 'fault-code-e047',
-    question: 'Fault code E-047 mean on our fuel pump for main engine?',
+    question: 'Fault code E-047 appeared on the main engine. What\'s the fix?',
     answer: "Fault code E-047 indicates low fuel pressure in the main engine's primary fuel pump. This typically occurs when fuel filters are clogged or the fuel pump requires maintenance.",
     keywords: ['fault', 'code', 'E-047', 'e047', 'fuel', 'pump', 'main', 'engine', 'error', 'diagnostic'],
     category: 'Diagnostics',
@@ -21,7 +21,7 @@ export const faqDatabase: FAQItem[] = [
   },
   {
     id: 'main-engine-service',
-    question: 'When was the last time main engine was serviced?',
+    question: 'Show me the last service record for the main engine.',
     answer: "Checking maintenance records for main engine service history. Last service was completed on specified date with full inspection and oil change.",
     keywords: ['last', 'time', 'main', 'engine', 'service', 'serviced', 'maintenance', 'history', 'when'],
     category: 'Maintenance',
@@ -30,12 +30,41 @@ export const faqDatabase: FAQItem[] = [
   },
   {
     id: 'guest-bedroom-hvac',
-    question: 'Find me guest bedroom six HVAC drawing',
+    question: 'Pull up the HVAC drawing for Guest Cabin 6.',
     answer: "Locating HVAC technical drawings for guest bedroom six. Accessing deck plans and ventilation schematics.",
     keywords: ['find', 'guest', 'bedroom', 'six', '6', 'hvac', 'drawing', 'plans', 'ventilation', 'air', 'conditioning'],
     category: 'Technical Drawings',
     priority: 10,
     relatedTopics: ['deck plans', 'HVAC', 'guest accommodations']
+  },
+  
+  // Priority Guided Prompts - EMAIL MODE (Always shown first for email searches)
+  {
+    id: 'email-fuel-filter-invoice',
+    question: 'Show me the invoice John emailed last week for the fuel filters.',
+    answer: "Searching email history for invoice from John regarding fuel filters from last week. Retrieving document attachments and order details.",
+    keywords: ['invoice', 'john', 'last', 'week', 'fuel', 'filters', 'email', 'emailed', 'order', 'purchase'],
+    category: 'Email Search',
+    priority: 11, // Higher priority for email mode
+    relatedTopics: ['email', 'invoices', 'fuel system', 'purchases']
+  },
+  {
+    id: 'email-surveyor-generator',
+    question: 'Find the last email where the surveyor confirmed our generator inspection date.',
+    answer: "Searching email correspondence with surveyor regarding generator inspection confirmation. Retrieving scheduling details and inspection requirements.",
+    keywords: ['last', 'email', 'surveyor', 'confirmed', 'generator', 'inspection', 'date', 'schedule', 'appointment'],
+    category: 'Email Search',
+    priority: 11, // Higher priority for email mode
+    relatedTopics: ['email', 'inspections', 'generator', 'surveyor', 'scheduling']
+  },
+  {
+    id: 'email-hydraulic-leak',
+    question: 'Pull up every email in the last 6 months mentioning \'hydraulic leak\'.',
+    answer: "Searching all email correspondence from the last 6 months containing references to hydraulic leak. Retrieving maintenance reports, repair communications, and follow-up actions.",
+    keywords: ['every', 'email', 'last', '6', 'months', 'mentioning', 'hydraulic', 'leak', 'maintenance', 'repair'],
+    category: 'Email Search',
+    priority: 11, // Higher priority for email mode
+    relatedTopics: ['email', 'hydraulic', 'maintenance', 'repairs', 'history']
   },
   // System & Technical
   {
@@ -346,4 +375,27 @@ export function getTopFAQs(limit: number = 8): FAQItem[] {
   return faqDatabase
     .sort((a, b) => b.priority - a.priority)
     .slice(0, limit);
+}
+
+// Function to get top FAQs by search type
+export function getTopFAQsBySearchType(searchType: 'yacht' | 'email' | 'email-yacht' = 'yacht', limit: number = 8): FAQItem[] {
+  if (searchType === 'email' || searchType === 'email-yacht') {
+    // For email searches, prioritize email-specific questions
+    return faqDatabase
+      .filter(item => item.category === 'Email Search' || item.priority >= 10)
+      .sort((a, b) => {
+        // Email Search category gets highest priority
+        if (a.category === 'Email Search' && b.category !== 'Email Search') return -1;
+        if (b.category === 'Email Search' && a.category !== 'Email Search') return 1;
+        // Then sort by priority
+        return b.priority - a.priority;
+      })
+      .slice(0, limit);
+  } else {
+    // For yacht/NAS searches, exclude email-specific questions
+    return faqDatabase
+      .filter(item => item.category !== 'Email Search')
+      .sort((a, b) => b.priority - a.priority)
+      .slice(0, limit);
+  }
 }

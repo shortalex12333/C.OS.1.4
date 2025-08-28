@@ -5,9 +5,10 @@ interface PreloadedQuestionsProps {
   onQuestionClick: (question: string) => void;
   isDarkMode?: boolean;
   isMobile?: boolean;
+  searchType?: 'yacht' | 'email' | 'email-yacht';
 }
 
-export function PreloadedQuestions({ onQuestionClick, isDarkMode = false, isMobile = false }: PreloadedQuestionsProps) {
+export function PreloadedQuestions({ onQuestionClick, isDarkMode = false, isMobile = false, searchType = 'yacht' }: PreloadedQuestionsProps) {
   return (
     <div className="preloaded-questions-container">
       <DynamicFAQSuggestions
@@ -16,6 +17,7 @@ export function PreloadedQuestions({ onQuestionClick, isDarkMode = false, isMobi
         isMobile={isMobile}
         maxSuggestions={3}
         showCategories={true}
+        searchType={searchType}
       />
     </div>
   );

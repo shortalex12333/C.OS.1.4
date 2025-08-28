@@ -38,7 +38,7 @@ export function RAGSolutionCard({ solutions, isDarkMode = false }: RAGSolutionCa
         border: `1px solid var(--solution-card-border)`
       }}
     >
-      {solutions.map((solution, index) => {
+      {(solutions || []).filter(solution => solution && solution.title).map((solution, index) => {
         const isExpanded = expandedSolutions.has(solution.id);
         
         return (
