@@ -208,7 +208,20 @@ const exportSteps: TutorialStep[] = [
 ];
 
 export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, messageCount = 0, hasReceivedJSON = false }: TutorialOverlayProps) {
-  const [currentPhase, setCurrentPhase] = useState<'initial' | 'solution' | 'switch' | 'export'>('initial');
+  // Initialize phase based on what's been completed
+  const getInitialPhase = () => {
+    const hasCompletedInitial = localStorage.getItem('hasCompletedInitialTutorial');
+    const hasCompletedSolution = localStorage.getItem('hasCompletedSolutionTutorial');
+    
+    if (!hasCompletedInitial) {
+      return 'initial';
+    } else if (hasReceivedJSON && !hasCompletedSolution) {
+      return 'solution';
+    }
+    return 'initial';
+  };
+  
+  const [currentPhase, setCurrentPhase] = useState<'initial' | 'solution' | 'switch' | 'export'>(getInitialPhase());
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [highlightPosition, setHighlightPosition] = useState<HighlightPosition | null>(null);
@@ -235,6 +248,21 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
   const tutorialSteps = getCurrentSteps();
   const step = tutorialSteps[currentStepIndex];
 
+  // Reset phase when component becomes visible and we should be in solution phase
+  useEffect(() => {
+    if (isVisible) {
+      const hasCompletedInitial = localStorage.getItem('hasCompletedInitialTutorial');
+      const hasCompletedSolution = localStorage.getItem('hasCompletedSolutionTutorial');
+      
+      if (hasCompletedInitial && !hasCompletedSolution && hasReceivedJSON && currentPhase !== 'solution') {
+        console.log('🎓 Setting tutorial to solution phase');
+        setCurrentPhase('solution');
+        setCurrentStepIndex(0);
+        setHasShownSolution(true);
+      }
+    }
+  }, [isVisible, hasReceivedJSON, currentPhase]);
+
   // Monitor message count to trigger different tutorial phases
   useEffect(() => {
     if (!isVisible) return;
@@ -249,11 +277,20 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
     }
 
     // Only show solution walkthrough when JSON is received (with 1s delay)
-    if (hasReceivedJSON && !hasShownSolution && messageCount > 0) {
+    // Check if initial tutorial was completed and solution tutorial hasn't been shown
+    const hasCompletedInitial = localStorage.getItem('hasCompletedInitialTutorial');
+    const hasCompletedSolution = localStorage.getItem('hasCompletedSolutionTutorial');
+    
+    if (hasReceivedJSON && !hasShownSolution && messageCount > 0 && hasCompletedInitial && !hasCompletedSolution) {
       setTimeout(() => {
         setHasShownSolution(true);
         setCurrentPhase('solution');
         setCurrentStepIndex(0);
+        // Re-enable the tutorial overlay by calling parent to show it
+        if (!isVisible) {
+          // The tutorial was hidden after initial phase, we need to re-trigger it
+          console.log('🎓 Re-showing tutorial for solution phase');
+        }
       }, 1000);
     }
 
@@ -356,9 +393,20 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
   };
 
   const handleComplete = () => {
-    localStorage.setItem('hasCompletedTutorial', 'true');
-    localStorage.setItem('tutorialCompletedAt', new Date().toISOString());
-    onComplete();
+    // Mark specific phase as completed
+    if (currentPhase === 'initial') {
+      localStorage.setItem('hasCompletedInitialTutorial', 'true');
+      onComplete(); // Hide tutorial temporarily, will reshow for solution phase
+    } else if (currentPhase === 'solution') {
+      localStorage.setItem('hasCompletedSolutionTutorial', 'true');
+      localStorage.setItem('hasCompletedTutorial', 'true'); // Mark entire tutorial as complete
+      localStorage.setItem('tutorialCompletedAt', new Date().toISOString());
+      onComplete(); // Fully complete tutorial
+    } else {
+      // For switch and export phases, just complete them
+      localStorage.setItem(`hasCompleted${currentPhase.charAt(0).toUpperCase() + currentPhase.slice(1)}Tutorial`, 'true');
+      onComplete();
+    }
   };
 
   if (!isVisible || !step) return null;
@@ -743,7 +791,7 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
                 gap: '4px',
                 height: '40px',
                 padding: '0 20px',
-                background: 'linear-gradient(115deg, #BADDE9 0%, #2FB9E8 100%)',
+                background: '#0070ff',
                 border: 'none',
                 borderRadius: '6px',
                 color: '#FFFFFF',
@@ -752,16 +800,16 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
                 cursor: 'pointer',
                 transition: 'all 300ms cubic-bezier(0.23, 1, 0.32, 1)',
                 marginLeft: isFirstStep ? 'auto' : '0',
-                boxShadow: '0 1px 3px rgba(47, 185, 232, 0.2), 0 4px 12px rgba(47, 185, 232, 0.15)',
+                boxShadow: '0 1px 3px rgba(0, 112, 255, 0.2), 0 4px 12px rgba(0, 112, 255, 0.15)',
                 transform: 'translateY(0)'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.boxShadow = '0 2px 4px rgba(47, 185, 232, 0.2), 0 8px 24px rgba(47, 185, 232, 0.25)';
+                e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 112, 255, 0.2), 0 8px 24px rgba(0, 112, 255, 0.25)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 1px 3px rgba(47, 185, 232, 0.2), 0 4px 12px rgba(47, 185, 232, 0.15)';
+                e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 112, 255, 0.2), 0 4px 12px rgba(0, 112, 255, 0.15)';
               }}
             >
               {isLastStep ? 'Complete' : 'Next'}

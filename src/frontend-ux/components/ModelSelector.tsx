@@ -174,7 +174,7 @@ export function ModelSelector({ isMobile = false, isDarkMode = false, onModelCha
                         style={{
                           color: isSelected 
                             ? isDarkMode 
-                              ? 'var(--opulent-gold, #c8a951)' 
+                              ? 'var(--opulent-gold, #BADDE9)' 
                               : '#2563eb'
                             : isDarkMode 
                               ? 'rgba(246, 247, 251, 0.7)' 
@@ -191,7 +191,7 @@ export function ModelSelector({ isMobile = false, isDarkMode = false, onModelCha
                             lineHeight: '20px',
                             color: isSelected 
                               ? isDarkMode 
-                                ? 'var(--opulent-gold, #c8a951)' 
+                                ? 'var(--opulent-gold, #BADDE9)' 
                                 : '#2563eb'
                               : 'inherit'
                           }}
@@ -221,7 +221,7 @@ export function ModelSelector({ isMobile = false, isDarkMode = false, onModelCha
                         className="w-4 h-4 ml-2" 
                         style={{
                           color: isDarkMode 
-                            ? 'var(--opulent-gold, #c8a951)' 
+                            ? 'var(--opulent-gold, #BADDE9)' 
                             : '#2563eb'
                         }}
                       />

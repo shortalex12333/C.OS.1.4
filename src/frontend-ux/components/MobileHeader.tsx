@@ -34,11 +34,11 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
     height: '40px',
     minWidth: '44px', // Ensure minimum touch target size
     minHeight: '44px',
-    background: 'rgba(255, 255, 255, 0.12)',
+    background: '#0070ff',
     backdropFilter: 'blur(16px)',
     WebkitBackdropFilter: 'blur(16px)',
-    border: '1px solid rgba(255, 255, 255, 0.18)',
-    color: '#242424',
+    border: '1px solid rgba(0, 112, 255, 0.18)',
+    color: '#ffffff',
     cursor: 'pointer',
     touchAction: 'manipulation', // Improve touch responsiveness
     WebkitTapHighlightColor: 'transparent' // Remove iOS tap highlight

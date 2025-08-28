@@ -35,6 +35,8 @@ interface UserAuthResponse {
   success: boolean;
   userId: string;
   userName: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
   token?: string;
   sessionId: string;
@@ -43,11 +45,15 @@ interface UserAuthResponse {
 
 interface TextChatPayload {
   userId: string;
+  user_id: string; // Duplicate for compatibility
   userName: string;
+  firstName: string;
+  lastName: string;
   email: string;
   message: string;
   search_strategy: 'local' | 'yacht' | 'email';
   conversation_id: string;
+  session_id: string; // Duplicate for compatibility
   sessionId: string;
   timestamp: string;
   webhookUrl?: string;
@@ -614,6 +620,13 @@ class CompleteWebhookService {
     const response = await this.sendRequest<UserAuthResponse>('user-auth', payload);
     
     if (response.success && response.data) {
+      // Extract firstName and lastName if not provided by server
+      if (!response.data.firstName || !response.data.lastName) {
+        const nameParts = (response.data.userName || email.split('@')[0]).trim().split(' ');
+        response.data.firstName = response.data.firstName || nameParts[0] || '';
+        response.data.lastName = response.data.lastName || nameParts.slice(1).join(' ') || '';
+      }
+      
       this.currentUser = response.data;
       this.saveSession();
     }
@@ -649,6 +662,10 @@ class CompleteWebhookService {
     const response = await this.sendRequest<UserAuthResponse>('user-signup', payload);
     
     if (response.success && response.data) {
+      // Ensure firstName and lastName are stored
+      response.data.firstName = response.data.firstName || firstName;
+      response.data.lastName = response.data.lastName || lastName;
+      
       this.currentUser = response.data;
       this.saveSession();
     }
@@ -702,15 +719,32 @@ class CompleteWebhookService {
       };
     }
 
+    // Use stored firstName/lastName or extract from userName
+    const firstName = this.currentUser.firstName || (() => {
+      const nameParts = this.currentUser.userName.trim().split(' ');
+      return nameParts[0] || this.currentUser.userName;
+    })();
+    const lastName = this.currentUser.lastName || (() => {
+      const nameParts = this.currentUser.userName.trim().split(' ');
+      return nameParts.slice(1).join(' ') || '';
+    })();
+    
+    const conversationId = `conversation_${Date.now()}`;
+    const sessionId = this.currentUser.sessionId || `session_${Date.now()}`;
+    
     const payload = {
       action: 'text_chat',
       userId: this.currentUser.userId,
+      user_id: this.currentUser.userId, // Duplicate for compatibility
       userName: this.currentUser.userName,
+      firstName: firstName,
+      lastName: lastName,
       email: this.currentUser.email,
       message,
       search_strategy: searchStrategy,
-      conversation_id: `conversation_${Date.now()}`,
-      sessionId: this.currentUser.sessionId || `session_${Date.now()}`,
+      conversation_id: conversationId,
+      session_id: sessionId, // Duplicate for compatibility
+      sessionId: sessionId,
       timestamp: new Date().toISOString(),
       source: 'celesteos_modern_local_ux',
       email_integration: {
@@ -734,6 +768,7 @@ class CompleteWebhookService {
       // Handle array response from webhook
       if (Array.isArray(responseData) && responseData.length > 0) {
         const firstItem = responseData[0] as any;
+        
         // Check for OpenAI completion format with message.content structure
         if (firstItem.message && firstItem.message.content && firstItem.message.role === 'assistant') {
           const content = firstItem.message.content as OpenAIMessageContent;
@@ -815,7 +850,7 @@ class CompleteWebhookService {
           references: responseData.references || [],
           summary: responseData.summary || '',
           metadata: responseData.metadata || {},
-          solutions: solutions // Add solutions for display
+          solutions: solutions
         };
       }
       // Handle string response

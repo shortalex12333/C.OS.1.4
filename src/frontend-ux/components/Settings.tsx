@@ -21,7 +21,7 @@ const MODAL_DESIGN = {
     width: '800px',
     height: '650px',
     background: '#ffffff',
-    borderRadius: '16px',
+    borderRadius: '8px',
     boxShadow: '0 32px 64px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05)',
     border: '1px solid rgba(0, 0, 0, 0.06)',
     // Dark mode premium modal
@@ -114,12 +114,48 @@ export function Settings({
   const [accountScope, setAccountScope] = useState('this');
   const [messageType, setMessageType] = useState('');
   const [messageContent, setMessageContent] = useState('');
+  const [userEmail, setUserEmail] = useState('john.doe@company.com'); // Default email, will be populated from login
   
   // Microsoft Connection Status Management
   const [microsoftStatus, setMicrosoftStatus] = useState<MicrosoftConnectionStatus>({
     connected: false,
     loading: true
   });
+
+  // Get user email from localStorage or authentication
+  useEffect(() => {
+    const getUserEmail = () => {
+      // Try to get email from various sources
+      try {
+        // Try Supabase user data first
+        const celesteosUser = localStorage.getItem('celesteos_user');
+        if (celesteosUser) {
+          const user = JSON.parse(celesteosUser);
+          if (user.email) {
+            setUserEmail(user.email);
+            return;
+          }
+        }
+        
+        // Try other storage locations
+        const storedEmail = localStorage.getItem('user_email') || 
+                          sessionStorage.getItem('user_email');
+        if (storedEmail) {
+          setUserEmail(storedEmail);
+          return;
+        }
+        
+        // Fallback to display name based email
+        const emailFromDisplay = displayName.toLowerCase().replace(/\s+/g, '.') + '@company.com';
+        setUserEmail(emailFromDisplay);
+      } catch (error) {
+        console.error('Error getting user email:', error);
+        setUserEmail('user@company.com');
+      }
+    };
+    
+    getUserEmail();
+  }, [displayName]);
 
   // Language and appearance options are imported from SettingsConstants
   // Removed local duplicates to avoid conflicts
@@ -233,6 +269,8 @@ export function Settings({
       setMessageType,
       messageContent,
       setMessageContent,
+      userEmail,
+      setUserEmail,
       isDarkMode
     });
   };

@@ -11,7 +11,7 @@ export const BackgroundSystem: React.FC<BackgroundSystemProps> = ({
   isChatMode,
   isLoggedIn,
 }) => {
-  // Animation keyframes styles
+  // Enhanced animation keyframes with ambient movements
   const keyframeStyles = `
     @keyframes fadeBlueGradient {
       0% { opacity: 1; transform: scale(1); }
@@ -39,42 +39,152 @@ export const BackgroundSystem: React.FC<BackgroundSystemProps> = ({
       60% { opacity: 0.7; transform: scale(1.005); }
       100% { opacity: 1; transform: scale(1); }
     }
+    @keyframes ambientFloat {
+      0%, 100% { transform: translateY(0px) translateX(0px) scale(1); }
+      33% { transform: translateY(-20px) translateX(10px) scale(1.02); }
+      66% { transform: translateY(10px) translateX(-5px) scale(0.98); }
+    }
+    @keyframes ambientDrift {
+      0%, 100% { transform: translateX(0px) translateY(0px); }
+      25% { transform: translateX(30px) translateY(-15px); }
+      50% { transform: translateX(-20px) translateY(20px); }
+      75% { transform: translateX(15px) translateY(-10px); }
+    }
+    @keyframes subtlePulse {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.05); }
+    }
+    @keyframes auroraWave {
+      0% { transform: translateX(-100%) rotate(-5deg); }
+      100% { transform: translateX(100%) rotate(5deg); }
+    }
+    @keyframes glowPulse {
+      0%, 100% { opacity: 0.2; filter: blur(40px); }
+      50% { opacity: 0.4; filter: blur(60px); }
+    }
   `;
 
   return (
-    <div className="absolute inset-0 h-full w-full overflow-hidden">
+    <div className="fixed inset-0 z-0 h-full w-full overflow-hidden">
       <style>{keyframeStyles}</style>
       
       {(!isLoggedIn || !isChatMode) ? (
         !isDarkMode ? (
-          /* Light Mode Dashboard Gradients */
+          /* Light Mode Dashboard - Professional Marine Theme */
           <>
-            <div className="absolute inset-0 h-full w-full transition-all duration-700 ease-out" style={{ background: '#f8faff' }} />
-            <div className="absolute inset-0 h-full w-full transition-all duration-700 ease-out" style={{ background: 'radial-gradient(ellipse 160% 120% at 75% 45%, rgba(67, 166, 216, 0.22) 0%, rgba(129, 200, 228, 0.28) 20%, rgba(67, 166, 216, 0.35) 40%, rgba(129, 200, 228, 0.42) 60%, rgba(91, 184, 247, 0.18) 80%, transparent 90%)' }} />
-            <div className="absolute inset-0 h-full w-full transition-all duration-700 ease-out" style={{ background: 'radial-gradient(ellipse 140% 85% at 45% 15%, rgba(240, 248, 255, 0.8) 0%, rgba(232, 244, 255, 0.65) 15%, rgba(224, 240, 255, 0.5) 35%, rgba(208, 230, 255, 0.3) 55%, transparent 75%)' }} />
-            <div className="absolute inset-0 h-full w-full transition-all duration-700 ease-out" style={{ background: 'radial-gradient(ellipse 110% 140% at 20% 90%, rgba(248, 252, 255, 0.9) 0%, rgba(240, 248, 255, 0.75) 12%, rgba(232, 244, 255, 0.6) 25%, rgba(224, 240, 255, 0.45) 40%, rgba(200, 228, 255, 0.25) 60%, transparent 80%)' }} />
-            <div className="absolute inset-0 h-full w-full transition-all duration-700 ease-out" style={{ background: 'radial-gradient(ellipse 95% 120% at 10% 50%, rgba(255, 255, 255, 0.95) 0%, rgba(252, 254, 255, 0.8) 18%, rgba(248, 252, 255, 0.65) 32%, rgba(240, 248, 255, 0.4) 50%, transparent 70%)' }} />
-            <div className="absolute inset-0 h-full w-full transition-all duration-700 ease-out" style={{ background: 'radial-gradient(ellipse 100% 130% at 90% 20%, rgba(240, 248, 255, 0.9) 0%, rgba(67, 166, 216, 0.28) 20%, rgba(129, 200, 228, 0.35) 40%, rgba(67, 166, 216, 0.42) 55%, rgba(91, 184, 247, 0.25) 70%, transparent 85%)' }} />
-            <div className="absolute inset-0 h-full w-full transition-all duration-700 ease-out" style={{ background: 'radial-gradient(ellipse 80% 110% at 50% 35%, rgba(252, 254, 255, 0.95) 0%, rgba(240, 248, 255, 0.75) 20%, rgba(232, 244, 255, 0.6) 40%, rgba(220, 238, 255, 0.35) 60%, transparent 80%)' }} />
-            <div className="absolute inset-0 h-full w-full transition-all duration-700 ease-out" style={{ background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(240, 248, 255, 0.65) 20%, rgba(232, 244, 255, 0.5) 40%, rgba(67, 166, 216, 0.18) 65%, rgba(129, 200, 228, 0.12) 80%, rgba(91, 184, 247, 0.08) 100%)' }} />
-            <div className="absolute inset-0 h-full w-full transition-all duration-700 ease-out" style={{ background: 'conic-gradient(from 35deg at 65% 35%, rgba(240, 248, 255, 0.9) 0deg, rgba(255, 255, 255, 0.7) 80deg, rgba(252, 254, 255, 0.8) 160deg, rgba(232, 244, 255, 0.6) 240deg, rgba(240, 248, 255, 0.9) 320deg, rgba(240, 248, 255, 0.9) 360deg)' }} />
-            <div className="absolute inset-0 h-full w-full transition-all duration-700 ease-out" style={{ background: 'radial-gradient(ellipse 130% 90% at 35% 100%, rgba(248, 252, 255, 0.85) 0%, rgba(240, 248, 255, 0.7) 12%, rgba(67, 166, 216, 0.08) 20%, rgba(129, 200, 228, 0.06) 35%, transparent 60%)' }} />
-            <div className="absolute inset-0 h-full w-full transition-all duration-700 ease-out" style={{ background: 'radial-gradient(ellipse 160% 140% at 55% 45%, transparent 0%, rgba(255, 255, 255, 0.4) 30%, rgba(240, 248, 255, 0.3) 60%, rgba(252, 254, 255, 0.5) 85%, rgba(248, 252, 255, 0.2) 100%)' }} />
-            <div className="absolute inset-0 h-full w-full transition-all duration-700 ease-out" style={{ background: 'radial-gradient(ellipse 90% 160% at 25% 25%, rgba(67, 166, 216, 0.08) 0%, rgba(129, 200, 228, 0.12) 25%, rgba(200, 228, 255, 0.06) 50%, transparent 75%)' }} />
-            <div className="absolute inset-0 h-full w-full transition-all duration-700 ease-out" style={{ background: 'radial-gradient(ellipse 120% 100% at 85% 85%, rgba(240, 248, 255, 0.6) 0%, rgba(232, 244, 255, 0.4) 20%, rgba(67, 166, 216, 0.08) 40%, transparent 70%)' }} />
-            <div className="absolute inset-0 h-full w-full transition-all duration-700 ease-out" style={{ background: 'radial-gradient(ellipse 70% 120% at 60% 60%, rgba(129, 200, 228, 0.15) 0%, rgba(91, 184, 247, 0.12) 30%, rgba(67, 166, 216, 0.08) 60%, transparent 80%)', animation: !isChatMode ? 'none' : 'fadeBlueGradient 1.2s cubic-bezier(0.22, 0.61, 0.36, 1) forwards' }} />
+            {/* Base gradient */}
+            <div className="absolute inset-0 h-full w-full" style={{ 
+              background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0f9ff 100%)' 
+            }} />
+            
+            {/* Animated aurora effect - subtle */}
+            <div className="absolute inset-0 h-full w-full" style={{ 
+              background: 'linear-gradient(90deg, transparent 0%, rgba(67, 166, 216, 0.05) 50%, transparent 100%)',
+              animation: 'auroraWave 20s ease-in-out infinite',
+              opacity: 0.5
+            }} />
+            
+            {/* Primary organic shapes with animation */}
+            <div className="absolute inset-0 h-full w-full" style={{ 
+              background: 'radial-gradient(circle at 25% -10%, rgba(67, 166, 216, 0.15) 0%, rgba(129, 200, 228, 0.1) 25%, transparent 50%)',
+              animation: 'ambientFloat 15s ease-in-out infinite'
+            }} />
+            
+            <div className="absolute inset-0 h-full w-full" style={{ 
+              background: 'radial-gradient(circle at 75% -5%, rgba(91, 184, 247, 0.12) 0%, rgba(67, 166, 216, 0.08) 30%, transparent 55%)',
+              animation: 'ambientDrift 20s ease-in-out infinite'
+            }} />
+            
+            <div className="absolute inset-0 h-full w-full" style={{ 
+              background: 'radial-gradient(circle at 50% 0%, rgba(129, 200, 228, 0.08) 0%, transparent 40%)',
+              animation: 'subtlePulse 10s ease-in-out infinite'
+            }} />
+            
+            {/* Depth layers */}
+            <div className="absolute inset-0 h-full w-full" style={{ 
+              background: 'radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.6) 0%, transparent 40%)',
+              filter: 'blur(40px)'
+            }} />
+            
+            <div className="absolute inset-0 h-full w-full" style={{ 
+              background: 'radial-gradient(ellipse at 70% 30%, rgba(240, 248, 255, 0.5) 0%, transparent 50%)',
+              filter: 'blur(30px)'
+            }} />
+            
+            {/* Subtle mesh gradient overlay */}
+            <div className="absolute inset-0 h-full w-full" style={{ 
+              background: `
+                radial-gradient(at 40% 20%, rgba(67, 166, 216, 0.05) 0px, transparent 50%),
+                radial-gradient(at 80% 0%, rgba(129, 200, 228, 0.04) 0px, transparent 50%),
+                radial-gradient(at 10% 50%, rgba(91, 184, 247, 0.03) 0px, transparent 50%),
+                radial-gradient(at 90% 90%, rgba(67, 166, 216, 0.02) 0px, transparent 50%)
+              `,
+              backgroundBlendMode: 'normal'
+            }} />
           </>
         ) : (
-          /* Dark Mode Dashboard Gradients */
+          /* Dark Mode Dashboard - Deep Ocean Aurora Theme */
           <>
-            <div className="absolute inset-0 h-full w-full transition-all duration-700 ease-out" style={{ background: '#0f0b12' }} />
-            <div className="absolute inset-0 h-full w-full transition-all duration-700 ease-out" style={{ background: 'linear-gradient(180deg, transparent 0%, rgba(15, 11, 18, 0.8) 70%, rgba(15, 11, 18, 1) 100%)' }} />
-            <div className="absolute inset-0 h-full w-full transition-all duration-700 ease-out" style={{ background: 'radial-gradient(ellipse 160% 140% at 70% 50%, rgba(20,12,24,0.95) 0%, rgba(32,18,40,0.85) 28%, rgba(86,54,106,0.22) 55%, rgba(124,86,153,0.12) 72%, transparent 88%)' }} />
-            <div className="absolute inset-0 h-full w-full transition-all duration-700 ease-out" style={{ background: 'radial-gradient(ellipse 120% 100% at 30% 25%, rgba(22,14,28,0.98) 0%, rgba(34,20,44,0.85) 24%, rgba(98,64,126,0.14) 48%, transparent 72%)' }} />
-            <div className="absolute inset-0 h-full w-full transition-all duration-700 ease-out" style={{ background: 'radial-gradient(ellipse 110% 120% at 18% 82%, rgba(18,12,20,0.96) 0%, rgba(28,18,34,0.82) 18%, rgba(145,102,76,0.12) 36%, transparent 64%)' }} />
-            <div className="absolute inset-0 h-full w-full transition-all duration-700 ease-out" style={{ background: 'radial-gradient(ellipse 80% 100% at 60% 40%, rgba(18,12,24,0.98) 0%, rgba(32,20,42,0.82) 22%, rgba(200,169,81,0.08) 46%, transparent 68%)' }} />
-            <div className="absolute inset-0 h-full w-full transition-all duration-700 ease-out" style={{ background: 'radial-gradient(ellipse 90% 110% at 82% 18%, rgba(24,16,30,0.96) 0%, rgba(86,54,106,0.16) 28%, rgba(124,86,153,0.12) 52%, rgba(200,169,81,0.07) 68%, transparent 84%)' }} />
-            <div className="absolute inset-0 h-full w-full transition-all duration-700 ease-out" style={{ background: 'linear-gradient(125deg, rgba(15,11,18,0.92) 0%, rgba(26,18,34,0.84) 26%, rgba(34,22,44,0.78) 52%, rgba(124,86,153,0.10) 74%, rgba(200,169,81,0.08) 100%)', animation: !isChatMode ? 'none' : 'fadePlumGradient 1.2s cubic-bezier(0.22, 0.61, 0.36, 1) forwards' }} />
+            {/* Deep base */}
+            <div className="absolute inset-0 h-full w-full" style={{ 
+              background: 'linear-gradient(135deg, #0a0f1b 0%, #0f1823 50%, #0a0f1b 100%)' 
+            }} />
+            
+            {/* Aurora borealis effect */}
+            <div className="absolute inset-0 h-full w-full" style={{ 
+              background: 'linear-gradient(90deg, transparent 0%, rgba(67, 166, 216, 0.15) 25%, rgba(91, 184, 247, 0.1) 50%, rgba(129, 200, 228, 0.15) 75%, transparent 100%)',
+              animation: 'auroraWave 25s ease-in-out infinite',
+              filter: 'blur(40px)',
+              opacity: 0.6
+            }} />
+            
+            {/* Primary animated gradients - more visible */}
+            <div className="absolute inset-0 h-full w-full" style={{ 
+              background: 'radial-gradient(circle at 20% -5%, rgba(67, 166, 216, 0.25) 0%, rgba(91, 184, 247, 0.15) 20%, transparent 45%)',
+              animation: 'ambientFloat 18s ease-in-out infinite'
+            }} />
+            
+            <div className="absolute inset-0 h-full w-full" style={{ 
+              background: 'radial-gradient(circle at 70% 0%, rgba(129, 200, 228, 0.2) 0%, rgba(67, 166, 216, 0.1) 25%, transparent 50%)',
+              animation: 'ambientDrift 22s ease-in-out infinite'
+            }} />
+            
+            <div className="absolute inset-0 h-full w-full" style={{ 
+              background: 'radial-gradient(circle at 45% -10%, rgba(91, 184, 247, 0.15) 0%, transparent 35%)',
+              animation: 'subtlePulse 12s ease-in-out infinite'
+            }} />
+            
+            {/* Glowing orbs for depth */}
+            <div className="absolute inset-0 h-full w-full" style={{ 
+              background: 'radial-gradient(circle at 30% 15%, rgba(67, 166, 216, 0.2) 0%, transparent 25%)',
+              filter: 'blur(60px)',
+              animation: 'glowPulse 8s ease-in-out infinite'
+            }} />
+            
+            <div className="absolute inset-0 h-full w-full" style={{ 
+              background: 'radial-gradient(circle at 75% 20%, rgba(129, 200, 228, 0.15) 0%, transparent 30%)',
+              filter: 'blur(50px)',
+              animation: 'glowPulse 10s ease-in-out infinite 2s'
+            }} />
+            
+            {/* Mesh overlay for texture */}
+            <div className="absolute inset-0 h-full w-full" style={{ 
+              background: `
+                radial-gradient(at 20% 10%, rgba(67, 166, 216, 0.08) 0px, transparent 40%),
+                radial-gradient(at 60% 5%, rgba(91, 184, 247, 0.06) 0px, transparent 40%),
+                radial-gradient(at 85% 15%, rgba(129, 200, 228, 0.07) 0px, transparent 40%),
+                radial-gradient(at 40% 30%, rgba(67, 166, 216, 0.04) 0px, transparent 50%)
+              `,
+              backgroundBlendMode: 'screen'
+            }} />
+            
+            {/* Subtle noise texture for depth */}
+            <div className="absolute inset-0 h-full w-full" style={{ 
+              opacity: 0.03,
+              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E")`,
+              backgroundRepeat: 'repeat',
+              backgroundSize: '256px 256px'
+            }} />
           </>
         )
       ) : (

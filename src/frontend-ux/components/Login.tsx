@@ -225,7 +225,11 @@ export function Login({ onLogin, onSignUp, isMobile = false, isDarkMode = false 
                     className="btn-gradient-primary radius-tight w-full font-eloquia-text"
                     style={{
                       padding: '14px 24px',
-                      fontSize: '16px'
+                      fontSize: '16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      lineHeight: 1
                     }}
                   >
                     {isLoading ? (
@@ -462,7 +466,11 @@ export function Login({ onLogin, onSignUp, isMobile = false, isDarkMode = false 
                 className="btn-gradient-primary radius-tight w-full font-eloquia-text disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{
                   padding: '14px 24px',
-                  fontSize: '16px'
+                  fontSize: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  lineHeight: 1
                 }}
               >
                 {isLoading ? (
@@ -493,15 +501,27 @@ export function Login({ onLogin, onSignUp, isMobile = false, isDarkMode = false 
                     onClick={onSignUp}
                     className="font-eloquia-text"
                     style={{
-                      color: '#43a6d8',
-                      background: 'transparent',
-                      border: 'none',
+                      color: '#1a1a1a',
+                      background: '#F8F8F0',
+                      border: '1px solid rgba(0, 0, 0, 0.1)',
                       cursor: 'pointer',
                       fontWeight: '500',
-                      transition: 'color 200ms'
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      transition: 'all 200ms',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      lineHeight: 1
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = '#5299c4'}
-                    onMouseLeave={(e) => e.currentTarget.style.color = '#43a6d8'}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#ffffff';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#F8F8F0';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
                   >
                     Sign up
                   </button>

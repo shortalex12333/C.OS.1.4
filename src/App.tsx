@@ -46,6 +46,8 @@ export default function App() {
   const [selectedModel, setSelectedModel] = useState<string>('air');
   const [showIntro, setShowIntro] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showWhiteFade, setShowWhiteFade] = useState(false);
+  const [fadeToInterface, setFadeToInterface] = useState(false);
   const [hasReceivedJSON, setHasReceivedJSON] = useState(false);
   const [showSignUp, setShowSignUp] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -58,6 +60,8 @@ export default function App() {
     messages: ChatMessage[];
     searchType: SearchType;
   }>>([]);
+  const [showScheduleCallPopup, setShowScheduleCallPopup] = useState(false);
+  const [messageCount, setMessageCount] = useState(0);
   
   // Theme change handler for Settings component
   const handleAppearanceChange = (newAppearance: string) => {
@@ -146,19 +150,47 @@ export default function App() {
     const unsubscribe = authService.onAuthStateChange((user) => {
       if (user) {
         console.log('🔄 Auth state changed - User logged in:', user.email);
-        setIsLoggedIn(true);
         setDisplayName(user.user_metadata?.display_name || user.email?.split('@')[0] || 'User');
         
-        // Sync webhook service with new auth state
-        setTimeout(() => {
-          completeWebhookService.syncWithSupabaseAuth();
-          // Check if tutorial should be shown after auth sync
-          checkAndShowTutorial();
-        }, 500);
+        // Only show white fade for actual login action, not on refresh
+        // Check if this is a new login by checking if user was previously not logged in
+        const isNewLogin = !isLoggedIn && !isAuthLoading;
+        
+        if (isNewLogin) {
+          // New login - show white fade animation
+          setShowWhiteFade(true);
+          
+          setTimeout(() => {
+            setIsLoggedIn(true);
+            setFadeToInterface(true);
+            
+            // Sync webhook service with new auth state
+            setTimeout(() => {
+              completeWebhookService.syncWithSupabaseAuth();
+              checkAndShowTutorial();
+              
+              // Remove white fade after interface has loaded
+              setTimeout(() => {
+                setShowWhiteFade(false);
+              }, 1600);
+            }, 500);
+          }, 1000); // Wait for white fade to reach peak
+        } else {
+          // Page refresh or existing session - no white fade
+          setIsLoggedIn(true);
+          
+          // Sync webhook service immediately
+          setTimeout(() => {
+            completeWebhookService.syncWithSupabaseAuth();
+            checkAndShowTutorial();
+          }, 100);
+        }
       } else {
         console.log('🔄 Auth state changed - User logged out');
         setIsLoggedIn(false);
         setDisplayName('User');
+        setFadeToInterface(false);
+        setShowWhiteFade(false);
       }
     });
 
@@ -170,14 +202,7 @@ export default function App() {
   // Check for existing session on app start - intro only
   useEffect(() => {
     const checkSession = () => {
-      // Check if user has seen intro
-      const hasSeenIntro = localStorage.getItem('hasSeenIntro');
-      if (!hasSeenIntro) {
-        setShowIntro(true);
-        return;
-      }
-      
-      // Only check webhook service if Supabase auth didn't already handle it
+      // Check webhook service for existing session first
       if (!isLoggedIn && completeWebhookService.isLoggedIn()) {
         const user = completeWebhookService.getCurrentUser();
         if (user) {
@@ -185,8 +210,13 @@ export default function App() {
           setDisplayName(name);
           setIsLoggedIn(true);
           console.log('✅ Restored webhook session for:', name);
-          // Tutorial will be handled by the main auth flow
+          return; // Skip intro if logged in
         }
+      }
+      
+      // Always show intro for unauthenticated users
+      if (!isLoggedIn) {
+        setShowIntro(true);
       }
     };
     checkSession();
@@ -215,6 +245,22 @@ export default function App() {
     }
   }, [isMobile]);
 
+  // Trigger schedule call popup on 10th user message
+  useEffect(() => {
+    // Count only user messages (not bot responses)
+    const userMessages = chatMessages.filter(message => message.isUser);
+    const userMessageCount = userMessages.length;
+    
+    // Trigger popup when user sends their 10th message
+    if (userMessageCount === 10 && !showScheduleCallPopup) {
+      console.log('🎯 Triggering schedule call popup - user has sent 10 messages');
+      setShowScheduleCallPopup(true);
+    }
+    
+    // Update message count for debugging
+    setMessageCount(userMessageCount);
+  }, [chatMessages, showScheduleCallPopup]);
+
   // Apply chat mode class to body for clean white workspace
   useEffect(() => {
     document.body.classList.add('theme-transition');
@@ -230,7 +276,10 @@ export default function App() {
   useEffect(() => {
     if (isLoggedIn && !showIntro) {
       const hasCompletedTutorial = localStorage.getItem('hasCompletedTutorial');
-      if (!hasCompletedTutorial && !showTutorial) {
+      const hasCompletedInitial = localStorage.getItem('hasCompletedInitialTutorial');
+      
+      // Show initial tutorial if nothing has been completed
+      if (!hasCompletedTutorial && !hasCompletedInitial && !showTutorial) {
         console.log('🎓 User logged in, checking tutorial status');
         setTimeout(() => {
           setShowTutorial(true);
@@ -240,19 +289,28 @@ export default function App() {
     }
   }, [isLoggedIn, showIntro, showTutorial]);
 
+  // Watch for hasReceivedJSON to trigger solution tutorial
+  useEffect(() => {
+    if (hasReceivedJSON && isLoggedIn) {
+      const hasCompletedSolution = localStorage.getItem('hasCompletedSolutionTutorial');
+      const hasCompletedInitial = localStorage.getItem('hasCompletedInitialTutorial');
+      
+      if (hasCompletedInitial && !hasCompletedSolution && !showTutorial) {
+        console.log('🎓 JSON received, triggering solution tutorial');
+        setTimeout(() => {
+          setShowTutorial(true);
+        }, 1500); // Give time for solution cards to render
+      }
+    }
+  }, [hasReceivedJSON, isLoggedIn, showTutorial]);
+
   const handleLogin = async (email: string, password: string) => {
     // Note: The actual authentication is handled in the Login component via Supabase
     // This handler is kept for compatibility but auth state is managed by authService listener
     console.log('🔄 Login process initiated for:', email);
     
-    // Check and show tutorial for new users after successful login
-    const hasCompletedTutorial = localStorage.getItem('hasCompletedTutorial');
-    if (!hasCompletedTutorial) {
-      console.log('🎓 New user logged in - will show tutorial');
-      setTimeout(() => {
-        setShowTutorial(true);
-      }, 1500);
-    }
+    // The white fade animation is now handled in the authService.onAuthStateChange listener
+    // to ensure proper timing with the actual authentication state change
   };
 
   const handleSignUp = async (firstName: string, lastName: string, email: string, password: string) => {
@@ -263,17 +321,28 @@ export default function App() {
   // Consolidated tutorial trigger function - with proper state check
   const checkAndShowTutorial = useCallback(() => {
     const hasCompletedTutorial = localStorage.getItem('hasCompletedTutorial');
+    const hasCompletedInitial = localStorage.getItem('hasCompletedInitialTutorial');
+    const hasCompletedSolution = localStorage.getItem('hasCompletedSolutionTutorial');
+    
     if (!hasCompletedTutorial) {
-      console.log('🎓 Tutorial not completed, will show for logged in user');
-      // Use a slight delay to ensure UI is ready
-      setTimeout(() => {
-        setShowTutorial(true);
-        console.log('🎓 Tutorial triggered');
-      }, 1500);
+      if (!hasCompletedInitial) {
+        console.log('🎓 Initial tutorial not completed, will show for logged in user');
+        // Use a slight delay to ensure UI is ready
+        setTimeout(() => {
+          setShowTutorial(true);
+          console.log('🎓 Tutorial triggered');
+        }, 1500);
+      } else if (hasReceivedJSON && !hasCompletedSolution) {
+        console.log('🎓 Solution tutorial needed, re-showing tutorial');
+        setTimeout(() => {
+          setShowTutorial(true);
+          console.log('🎓 Solution tutorial triggered');
+        }, 500);
+      }
     } else {
       console.log('✅ Tutorial already completed');
     }
-  }, []);
+  }, [hasReceivedJSON]);
 
   const handleStartChat = async (message: string, searchType?: SearchType) => {
     if (searchType) {
@@ -443,6 +512,7 @@ export default function App() {
     }
   };
   const handleCloseSettings = () => setIsSettingsOpen(false);
+  const handleCloseScheduleCallPopup = () => setShowScheduleCallPopup(false);
   
   const handleMainContentClick = () => {
     // Hide sidebar when clicking main content area on mobile (homepage only)
@@ -473,12 +543,30 @@ export default function App() {
 
   return (
     <div className={`flex h-full w-full flex-col relative overflow-hidden chat-mode-transition theme-transition ${isDarkMode ? 'dark' : ''}`} style={{
-      animation: 'fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+      animation: fadeToInterface ? 'fadeFromWhite 1.6s cubic-bezier(0.22, 0.61, 0.36, 1)' : 'fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
       backgroundColor: isDarkMode ? '#0f0b12' : '#ffffff',
       minHeight: '100vh',
       color: isDarkMode ? '#f6f7fb' : '#1f2937',
       transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
     }}>
+      {/* Premium White Fade Overlay */}
+      {showWhiteFade && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: '#ffffff',
+            zIndex: 9999,
+            pointerEvents: 'none',
+            animation: 'whiteFadeInOut 2.6s cubic-bezier(0.4, 0, 0.2, 1)',
+            animationFillMode: 'forwards'
+          }}
+        />
+      )}
+
       {/* Background System */}
       <BackgroundSystem 
         isDarkMode={isDarkMode}
@@ -492,7 +580,6 @@ export default function App() {
           isVisible={showIntro}
           onComplete={() => {
             setShowIntro(false);
-            localStorage.setItem('hasSeenIntro', 'true');
           }}
           isDarkMode={isDarkMode}
         />
@@ -511,7 +598,7 @@ export default function App() {
 
 
       {/* Show Login or SignUp Page if not logged in and intro is complete */}
-      {!showIntro && !isLoggedIn ? (
+      {!showIntro && !isLoggedIn && !showWhiteFade ? (
         <div className="relative z-10 h-full w-full" style={{
           animation: 'scaleIn 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
         }}>
@@ -564,8 +651,8 @@ export default function App() {
               />
             )}
 
-            <div className="relative flex h-full w-full flex-row">
-              {/* Sidebar */}
+            <div className="relative z-10 flex h-full w-full flex-row">
+              {/* Sidebar - removed overflow-hidden to allow blur to work */}
               <div className={`
                 ${isMobile 
                   ? `fixed left-0 z-[55] h-full transition-all duration-300 ease-out ${
@@ -574,7 +661,7 @@ export default function App() {
                   : 'relative z-20 transition-all duration-300'
                 } 
                 ${getSidebarWidth(isMobile, isSidebarCollapsed)} 
-                shrink-0 overflow-hidden sidebar_container
+                shrink-0 sidebar_container
                 ${isMobile ? 'top-0' : ''}
               `}>
                 <Sidebar 
@@ -617,7 +704,7 @@ export default function App() {
                           selectedModel={selectedModel}
                           onModelChange={handleModelChange}
                           messages={chatMessages}
-                          onAskAlexClick={() => setShowAskAlex(true)}
+                          onFAQpageClick={() => setShowAskAlex(true)}
                           isWaitingForResponse={isWaitingForResponse}
                           searchType={currentSearchType}
                         />
@@ -649,8 +736,186 @@ export default function App() {
             </>
           )}
 
+          {/* Schedule Call Popup - Triggered on 10th message */}
+          {showScheduleCallPopup && (
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10000,
+              backdropFilter: 'blur(8px)'
+            }}>
+              <div style={{
+                background: isDarkMode ? 'var(--background, #0f0b12)' : '#ffffff',
+                borderRadius: '8px',
+                padding: '32px',
+                maxWidth: isMobile ? '90%' : '500px',
+                width: '100%',
+                margin: '20px',
+                boxShadow: isDarkMode 
+                  ? '0 20px 40px rgba(0, 0, 0, 0.8)' 
+                  : '0 20px 40px rgba(0, 0, 0, 0.15)',
+                border: isDarkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.06)',
+                animation: 'popupAppear 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+              }}>
+                <h3 style={{
+                  fontSize: '24px',
+                  fontWeight: '600',
+                  color: isDarkMode ? 'var(--headline, #f6f7fb)' : '#1f2937',
+                  marginBottom: '16px',
+                  textAlign: 'center'
+                }}>
+                  🎯 Ready to take the next step?
+                </h3>
+                <p style={{
+                  fontSize: '16px',
+                  color: isDarkMode ? 'rgba(246, 247, 251, 0.8)' : '#6b7280',
+                  marginBottom: '24px',
+                  lineHeight: '1.5',
+                  textAlign: 'center'
+                }}>
+                  You've been actively exploring CelesteOS! Let's schedule a quick call to show you how it can solve your specific engineering challenges.
+                </p>
+                <div style={{
+                  display: 'flex',
+                  gap: '12px',
+                  justifyContent: 'center',
+                  flexWrap: 'wrap'
+                }}>
+                  <button
+                    onClick={() => {
+                      window.open('https://calendly.com/celesteos/demo', '_blank');
+                      handleCloseScheduleCallPopup();
+                    }}
+                    style={{
+                      backgroundColor: '#3b82f6',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '12px 24px',
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    Schedule a Demo
+                  </button>
+                  <button
+                    onClick={handleCloseScheduleCallPopup}
+                    style={{
+                      backgroundColor: 'transparent',
+                      color: isDarkMode ? 'rgba(246, 247, 251, 0.7)' : '#6b7280',
+                      border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.2)' : '#e5e7eb'}`,
+                      borderRadius: '8px',
+                      padding: '12px 24px',
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    Maybe Later
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Debug Message Count Display - Remove in production */}
+          {process.env.NODE_ENV === 'development' && (
+            <div style={{
+              position: 'fixed',
+              top: '80px',
+              right: '20px',
+              background: isDarkMode ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+              color: isDarkMode ? '#fff' : '#000',
+              padding: '8px 12px',
+              borderRadius: '4px',
+              fontSize: '12px',
+              fontFamily: 'monospace',
+              zIndex: 9999,
+              border: '1px solid ' + (isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)')
+            }}>
+              User Messages: {messageCount}/10
+            </div>
+          )}
+
         </>
       ) : null}
+      
+      {/* Premium Animation Styles */}
+      <style>{`
+        @keyframes popupAppear {
+          0% {
+            opacity: 0;
+            transform: scale(0.9) translateY(-20px);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+        
+        @keyframes whiteFadeInOut {
+          0% {
+            opacity: 0;
+          }
+          35% {
+            opacity: 1;
+          }
+          65% {
+            opacity: 1;
+          }
+          100% {
+            opacity: 0;
+          }
+        }
+        
+        @keyframes fadeFromWhite {
+          0% {
+            opacity: 0;
+            transform: scale(1.02);
+            filter: brightness(1.2);
+          }
+          50% {
+            opacity: 0.7;
+            transform: scale(1.01);
+            filter: brightness(1.1);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1);
+            filter: brightness(1);
+          }
+        }
+        
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        
+        @keyframes scaleIn {
+          from {
+            opacity: 0;
+            transform: scale(0.98);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+      `}</style>
     </div>
   );
 }

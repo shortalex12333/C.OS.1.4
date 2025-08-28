@@ -37,6 +37,8 @@ interface SectionContentProps {
   setMessageType: (value: string) => void;
   messageContent: string;
   setMessageContent: (value: string) => void;
+  userEmail: string;
+  setUserEmail: (value: string) => void;
   isDarkMode?: boolean;
 }
 
@@ -61,6 +63,8 @@ export const renderSectionContent = ({
   setMessageType,
   messageContent,
   setMessageContent,
+  userEmail,
+  setUserEmail,
   isDarkMode = false
 }: SectionContentProps) => {
   const getLanguageLabel = (value: string) => {
@@ -101,7 +105,7 @@ export const renderSectionContent = ({
               backdropFilter: isDarkMode ? 'none' : 'blur(16px) saturate(1.1)',
               WebkitBackdropFilter: isDarkMode ? 'none' : 'blur(16px) saturate(1.1)',
               border: `1px solid ${isDarkMode ? darkTheme.modal.border : 'rgba(255, 255, 255, 0.3)'}`,
-              borderRadius: '12px',
+              borderRadius: '8px',
               overflow: 'hidden',
               marginBottom: '20px',
               boxShadow: isDarkMode ? '0 4px 16px rgba(0, 0, 0, 0.3)' : '0 4px 16px rgba(0, 0, 0, 0.05)'
@@ -113,6 +117,14 @@ export const renderSectionContent = ({
               isEditable={true}
               onChange={onDisplayNameChange}
               placeholder="Enter your display name"
+              isMobile={isMobile}
+               isDarkMode={isDarkMode}
+            />
+            
+            <AppleSettingsRow
+              label="Department"
+              value="Captain"
+              isEditable={false}
               isMobile={isMobile}
                isDarkMode={isDarkMode}
             />
@@ -154,7 +166,7 @@ export const renderSectionContent = ({
               backdropFilter: isDarkMode ? 'none' : 'blur(16px) saturate(1.1)',
               WebkitBackdropFilter: isDarkMode ? 'none' : 'blur(16px) saturate(1.1)',
               border: `1px solid ${isDarkMode ? darkTheme.modal.border : 'rgba(255, 255, 255, 0.3)'}`,
-              borderRadius: '12px',
+              borderRadius: '8px',
               overflow: 'hidden',
               marginBottom: '20px',
               boxShadow: isDarkMode ? '0 4px 16px rgba(0, 0, 0, 0.3)' : '0 4px 16px rgba(0, 0, 0, 0.05)'
@@ -204,16 +216,16 @@ export const renderSectionContent = ({
             <button
               style={{
                 flex: 1,
-                height: '44px',
-                padding: '0 20px',
-                fontSize: '14px',
+                height: '48px',
+                padding: '0 24px',
+                fontSize: '16px',
                 lineHeight: '20px',
-                fontWeight: '500',
+                fontWeight: '600',
                 fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                 background: isDarkMode ? darkTheme.buttons.secondary.background : 'rgba(255, 255, 255, 0.6)',
                 color: isDarkMode ? darkTheme.buttons.secondary.text : '#6b7280',
                 border: `1px solid ${isDarkMode ? darkTheme.buttons.secondary.border : 'rgba(255, 255, 255, 0.3)'}`,
-                borderRadius: '10px',
+                borderRadius: '4px', // Base tier for buttons
                 cursor: 'pointer',
                 transition: `all ${isDarkMode ? darkTheme.effects.microDelay : '240ms'} cubic-bezier(0.22, 0.61, 0.36, 1)`,
                 outline: 'none',
@@ -244,37 +256,38 @@ export const renderSectionContent = ({
             <button
               style={{
                 flex: 1,
-                height: '44px',
-                padding: '0 20px',
-                fontSize: '14px',
+                height: '48px',
+                padding: '0 24px',
+                fontSize: '16px',
                 lineHeight: '20px',
-                fontWeight: '500',
+                fontWeight: '600',
                 fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                background: 'linear-gradient(115deg, #BADDE9 0%, #2FB9E8 100%)',
+                background: '#0070ff',
                 color: '#FFFFFF',
                 border: 'none',
-                borderRadius: '10px',
+                borderRadius: '4px', // Base tier for buttons
                 cursor: 'pointer',
-                transition: `all ${isDarkMode ? darkTheme.effects.microDelay : '240ms'} cubic-bezier(0.22, 0.61, 0.36, 1)`,
+                transition: 'all 200ms cubic-bezier(0.23, 1, 0.32, 1)',
                 outline: 'none',
                 boxSizing: 'border-box',
-                boxShadow: '0 2px 8px rgba(47, 185, 232, 0.3)'
+                boxShadow: '0 2px 8px rgba(0, 112, 255, 0.3)',
+                transform: 'translateY(0)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'linear-gradient(115deg, #2FB9E8 0%, #00A4FF 100%)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 164, 255, 0.4)';
-                e.currentTarget.style.transform = isDarkMode ? darkTheme.buttons.primary.scale : 'scale(1.02)';
+                e.currentTarget.style.background = '#0070ff';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 112, 255, 0.4)';
+                e.currentTarget.style.transform = 'translateY(-1px)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'linear-gradient(115deg, #BADDE9 0%, #2FB9E8 100%)';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(47, 185, 232, 0.3)';
-                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.background = '#0070ff';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 112, 255, 0.3)';
+                e.currentTarget.style.transform = 'translateY(0)';
               }}
               onFocus={(e) => {
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(47, 185, 232, 0.3), 0 0 0 2px rgba(47, 185, 232, 0.5)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 112, 255, 0.3), 0 0 0 2px rgba(0, 112, 255, 0.5)';
               }}
               onBlur={(e) => {
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(47, 185, 232, 0.3)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 112, 255, 0.3)';
               }}
             >
               Reconnect
@@ -295,7 +308,7 @@ export const renderSectionContent = ({
               backdropFilter: isDarkMode ? 'none' : 'blur(16px) saturate(1.1)',
               WebkitBackdropFilter: isDarkMode ? 'none' : 'blur(16px) saturate(1.1)',
               border: `1px solid ${isDarkMode ? darkTheme.modal.border : 'rgba(255, 255, 255, 0.3)'}`,
-              borderRadius: '12px',
+              borderRadius: '8px',
               overflow: 'hidden',
               marginBottom: '20px',
               boxShadow: isDarkMode ? '0 4px 16px rgba(0, 0, 0, 0.3)' : '0 4px 16px rgba(0, 0, 0, 0.05)'
@@ -313,9 +326,11 @@ export const renderSectionContent = ({
             />
             
             <AppleSettingsRow
-              label="Export Format"
-              value="Excel (.xlsx)"
-              isEditable={false}
+              label="Your email"
+              value={userEmail}
+              isEditable={true}
+              onChange={setUserEmail}
+              placeholder="your@email.com"
               isMobile={isMobile}
               isDarkMode={isDarkMode}
             />
@@ -355,34 +370,32 @@ export const renderSectionContent = ({
               lineHeight: '20px',
               fontWeight: '600',
               fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-              background: isDarkMode ? darkTheme.buttons.primary.background : 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-              color: isDarkMode ? darkTheme.buttons.primary.text : '#ffffff',
+              background: '#0070ff',
+              color: '#ffffff',
               border: 'none',
-              borderRadius: '12px',
+              borderRadius: '6px',
               cursor: 'pointer',
-              transition: `all ${isDarkMode ? darkTheme.effects.microDelay : '240ms'} cubic-bezier(0.22, 0.61, 0.36, 1)`,
+              transition: 'all 200ms cubic-bezier(0.23, 1, 0.32, 1)',
               outline: 'none',
               boxSizing: 'border-box',
-              boxShadow: isDarkMode ? darkTheme.buttons.primary.shadow : '0 4px 14px rgba(99, 102, 241, 0.3)',
-              transform: 'scale(1)'
+              boxShadow: '0 2px 8px rgba(0, 112, 255, 0.3)',
+              transform: 'translateY(0)'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = isDarkMode ? darkTheme.buttons.primary.backgroundHover : 'linear-gradient(135deg, #7c7ff3 0%, #9d71f8 100%)';
-              e.currentTarget.style.boxShadow = isDarkMode ? darkTheme.buttons.primary.shadowHover : '0 6px 20px rgba(99, 102, 241, 0.4)';
-              e.currentTarget.style.transform = isDarkMode ? darkTheme.buttons.primary.scale : 'scale(1.03)';
+              e.currentTarget.style.background = '#0070ff';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 112, 255, 0.4)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = isDarkMode ? darkTheme.buttons.primary.background : 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)';
-              e.currentTarget.style.boxShadow = isDarkMode ? darkTheme.buttons.primary.shadow : '0 4px 14px rgba(99, 102, 241, 0.3)';
-              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.background = '#0070ff';
+              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 112, 255, 0.3)';
+              e.currentTarget.style.transform = 'translateY(0)';
             }}
             onFocus={(e) => {
-              e.currentTarget.style.boxShadow = isDarkMode 
-                ? `${darkTheme.buttons.primary.shadow}, ${darkTheme.effects.focusRing}` 
-                : '0 4px 14px rgba(99, 102, 241, 0.3), 0 0 0 2px rgba(99, 110, 255, 0.5)';
+              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 112, 255, 0.3), 0 0 0 2px rgba(0, 112, 255, 0.5)';
             }}
             onBlur={(e) => {
-              e.currentTarget.style.boxShadow = isDarkMode ? darkTheme.buttons.primary.shadow : '0 4px 14px rgba(99, 102, 241, 0.3)';
+              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 112, 255, 0.3)';
             }}
           >
             Send to my email
@@ -399,7 +412,7 @@ export const renderSectionContent = ({
               backdropFilter: isDarkMode ? 'none' : 'blur(16px) saturate(1.1)',
               WebkitBackdropFilter: isDarkMode ? 'none' : 'blur(16px) saturate(1.1)',
               border: `1px solid ${isDarkMode ? darkTheme.modal.border : 'rgba(255, 255, 255, 0.3)'}`,
-              borderRadius: '12px',
+              borderRadius: '8px',
               overflow: 'hidden',
               marginBottom: '20px',
               boxShadow: isDarkMode ? '0 4px 16px rgba(0, 0, 0, 0.3)' : '0 4px 16px rgba(0, 0, 0, 0.05)'
@@ -497,34 +510,32 @@ export const renderSectionContent = ({
               lineHeight: '20px',
               fontWeight: '600',
               fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-              background: isDarkMode ? 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)' : 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+              background: '#0070ff',
               color: '#ffffff',
               border: 'none',
-              borderRadius: '12px',
+              borderRadius: '6px',
               cursor: 'pointer',
-              transition: `all ${isDarkMode ? darkTheme.effects.microDelay : '240ms'} cubic-bezier(0.22, 0.61, 0.36, 1)`,
+              transition: 'all 200ms cubic-bezier(0.23, 1, 0.32, 1)',
               outline: 'none',
               boxSizing: 'border-box',
-              boxShadow: isDarkMode ? '0 4px 14px rgba(220, 38, 38, 0.3)' : '0 4px 14px rgba(220, 38, 38, 0.3)',
-              transform: 'scale(1)'
+              boxShadow: '0 2px 8px rgba(0, 112, 255, 0.3)',
+              transform: 'translateY(0)'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = isDarkMode ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' : 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
-              e.currentTarget.style.boxShadow = isDarkMode ? '0 6px 20px rgba(220, 38, 38, 0.4)' : '0 6px 20px rgba(220, 38, 38, 0.4)';
-              e.currentTarget.style.transform = 'scale(1.02)';
+              e.currentTarget.style.background = '#0070ff';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 112, 255, 0.4)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = isDarkMode ? 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)' : 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)';
-              e.currentTarget.style.boxShadow = isDarkMode ? '0 4px 14px rgba(220, 38, 38, 0.3)' : '0 4px 14px rgba(220, 38, 38, 0.3)';
-              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.background = '#0070ff';
+              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 112, 255, 0.3)';
+              e.currentTarget.style.transform = 'translateY(0)';
             }}
             onFocus={(e) => {
-              e.currentTarget.style.boxShadow = isDarkMode 
-                ? '0 4px 14px rgba(220, 38, 38, 0.3), 0 0 0 2px rgba(239, 68, 68, 0.5)' 
-                : '0 4px 14px rgba(220, 38, 38, 0.3), 0 0 0 2px rgba(239, 68, 68, 0.5)';
+              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 112, 255, 0.3), 0 0 0 2px rgba(0, 112, 255, 0.5)';
             }}
             onBlur={(e) => {
-              e.currentTarget.style.boxShadow = isDarkMode ? '0 4px 14px rgba(220, 38, 38, 0.3)' : '0 4px 14px rgba(220, 38, 38, 0.3)';
+              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 112, 255, 0.3)';
             }}
           >
             Logout
@@ -568,7 +579,7 @@ export const renderSectionContent = ({
               backdropFilter: isDarkMode ? 'none' : 'blur(16px) saturate(1.1)',
               WebkitBackdropFilter: isDarkMode ? 'none' : 'blur(16px) saturate(1.1)',
               border: `1px solid ${isDarkMode ? darkTheme.modal.border : 'rgba(255, 255, 255, 0.3)'}`,
-              borderRadius: '12px',
+              borderRadius: '8px',
               overflow: 'hidden',
               marginBottom: '20px',
               boxShadow: isDarkMode ? '0 4px 16px rgba(0, 0, 0, 0.3)' : '0 4px 16px rgba(0, 0, 0, 0.05)'
@@ -734,7 +745,7 @@ Timestamp: ${new Date().toISOString()}
                     border: isFullyEnabled || isPartiallyEnabled 
                       ? 'none'
                       : `1px solid ${isDarkMode ? darkTheme.buttons.disabled.border : 'rgba(255, 255, 255, 0.3)'}`,
-                    borderRadius: '12px',
+                    borderRadius: '8px',
                     cursor: isFullyEnabled || isPartiallyEnabled ? 'pointer' : 'not-allowed',
                     transition: `all ${isDarkMode ? darkTheme.effects.microDelay : '240ms'} cubic-bezier(0.22, 0.61, 0.36, 1)`,
                     outline: 'none',
@@ -821,7 +832,7 @@ Timestamp: ${new Date().toISOString()}
                       fontSize: '12px',
                       lineHeight: '16px',
                       fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                      borderRadius: '6px',
+                      borderRadius: '4px', // Base tier for buttons
                       whiteSpace: 'nowrap',
                       opacity: 0,
                       pointerEvents: 'none',

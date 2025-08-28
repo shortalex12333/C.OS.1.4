@@ -438,7 +438,11 @@ export function SignUp({ onSignUp, onBack, isMobile = false, isDarkMode = false 
                 className="btn-gradient-primary radius-tight w-full font-eloquia-text disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{
                   padding: '14px 24px',
-                  fontSize: '16px'
+                  fontSize: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  lineHeight: 1
                 }}
               >
                 {isLoading ? (

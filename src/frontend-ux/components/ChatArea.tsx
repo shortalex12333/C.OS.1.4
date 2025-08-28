@@ -12,7 +12,7 @@ interface ChatAreaProps {
   selectedModel?: string;
   onModelChange?: (modelId: string) => void;
   messages?: ChatMessage[];
-  onAskAlexClick?: () => void;
+  onFAQpageClick?: () => void;
   isWaitingForResponse?: boolean;
   searchType?: 'yacht' | 'email' | 'email-yacht';
 }
@@ -25,7 +25,7 @@ export function ChatArea({
   selectedModel = 'air', 
   onModelChange, 
   messages = [], 
-  onAskAlexClick,
+  onFAQpageClick,
   isWaitingForResponse = false,
   searchType = 'yacht'
 }: ChatAreaProps) {
@@ -116,16 +116,29 @@ export function ChatArea({
 
   if (!isChatMode) {
     return (
-      <div className="flex h-full flex-col">
-        {/* Main Header with CelesteOS branding */}
-        <MainHeader 
-          isMobile={isMobile}
-          isDarkMode={isDarkMode}
-          isChatMode={false}
-          selectedModel={selectedModel}
-          onModelChange={onModelChange}
-          onAskAlexClick={onAskAlexClick}
-        />
+      <div className="flex h-full flex-col" style={{ position: 'relative' }}>
+        {/* Main Header with CelesteOS branding - STICKY POSITION */}
+        <div style={{
+          position: 'sticky',
+          top: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: 'transparent',
+          opacity: 0,
+          borderBottom: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'}`,
+          zIndex: 1000,
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)'
+        }}>
+          <MainHeader 
+            isMobile={isMobile}
+            isDarkMode={isDarkMode}
+            isChatMode={false}
+            selectedModel={selectedModel}
+            onModelChange={onModelChange}
+            onFAQpageClick={onFAQpageClick}
+          />
+        </div>
         
         {/* Welcome State Content */}
         <div className="flex h-full items-center justify-center welcome_state_container">
@@ -166,24 +179,37 @@ export function ChatArea({
   }
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Main Header with CelesteOS branding and Model Selector */}
-      <MainHeader 
-        isMobile={isMobile}
-        isDarkMode={isDarkMode}
-        isChatMode={true}
-        selectedModel={selectedModel}
-        onModelChange={onModelChange}
-        onAskAlexClick={onAskAlexClick}
-      />
+    <div className="flex h-full flex-col" style={{ position: 'relative', overflow: 'hidden' }}>
+      {/* Main Header with CelesteOS branding and Model Selector - STICKY POSITION */}
+      <div style={{
+        position: 'sticky',
+        top: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: isDarkMode ? 'var(--background, #0f0b12)' : '#ffffff',
+        borderBottom: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'}`,
+        zIndex: 1000,
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)'
+      }}>
+        <MainHeader 
+          isMobile={isMobile}
+          isDarkMode={isDarkMode}
+          isChatMode={true}
+          selectedModel={selectedModel}
+          onModelChange={onModelChange}
+          onFAQpageClick={onFAQpageClick}
+        />
+      </div>
       
       {/* Chat Messages Container */}
       <div 
         className="flex flex-col h-full flex-1 chat_messages_container"
         style={{
-          maxWidth: isMobile ? '390px' : '760px',
+          maxWidth: isMobile ? '390px' : 'min(1200px, calc(100vw - 320px))',
           margin: '0 auto',
-          padding: isMobile ? '16px' : '24px'
+          padding: isMobile ? '16px' : '24px',
+          overflowY: 'auto'
         }}
       >
         <div 
@@ -194,14 +220,22 @@ export function ChatArea({
         >
           {/* Dynamic Chat Messages */}
           <div className="space-y-6">
-            {messages.map((message) => (
-              <ChatMessageComponent
+            {messages.map((message, index) => (
+              <div
                 key={message.id}
-                message={message}
-                displayName={displayName}
-                isDarkMode={isDarkMode}
-                isMobile={isMobile}
-              />
+                style={{
+                  animation: index === messages.length - 1 && message.isUser
+                    ? 'messageAppear 0.5s cubic-bezier(0.22, 0.61, 0.36, 1)'
+                    : 'none'
+                }}
+              >
+                <ChatMessageComponent
+                  message={message}
+                  displayName={displayName}
+                  isDarkMode={isDarkMode}
+                  isMobile={isMobile}
+                />
+              </div>
             ))}
             {/* Thinking Indicator */}
             {isWaitingForResponse && (

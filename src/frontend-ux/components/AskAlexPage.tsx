@@ -29,12 +29,14 @@ interface AskAlexPageProps {
 export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: AskAlexPageProps) {
   // FAQ page always uses dark theme regardless of user preference
   const useDarkTheme = true;
+  const displayName = 'User'; // Default display name for FAQ page
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [hasFirstMessage, setHasFirstMessage] = useState(false);
+  const [showScheduleCallPopup, setShowScheduleCallPopup] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -270,6 +272,19 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
     }
   }, [chatMessages]);
 
+  // Trigger schedule call popup on 5th user message in FAQ
+  useEffect(() => {
+    // Count only user messages (not bot responses)
+    const userMessages = chatMessages.filter(message => message.isUser);
+    const userMessageCount = userMessages.length;
+    
+    // Trigger popup when user sends their 5th message in FAQ
+    if (userMessageCount === 5 && !showScheduleCallPopup) {
+      console.log('🎯 FAQ: Triggering schedule call popup - user has sent 5 messages');
+      setShowScheduleCallPopup(true);
+    }
+  }, [chatMessages, showScheduleCallPopup]);
+
   // Auto-resize search input
   const adjustSearchInputHeight = () => {
     const textarea = searchInputRef.current;
@@ -290,6 +305,10 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
       e.preventDefault();
       handleSendQuestion();
     }
+  };
+
+  const handleCloseScheduleCallPopup = () => {
+    setShowScheduleCallPopup(false);
   };
 
   // Centered layout before first message, two-column after
@@ -354,30 +373,35 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
             <div style={{
               marginBottom: '32px'
             }}>
-              <BrainLogo 
-                size={120} 
-                isDarkMode={true} // Always use white logo for dark FAQ page
+              <img 
+                src="/dark-faq-logo.png" 
+                alt="CelesteOS Logo" 
+                style={{
+                  width: '256px',
+                  height: '256px',
+                  objectFit: 'contain'
+                }}
               />
             </div>
             <h1 style={{
               fontSize: '32px',
               fontWeight: '600',
-              color: '#ffffff', // Always white text for dark mode
+              color: '#004aff',
               marginBottom: '12px',
               letterSpacing: '-0.5px',
               fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
             }}>
-              Ask CelesteOS Assistant
+              FAQ
             </h1>
             <p style={{
               fontSize: '16px',
-              color: 'rgba(255, 255, 255, 0.7)', // Always light text for dark mode
+              color: 'rgba(255, 255, 255, 0.7)',
               textAlign: 'center',
               maxWidth: '400px',
-              lineHeight: '24px',
+              lineHeight: '1.5',
               fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
             }}>
-              Get instant answers about yacht systems, maintenance, and operations
+              Search topics, or just ask
             </p>
           </div>
 
@@ -402,7 +426,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Ask a question or search FAQs..."
+                placeholder="Simply ask a question or search FAQs"
                 rows={1}
                 className="overflow-hidden resize-none"
                 style={{
@@ -422,23 +446,45 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
                 onClick={handleSendQuestion}
                 disabled={!searchQuery.trim() || isLoading}
                 style={{
-                  padding: '12px 24px',
-                  background: '#0a84ff',
+                  width: '44px',
+                  height: '44px',
+                  background: searchQuery.trim() && !isLoading 
+                    ? '#0070ff'
+                    : 'rgba(156, 163, 175, 0.3)',
                   border: 'none',
-                  borderRadius: '8px',
+                  borderRadius: '6px',
                   color: '#ffffff',
-                  fontSize: '17px',
-                  fontWeight: '500',
                   cursor: searchQuery.trim() && !isLoading ? 'pointer' : 'not-allowed',
-                  opacity: searchQuery.trim() && !isLoading ? 1 : 0.5,
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  transition: 'all 0.2s'
+                  justifyContent: 'center',
+                  transition: 'all 200ms cubic-bezier(0.23, 1, 0.32, 1)',
+                  transform: 'translateY(0)',
+                  boxShadow: searchQuery.trim() && !isLoading 
+                    ? '0 2px 8px rgba(0, 112, 255, 0.3)'
+                    : 'none'
+                }}
+                onMouseEnter={(e) => {
+                  if (searchQuery.trim() && !isLoading) {
+                    e.currentTarget.style.backgroundColor = '#0070ff';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 112, 255, 0.4)';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (searchQuery.trim() && !isLoading) {
+                    e.currentTarget.style.backgroundColor = '#0070ff';
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 112, 255, 0.3)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }
                 }}
               >
-                <Send size={18} />
-                Ask
+                <Send 
+                  size={20} 
+                  style={{ 
+                    color: searchQuery.trim() && !isLoading ? '#ffffff' : '#9ca3af' 
+                  }} 
+                />
               </button>
             </div>
           </div>
@@ -454,9 +500,10 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
               fontWeight: '600',
               color: '#ffffff',
               marginBottom: '24px',
-              textAlign: 'center'
+              textAlign: 'center',
+              fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
             }}>
-              Frequently Asked Questions
+              Explore Frequently Asked Questions
             </h2>
             
             <div style={{
@@ -493,15 +540,16 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                   >
                     <span style={{
-                      fontSize: '17px',
+                      fontSize: '16px',
                       color: '#ffffff',
-                      fontWeight: '500'
+                      fontWeight: '500',
+                      fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                     }}>
                       {item.question}
                     </span>
                     <ChevronRight 
                       size={20} 
-                      color="rgba(255, 255, 255, 0.5)"
+                      color="#0070ff"
                       style={{
                         transform: expandedItems.has(item.id) ? 'rotate(90deg)' : 'rotate(0)',
                         transition: 'transform 0.2s'
@@ -517,7 +565,8 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
                       <p style={{
                         fontSize: '15px',
                         color: 'rgba(255, 255, 255, 0.7)',
-                        lineHeight: '1.6'
+                        lineHeight: '1.6',
+                        fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>
                         {item.answer}
                       </p>
@@ -529,8 +578,111 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
           </div>
         </div>
 
+        {/* Schedule Call Popup - Triggered on 5th FAQ message */}
+        {showScheduleCallPopup && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 20000,
+            backdropFilter: 'blur(12px)'
+          }}>
+            <div style={{
+              background: '#0f1117',
+              borderRadius: '8px',
+              padding: '32px',
+              maxWidth: isMobile ? '90%' : '500px',
+              width: '100%',
+              margin: '20px',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.9)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              animation: 'popupAppear 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+            }}>
+              <h3 style={{
+                fontSize: '24px',
+                fontWeight: '600',
+                color: '#ffffff',
+                marginBottom: '16px',
+                textAlign: 'center',
+                fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+              }}>
+                🎯 Great questions!
+              </h3>
+              <p style={{
+                fontSize: '16px',
+                color: 'rgba(255, 255, 255, 0.8)',
+                marginBottom: '24px',
+                lineHeight: '1.5',
+                textAlign: 'center',
+                fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+              }}>
+                You're really diving deep into CelesteOS! Let's schedule a personalized demo to show you exactly how it works for your specific setup.
+              </p>
+              <div style={{
+                display: 'flex',
+                gap: '12px',
+                justifyContent: 'center',
+                flexWrap: 'wrap'
+              }}>
+                <button
+                  onClick={() => {
+                    window.open('https://calendly.com/celesteos/demo', '_blank');
+                    handleCloseScheduleCallPopup();
+                  }}
+                  style={{
+                    backgroundColor: '#0070ff',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '12px 24px',
+                    fontSize: '16px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Book a Demo
+                </button>
+                <button
+                  onClick={handleCloseScheduleCallPopup}
+                  style={{
+                    backgroundColor: 'transparent',
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '8px',
+                    padding: '12px 24px',
+                    fontSize: '16px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Continue Exploring
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Animation Styles */}
         <style>{`
+          @keyframes popupAppear {
+            0% {
+              opacity: 0;
+              transform: scale(0.9) translateY(-20px);
+            }
+            100% {
+              opacity: 1;
+              transform: scale(1) translateY(0);
+            }
+          }
+          
           @keyframes fadeIn {
             from {
               opacity: 0;
@@ -574,9 +726,9 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
         position: 'fixed',
         inset: 0,
         zIndex: 10005,
-        background: '#0f1117 !important', // Always dark background - force override
+        background: 'rgba(15, 17, 23, 0)', // 0% opacity background
         overflow: 'hidden',
-        fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         display: 'flex',
         height: '100vh'
       }}
@@ -631,25 +783,32 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
             <div style={{
               marginBottom: '20px'
             }}>
-              <BrainLogo 
-                size={80} 
-                isDarkMode={true} // Always use white logo for dark FAQ page
+              <img 
+                src="/dark-faq-logo.png" 
+                alt="CelesteOS Logo" 
+                style={{
+                  width: '128px',
+                  height: '128px',
+                  objectFit: 'contain'
+                }}
               />
             </div>
             <h1 style={{
               fontSize: '24px',
               fontWeight: '600',
-              color: '#ffffff',
-              marginBottom: '8px'
+              color: '#004aff',
+              marginBottom: '8px',
+              fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
             }}>
-              Ask CelesteOS Assistant
+              FAQ
             </h1>
             <p style={{
               fontSize: '14px',
               color: 'rgba(255, 255, 255, 0.6)',
-              textAlign: 'center'
+              textAlign: 'center',
+              fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
             }}>
-              Get instant answers about yacht systems
+              Search topics, or just ask
             </p>
           </div>
         </div>
@@ -678,53 +837,81 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
               {chatMessages.map((message) => (
                 <div
                   key={message.id}
+                  className={`flex gap-3 ${message.isUser ? 'user_message_container flex-row-reverse ml-8' : 'ai_response_container mr-8'}`}
                   style={{
-                    marginBottom: '20px',
-                    display: 'flex',
-                    gap: '12px',
-                    alignItems: 'flex-start'
+                    marginBottom: '20px'
                   }}
                 >
-                  <div style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '8px',
-                    background: message.isUser ? '#0a84ff' : 'rgba(255, 255, 255, 0.1)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0
-                  }}>
-                    {message.isUser ? <User size={18} color="#ffffff" /> : <Bot size={18} color="#ffffff" />}
+                  {/* Avatar */}
+                  <div className={`flex items-center justify-center flex-shrink-0 ${
+                    message.isUser 
+                      ? 'w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm user_avatar_display' 
+                      : 'w-8 h-8 ai_avatar_display'
+                  }`}>
+                    {message.isUser ? (
+                      <span 
+                        className="text-white font-medium"
+                        style={{
+                          fontSize: '10px',
+                          lineHeight: '10px',
+                          fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+                        }}
+                      >
+                        {(displayName || 'User')
+                          .split(' ')
+                          .map(name => name[0])
+                          .join('')
+                          .slice(0, 2)
+                          .toUpperCase()}
+                      </span>
+                    ) : (
+                      <BrainLogo 
+                        size={32}
+                        isDarkMode={true}
+                        className="transition-all duration-300"
+                      />
+                    )}
                   </div>
                   
-                  <div style={{ flex: 1 }}>
-                    <p style={{
-                      fontSize: '12px',
-                      color: 'rgba(255, 255, 255, 0.6)', // Always light text
-                      marginBottom: '4px',
-                      fontWeight: '500',
-                      fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-                    }}>
-                      {message.isUser ? 'You' : 'CelesteOS Assistant'}
-                    </p>
-                    <p style={{
-                      fontSize: isMobile ? '14px' : '15px',
-                      color: '#f3f4f6', // Always light text
-                      lineHeight: isMobile ? '20px' : '22px',
-                      fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-                      fontWeight: '400'
-                    }}>
-                      {message.isUser ? (
-                        message.content
-                      ) : (
-                        <StreamingText 
-                          text={message.content} 
-                          isStreaming={message.isStreaming ?? false}
-                          delay={20} // Per-word animation, no jitter
-                        />
-                      )}
-                    </p>
+                  <div className="flex-1 min-w-0">
+                    {/* Name label */}
+                    <div 
+                      className={`mb-1 ${message.isUser ? 'user_label_display' : 'assistant_label_display'}`}
+                      style={{
+                        fontSize: '14px',
+                        lineHeight: '20px',
+                        fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                        color: 'rgba(246, 247, 251, 0.7)',
+                        textAlign: message.isUser ? 'right' : 'left'
+                      }}
+                    >
+                      {message.isUser ? 'You' : 'CelesteOS'}
+                    </div>
+                    
+                    {/* Message content */}
+                    <div style={{ textAlign: message.isUser ? 'right' : 'left' }}>
+                      <div 
+                        className={message.isUser ? 'user_query_display' : 'ai_response_message'}
+                        style={{
+                          fontSize: isMobile ? '15px' : '16px',
+                          lineHeight: isMobile ? '22px' : '24px',
+                          letterSpacing: '-0.32px',
+                          fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                          color: '#f6f7fb',
+                          textAlign: message.isUser ? 'right' : 'left'
+                        }}
+                      >
+                        {message.isUser ? (
+                          String(message.content)
+                        ) : (
+                          <StreamingText 
+                            text={message.content} 
+                            isStreaming={message.isStreaming ?? false}
+                            delay={20}
+                          />
+                        )}
+                      </div>
+                    </div>
                     
                     {/* Display suggestions for bot messages */}
                     {!message.isUser && message.suggestions && message.suggestions.length > 0 && !message.isStreaming && (
@@ -891,23 +1078,45 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
               onClick={handleSendQuestion}
               disabled={!searchQuery.trim() || isLoading}
               style={{
-                padding: '10px 20px',
-                background: '#0a84ff',
+                width: '44px',
+                height: '44px',
+                background: searchQuery.trim() && !isLoading 
+                  ? '#0070ff'
+                  : 'rgba(156, 163, 175, 0.3)',
                 border: 'none',
-                borderRadius: '8px',
+                borderRadius: '6px',
                 color: '#ffffff',
-                fontSize: '15px',
-                fontWeight: '500',
                 cursor: searchQuery.trim() && !isLoading ? 'pointer' : 'not-allowed',
-                opacity: searchQuery.trim() && !isLoading ? 1 : 0.5,
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
-                transition: 'all 0.2s'
+                justifyContent: 'center',
+                transition: 'all 200ms cubic-bezier(0.23, 1, 0.32, 1)',
+                transform: 'translateY(0)',
+                boxShadow: searchQuery.trim() && !isLoading 
+                  ? '0 2px 8px rgba(0, 112, 255, 0.3)'
+                  : 'none'
+              }}
+              onMouseEnter={(e) => {
+                if (searchQuery.trim() && !isLoading) {
+                  e.currentTarget.style.backgroundColor = '#0070ff';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 112, 255, 0.4)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (searchQuery.trim() && !isLoading) {
+                  e.currentTarget.style.backgroundColor = '#0070ff';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 112, 255, 0.3)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }
               }}
             >
-              <Send size={16} />
-              Ask
+              <Send 
+                size={20} 
+                style={{ 
+                  color: searchQuery.trim() && !isLoading ? '#ffffff' : '#9ca3af' 
+                }} 
+              />
             </button>
           </div>
         </div>
@@ -931,9 +1140,10 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
           <h2 style={{
             fontSize: '20px',
             fontWeight: '600',
-            color: '#ffffff'
+            color: '#ffffff',
+            fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
           }}>
-            Frequently Asked Questions
+            Explore Frequently Asked Questions
           </h2>
           {searchQuery && (
             <p style={{
@@ -985,13 +1195,14 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
                   fontSize: '15px',
                   color: '#ffffff',
                   fontWeight: '500',
-                  paddingRight: '12px'
+                  paddingRight: '12px',
+                  fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                 }}>
                   {item.question}
                 </span>
                 <ChevronRight 
                   size={18} 
-                  color="rgba(255, 255, 255, 0.5)"
+                  color="#0070ff"
                   style={{
                     transform: expandedItems.has(item.id) ? 'rotate(90deg)' : 'rotate(0)',
                     transition: 'transform 0.2s',
@@ -1008,7 +1219,8 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
                   <p style={{
                     fontSize: '14px',
                     color: 'rgba(255, 255, 255, 0.7)',
-                    lineHeight: '1.6'
+                    lineHeight: '1.6',
+                    fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                   }}>
                     {item.answer}
                   </p>
@@ -1019,8 +1231,111 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false }: As
         </div>
       </div>
 
+      {/* Schedule Call Popup - Triggered on 5th FAQ message */}
+      {showScheduleCallPopup && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 20000,
+          backdropFilter: 'blur(12px)'
+        }}>
+          <div style={{
+            background: '#0f1117',
+            borderRadius: '8px',
+            padding: '32px',
+            maxWidth: isMobile ? '90%' : '500px',
+            width: '100%',
+            margin: '20px',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.9)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            animation: 'popupAppear 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+          }}>
+            <h3 style={{
+              fontSize: '24px',
+              fontWeight: '600',
+              color: '#ffffff',
+              marginBottom: '16px',
+              textAlign: 'center',
+              fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            }}>
+              🎯 Great questions!
+            </h3>
+            <p style={{
+              fontSize: '16px',
+              color: 'rgba(255, 255, 255, 0.8)',
+              marginBottom: '24px',
+              lineHeight: '1.5',
+              textAlign: 'center',
+              fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            }}>
+              You're really diving deep into CelesteOS! Let's schedule a personalized demo to show you exactly how it works for your specific setup.
+            </p>
+            <div style={{
+              display: 'flex',
+              gap: '12px',
+              justifyContent: 'center',
+              flexWrap: 'wrap'
+            }}>
+              <button
+                onClick={() => {
+                  window.open('https://calendly.com/celesteos/demo', '_blank');
+                  handleCloseScheduleCallPopup();
+                }}
+                style={{
+                  backgroundColor: '#0070ff',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '12px 24px',
+                  fontSize: '16px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Book a Demo
+              </button>
+              <button
+                onClick={handleCloseScheduleCallPopup}
+                style={{
+                  backgroundColor: 'transparent',
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: '8px',
+                  padding: '12px 24px',
+                  fontSize: '16px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Continue Exploring
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Animation Styles */}
       <style>{`
+        @keyframes popupAppear {
+          0% {
+            opacity: 0;
+            transform: scale(0.9) translateY(-20px);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+        
         @keyframes fadeIn {
           from {
             opacity: 0;

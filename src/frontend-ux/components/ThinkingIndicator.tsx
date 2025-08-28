@@ -9,20 +9,20 @@ export function ThinkingIndicator({ isDarkMode = false, searchType = 'yacht' }: 
   const [currentHintIndex, setCurrentHintIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // Different hint sets based on search type
+  // Clean hint sets based on search type
   const hintSets = {
     yacht: [
       'Searching yacht databases',
       'Finding part numbers',
       'Analyzing service manuals',
       'Checking inventory systems',
-      'Diving into technical specs'
+      'Reviewing technical specs'
     ],
     email: [
       'Scanning email threads',
       'Analyzing attachments',
-      'Finding relevant conversations',
-      'Extracting key information',
+      'Finding conversations',
+      'Extracting information',
       'Processing correspondence'
     ],
     'email-yacht': [
@@ -30,7 +30,7 @@ export function ThinkingIndicator({ isDarkMode = false, searchType = 'yacht' }: 
       'Matching part inquiries',
       'Finding documentation',
       'Analyzing requirements',
-      'Searching NAS systems'
+      'Searching systems'
     ]
   };
 
@@ -42,8 +42,8 @@ export function ThinkingIndicator({ isDarkMode = false, searchType = 'yacht' }: 
       setTimeout(() => {
         setCurrentHintIndex((prev) => (prev + 1) % hints.length);
         setIsTransitioning(false);
-      }, 200);
-    }, 2500);
+      }, 300);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [hints.length]);
@@ -80,45 +80,40 @@ export function ThinkingIndicator({ isDarkMode = false, searchType = 'yacht' }: 
         <span style={{ color: 'white', fontSize: '16px', fontWeight: 'bold' }}>C</span>
       </div>
 
-      {/* Thinking Bubble */}
+      {/* Clean Thinking Bubble - No border, no background */}
       <div 
         className="thinking-bubble"
         style={{
-          background: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
-          border: isDarkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)',
-          borderRadius: '12px',
           padding: '12px 16px',
           minWidth: '200px',
           maxWidth: '400px'
         }}
       >
-        {/* Primary Message */}
+        {/* Thinking with streaming dots */}
         <div 
           className="thinking-primary"
           style={{
             fontSize: '15px',
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
             color: isDarkMode ? '#ffffff' : '#000000',
-            opacity: 1,
+            marginBottom: '6px',
             display: 'flex',
-            alignItems: 'center',
-            marginBottom: '4px'
+            alignItems: 'center'
           }}
         >
           <span>Thinking</span>
-          <span className="thinking-dots">...</span>
+          <span className="streaming-dots"></span>
         </div>
 
-        {/* Secondary Hint */}
+        {/* Static placeholder text */}
         <div 
           className="thinking-secondary"
           style={{
             fontSize: '14px',
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-            color: isDarkMode ? '#ffffff' : '#000000',
-            opacity: isTransitioning ? 0 : 0.66,
-            transition: 'opacity 200ms ease-in-out',
-            minHeight: '20px'
+            color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+            opacity: isTransitioning ? 0.3 : 1,
+            transition: 'opacity 300ms ease-in-out'
           }}
         >
           {hints[currentHintIndex]}
@@ -126,32 +121,26 @@ export function ThinkingIndicator({ isDarkMode = false, searchType = 'yacht' }: 
       </div>
 
       <style>{`
-        @keyframes thinking-dots {
-          0%, 20% {
+        @keyframes streamingDots {
+          0% {
             content: '';
           }
-          40% {
+          25% {
             content: '.';
           }
-          60% {
+          50% {
             content: '..';
           }
-          80%, 100% {
+          75%, 100% {
             content: '...';
           }
         }
 
-        .thinking-dots::after {
+        .streaming-dots::after {
           content: '';
-          animation: thinking-dots 1.4s infinite;
+          animation: streamingDots 1.2s infinite ease-in-out;
           display: inline-block;
-          width: 20px;
-          text-align: left;
-        }
-
-        .thinking-dots {
-          display: inline-block;
-          width: 20px;
+          width: 24px;
           text-align: left;
         }
       `}</style>

@@ -142,7 +142,7 @@ export function DynamicFAQSuggestions({
               padding: '16px',
               background: backgroundColor,
               border: `1px solid ${borderColor}`,
-              borderRadius: '12px',
+              borderRadius: '4px', // Base tier for inner elements // Container tier for cards
               cursor: 'pointer',
               transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
               textAlign: 'left',
@@ -172,12 +172,12 @@ export function DynamicFAQSuggestions({
               flexShrink: 0,
               width: '36px',
               height: '36px',
-              borderRadius: '8px',
-              background: isDarkMode ? 'rgba(99, 102, 241, 0.2)' : 'rgba(99, 102, 241, 0.1)',
+              borderRadius: '4px', // Base tier for inner elements
+              background: isDarkMode ? 'rgba(186, 221, 233, 0.2)' : 'rgba(186, 221, 233, 0.1)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#6366f1'
+              color: '#BADDE9'
             }}>
               {categoryIcons[item.category] || <HelpCircle size={16} />}
             </div>
@@ -206,10 +206,10 @@ export function DynamicFAQSuggestions({
                   <span style={{
                     fontSize: '11px',
                     fontWeight: '500',
-                    color: '#6366f1',
-                    background: isDarkMode ? 'rgba(99, 102, 241, 0.15)' : 'rgba(99, 102, 241, 0.1)',
+                    color: '#BADDE9',
+                    background: isDarkMode ? 'rgba(186, 221, 233, 0.15)' : 'rgba(186, 221, 233, 0.1)',
                     padding: '2px 6px',
-                    borderRadius: '4px',
+                    borderRadius: '2px', // Micro tier for badges
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px'
                   }}>
@@ -221,7 +221,7 @@ export function DynamicFAQSuggestions({
                 {item.priority >= 9 && (
                   <span style={{
                     fontSize: '11px',
-                    color: isDarkMode ? '#fbbf24' : '#d97706',
+                    color: isDarkMode ? '#004aff' : '#004aff',
                     fontWeight: '500'
                   }}>
                     Popular
@@ -287,7 +287,7 @@ export function DynamicFAQSuggestions({
         }
 
         .faq-suggestion-card:focus {
-          outline: 2px solid #6366f1;
+          outline: 2px solid #BADDE9;
           outline-offset: 2px;
         }
 

@@ -166,8 +166,8 @@ export function AISolutionCard({ solutions, isMobile = false, isDarkMode = false
     }
   };
 
-  // Helper function to get confidence circle styles based on confidence percentage
-  const getConfidenceCircleStyle = (confidenceScore: number) => {
+  // Helper function to get confidence circle styles based on confidence percentage - Premium unified colors
+  const getConfidenceCircleStyle = (confidenceScore: number, isDarkMode: boolean = false) => {
     const baseStyle = {
       border: 'none',
       borderRadius: '50%',
@@ -175,30 +175,41 @@ export function AISolutionCard({ solutions, isMobile = false, isDarkMode = false
       alignItems: 'center',
       justifyContent: 'center',
       transition: 'all 0.2s cubic-bezier(0.22, 0.61, 0.36, 1)',
-      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+      boxShadow: isDarkMode 
+        ? '0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+        : '0 2px 8px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
     };
 
-    // Determine color based on confidence percentage
-    if (confidenceScore >= 85) {
-      // Green for high confidence (85%+)
+    // Premium unified confidence colors - matching CleanSolutionCard
+    if (confidenceScore >= 75) {
+      // High confidence - Premium Green
+      const color = isDarkMode ? '#10b981' : '#059669';
       return {
         ...baseStyle,
-        background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-        boxShadow: '0 3px 12px rgba(34, 197, 94, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+        background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`,
+        boxShadow: isDarkMode 
+          ? `0 3px 12px rgba(16, 185, 129, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)`
+          : `0 3px 12px rgba(5, 150, 105, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3)`,
       };
-    } else if (confidenceScore >= 67.5) {
-      // Amber for medium confidence (67.5-85%)
+    } else if (confidenceScore >= 50) {
+      // Medium confidence - Premium Amber
+      const color = isDarkMode ? '#f59e0b' : '#d97706';
       return {
         ...baseStyle,
-        background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-        boxShadow: '0 3px 12px rgba(245, 158, 11, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+        background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`,
+        boxShadow: isDarkMode 
+          ? `0 3px 12px rgba(245, 158, 11, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)`
+          : `0 3px 12px rgba(217, 119, 6, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3)`,
       };
     } else {
-      // Red for low confidence (<67.5%)
+      // Low confidence - Premium Red
+      const color = isDarkMode ? '#ef4444' : '#dc2626';
       return {
         ...baseStyle,
-        background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-        boxShadow: '0 3px 12px rgba(239, 68, 68, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+        background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`,
+        boxShadow: isDarkMode 
+          ? `0 3px 12px rgba(239, 68, 68, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)`
+          : `0 3px 12px rgba(220, 38, 38, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3)`,
       };
     }
   };
@@ -355,7 +366,7 @@ export function AISolutionCard({ solutions, isMobile = false, isDarkMode = false
   return (
     // Binds to: response.solutions[]
     <div 
-      className="w-full flex flex-col solutions_container"
+      className="w-full flex flex-col solutions_container solution-cards-dark-theme"
       style={{ 
         padding: isMobile ? '8px' : '12px', // Mobile: 8px for more width, Desktop: 12px
         gap: isMobile ? '16px' : '20px' // Mobile: 16px, Desktop: 20px spacing
@@ -369,30 +380,14 @@ export function AISolutionCard({ solutions, isMobile = false, isDarkMode = false
           // Binds to: response.solutions[].id
           <motion.div
             key={solutionId}
-            className={`
-              border border-gray-200 overflow-hidden solution_card
-              ${isExpanded ? 'bg-white/95 backdrop-blur-sm' : 'bg-white hover:bg-gray-50/50'}
-            `}
+            className="overflow-hidden solution_card"
             style={{
-              borderRadius: '8px', // Cards have 8px radius
-              // Maximum Strength Glassmorphism effect - Semi-transparent background
-              backgroundColor: isExpanded 
-                ? 'rgba(255, 255, 255, 0.10)' // Expanded: 10% white background with glass effect
-                : 'rgba(255, 255, 255, 0.10)', // Collapsed: Same 10% white background
-              // Enhanced backdrop blur for maximum glassmorphism (32px blur, 1.3 saturation)
-              backdropFilter: isExpanded 
-                ? 'blur(32px) saturate(1.3)' // Expanded: Maximum strength blur with saturation
-                : 'blur(32px) saturate(1.3)', // Collapsed: Same maximum blur effect
-              // Reduced shadow system by 50% - 0 4px 10px instead of 0 8px 20px
-              boxShadow: isExpanded 
-                ? '0 8px 32px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(255, 255, 255, 0.12)' // Expanded: Complex shadow with inset highlights
-                : '0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.20)', // Collapsed: Reduced shadow by 50%
-              // Translucent borders for glassmorphism
-              border: isExpanded
-                ? '1px solid rgba(255, 255, 255, 0.20)' // Expanded: More prominent glass border
-                : '1px solid rgba(255, 255, 255, 0.15)', // Collapsed: Subtle glass border
-              // Additional glass effect properties for cross-browser support
-              WebkitBackdropFilter: isExpanded ? 'blur(32px) saturate(1.3)' : 'blur(32px) saturate(1.3)', // Safari support
+              borderRadius: '8px',
+              backgroundColor: isExpanded ? 'var(--solution-card-bg-expanded)' : 'var(--solution-card-bg)',
+              backdropFilter: 'blur(20px) saturate(1.4)',
+              WebkitBackdropFilter: 'blur(20px) saturate(1.4)',
+              boxShadow: isExpanded ? 'var(--solution-card-shadow-expanded)' : 'var(--solution-card-shadow)',
+              border: `1px solid ${isExpanded ? 'var(--solution-card-border-expanded)' : 'var(--solution-card-border)'}`
             }}
             variants={getMotionVariants()}
             initial="collapsed"
@@ -409,18 +404,20 @@ export function AISolutionCard({ solutions, isMobile = false, isDarkMode = false
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start gap-3 mb-3">
-                    {/* Solution Title - Mobile Responsive Typography - Binds to: response.solutions[].title */}
+                    {/* Solution Title - Enhanced Hierarchy with Strong Contrast */}
                     <h3 
                       className="flex-1 min-w-0 solution_title_display"
                       style={{
-                        fontSize: isMobile ? '17px' : '18px', // Mobile: Larger 17px, Desktop: 18px
-                        lineHeight: isMobile ? '24px' : '26px', // Mobile: 24px, Desktop: 26px
-                        fontWeight: '600',
-                        color: '#1a1a1a',
+                        fontSize: isMobile ? '18px' : '20px', // Increased size for better hierarchy
+                        lineHeight: isMobile ? '25px' : '28px', // Better line height
+                        fontWeight: '700', // Bolder weight for prominence  
+                        color: 'var(--solution-title-color)',
                         fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                        whiteSpace: isMobile ? 'nowrap' : 'normal', // Mobile: Force single line
-                        overflow: isMobile ? 'hidden' : 'visible', // Mobile: Hide overflow
-                        textOverflow: isMobile ? 'ellipsis' : 'clip' // Mobile: Show ellipsis for overflow
+                        whiteSpace: isMobile ? 'nowrap' : 'normal',
+                        overflow: isMobile ? 'hidden' : 'visible',
+                        textOverflow: isMobile ? 'ellipsis' : 'clip',
+                        letterSpacing: '-0.025em', // Tighter letter spacing for premium feel
+                        textShadow: isDarkMode ? '0 1px 2px rgba(0, 0, 0, 0.8)' : 'none' // Subtle shadow for depth
                       }}
                     >
                       {solution.title}
@@ -436,7 +433,7 @@ export function AISolutionCard({ solutions, isMobile = false, isDarkMode = false
                         minHeight: isMobile ? '24px' : '28px',
                         border: 'none',
                         cursor: 'pointer',
-                        ...getConfidenceCircleStyle(solution.confidenceScore || 75) // Default to 75% if no score
+                        ...getConfidenceCircleStyle(solution.confidenceScore || 75, isDarkMode) // Pass isDarkMode for premium colors
                       }}
                       title={`${solution.confidenceScore || 75}% confidence`}
                       aria-label={`Confidence level: ${solution.confidenceScore || 75}%`}
@@ -447,12 +444,14 @@ export function AISolutionCard({ solutions, isMobile = false, isDarkMode = false
                   
                   {/* Source Chip - Mobile Truncation - Binds to: response.solutions[].source_document */}
                   <div 
-                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md source_document_chip"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md source_document_chip"
                     style={{
                       fontSize: '13px',
                       lineHeight: '18px',
-                      color: '#6b7280',
-                      fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+                      color: 'var(--solution-secondary-color)',
+                      fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segue UI", Roboto, sans-serif',
+                      backgroundColor: 'var(--solution-card-bg)',  
+                      border: `1px solid var(--solution-card-border)`
                     }}
                   >
                     <ExternalLink className="w-3 h-3" />
@@ -497,18 +496,30 @@ export function AISolutionCard({ solutions, isMobile = false, isDarkMode = false
                 >
                   {/* Body - Rich Text with Steps and Mobile Responsive Bullet Indent - Binds to: response.solutions[].steps[] */}
                   <div 
-                    className="border-t border-gray-100 solution_steps_container"
+                    className="solution_steps_container"
                     style={{
-                      padding: isMobile ? '16px' : '24px', // Mobile: 16px, Desktop: 24px
-                      paddingTop: isMobile ? '16px' : '24px'
+                      borderTop: `1px solid var(--solution-card-border)`,  
+                      padding: isMobile ? '20px' : '28px', // Increased padding for better breathing room
+                      paddingTop: isMobile ? '20px' : '28px'
                     }}
                   >
-                    <motion.div 
-                      className="space-y-4 solution_steps_list"
-                      variants={getStepContainerVariants()}
-                      initial="collapsed"
-                      animate="expanded"
+                    {/* Steps Container with Clear Visual Separation */}
+                    <div 
+                      className="steps_visual_container"
+                      style={{
+                        backgroundColor: 'var(--solution-card-bg)',
+                        border: `1px solid var(--solution-card-border)`,  
+                        borderRadius: '4px', // Base tier for inner containers
+                        padding: isMobile ? '16px' : '20px',
+                        margin: isMobile ? '4px 0' : '6px 0'
+                      }}
                     >
+                      <motion.div 
+                        className="space-y-3 solution_steps_list" // Reduced spacing for tighter grouping
+                        variants={getStepContainerVariants()}
+                        initial="collapsed"
+                        animate="expanded"
+                      >
                       {/* Binds to: response.solutions[].steps[] */}
                       {(Array.isArray(solution.steps) ? solution.steps : []).map((step, stepIndex) => {
                         const stepText = typeof step === 'string' ? step : step.text;
@@ -529,21 +540,24 @@ export function AISolutionCard({ solutions, isMobile = false, isDarkMode = false
                             {getStepIcon(stepType)}
                           </div>
                           
-                          {/* Step Text - Binds to: response.solutions[].steps[].text */}
+                          {/* Step Text - Enhanced Readability and Hierarchy */}
                           <div 
                             className={`${step.isBold ? 'font-semibold' : ''} step_text_content`}
                             style={{
                               fontSize: isMobile ? '15px' : '16px',
-                              lineHeight: isMobile ? '22px' : '24px',
-                              color: '#374151',
-                              fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+                              lineHeight: isMobile ? '23px' : '25px', // Better line height for readability
+                              color: 'var(--solution-text-color)',
+                              fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                              fontWeight: step.isBold ? '600' : '500', // Better weight for regular text
+                              letterSpacing: '-0.01em' // Slightly tighter for premium feel
                             }}
                           >
                             {stepText}
                           </div>
                         </motion.div>
                       )})}
-                    </motion.div>
+                      </motion.div>
+                    </div>
                   </div>
 
                   {/* Additional Details from New Webhook Format */}
@@ -551,17 +565,37 @@ export function AISolutionCard({ solutions, isMobile = false, isDarkMode = false
                     <div className="px-6 pb-4 space-y-3">
                       {solution.estimated_time && (
                         <div className="text-sm">
-                          <span className="font-semibold text-gray-700">Estimated Time:</span>{' '}
-                          <span className="text-gray-600">{solution.estimated_time}</span>
+                          <span 
+                            className="font-semibold"
+                            style={{ color: 'var(--solution-title-color)' }}
+                          >
+                            Estimated Time:
+                          </span>{' '}
+                          <span 
+                            style={{ color: 'var(--solution-secondary-color)' }}
+                          >
+                            {solution.estimated_time}
+                          </span>
                         </div>
                       )}
                       
                       {solution.parts_needed && solution.parts_needed.length > 0 && (
                         <div className="text-sm">
-                          <span className="font-semibold text-gray-700">Parts Needed:</span>
+                          <span 
+                            className="font-semibold"
+                            style={{ color: 'var(--solution-title-color)' }}
+                          >
+                            Parts Needed:
+                          </span>
                           <ul className="mt-1 space-y-1">
                             {solution.parts_needed.map((part: string, idx: number) => (
-                              <li key={idx} className="text-gray-600 ml-4">{part}</li>
+                              <li 
+                                key={idx} 
+                                className="ml-4"
+                                style={{ color: 'var(--solution-secondary-color)' }}
+                              >
+                                {part}
+                              </li>
                             ))}
                           </ul>
                         </div>
@@ -569,10 +603,19 @@ export function AISolutionCard({ solutions, isMobile = false, isDarkMode = false
                       
                       {solution.safety_warnings && solution.safety_warnings.length > 0 && (
                         <div className="text-sm">
-                          <span className="font-semibold text-orange-600">Safety Warnings:</span>
+                          <span 
+                            className="font-semibold"
+                            style={{ color: 'var(--confidence-medium-text)' }}
+                          >
+                            Safety Warnings:
+                          </span>
                           <ul className="mt-1 space-y-1">
                             {solution.safety_warnings.map((warning: string, idx: number) => (
-                              <li key={idx} className="text-orange-500 ml-4 flex items-start gap-2">
+                              <li 
+                                key={idx} 
+                                className="ml-4 flex items-start gap-2"
+                                style={{ color: 'var(--confidence-medium-text)' }}
+                              >
                                 <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                                 <span>{warning}</span>
                               </li>
@@ -586,10 +629,11 @@ export function AISolutionCard({ solutions, isMobile = false, isDarkMode = false
                   {/* Footer Row - Mobile Responsive Layout */}
                   <motion.div 
                     className={`
-                      border-t border-gray-100 solution_footer_actions
+                      solution_footer_actions
                       ${isMobile ? 'flex flex-col gap-3' : 'flex items-center justify-between'}
                     `}
                     style={{
+                      borderTop: `1px solid var(--solution-card-border)`,
                       padding: isMobile ? '16px' : '20px 24px'
                     }}
                     initial={{ opacity: 0 }}
@@ -601,11 +645,24 @@ export function AISolutionCard({ solutions, isMobile = false, isDarkMode = false
                   >
                     {/* View Full Procedure Link - Binds to: response.solutions[].procedure_link */}
                     <button 
-                      className="group flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors duration-200 procedure_link_button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (solution.procedureLink || solution.original_doc_url) {
+                          window.open(solution.procedureLink || solution.original_doc_url, '_blank', 'noopener,noreferrer');
+                        }
+                      }}
+                      className="group flex items-center gap-2 transition-colors duration-200 procedure_link_button"
                       style={{
                         fontSize: isMobile ? '14px' : '15px',
                         lineHeight: isMobile ? '20px' : '22px',
-                        fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+                        fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                        color: 'var(--solution-link-color)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = 'var(--solution-link-hover)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = 'var(--solution-link-color)';
                       }}
                     >
                       <ExternalLink className="w-4 h-4" />
@@ -621,10 +678,21 @@ export function AISolutionCard({ solutions, isMobile = false, isDarkMode = false
                         copyToClipboard(solutionId);
                       }}
                       className={`
-                        p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 
-                        transition-all duration-200 hover:shadow-sm copy_solution_button
+                        p-2 rounded-lg transition-all duration-200 hover:shadow-sm copy_solution_button
                         ${isMobile ? 'self-end' : ''}
                       `}
+                      style={{
+                        color: 'var(--solution-secondary-color)',
+                        backgroundColor: 'transparent'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = 'var(--solution-title-color)';
+                        e.currentTarget.style.backgroundColor = 'var(--solution-card-bg-hover)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = 'var(--solution-secondary-color)';
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }}
                       title="Copy solution"
                     >
                       <Copy className="w-4 h-4" />
@@ -633,8 +701,9 @@ export function AISolutionCard({ solutions, isMobile = false, isDarkMode = false
 
                   {/* Feedback Buttons Section - Enhanced with Persistent States - Binds to: metadata.user_feedback */}
                   <motion.div 
-                    className="border-t border-gray-100 feedback_section"
+                    className="feedback_section"
                     style={{
+                      borderTop: `1px solid var(--solution-card-border)`,
                       padding: isMobile ? '16px' : '20px 24px'
                     }}
                     initial={{ opacity: 0, y: 8 }}
@@ -800,12 +869,22 @@ export function AISolutionCard({ solutions, isMobile = false, isDarkMode = false
                             disabled={!feedbackMessages[solutionId]?.trim()}
                             className="group flex items-center justify-center p-2 transition-all duration-200 hover:scale-[1.05] active:scale-[0.95] disabled:opacity-50 disabled:cursor-not-allowed send_feedback_button"
                             style={{
-                              borderRadius: '8px',
-                              backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                              backdropFilter: 'blur(16px) saturate(1.2)',
-                              WebkitBackdropFilter: 'blur(16px) saturate(1.2)',
-                              border: '1px solid rgba(59, 130, 246, 0.25)',
-                              boxShadow: '0 4px 16px rgba(59, 130, 246, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                              borderRadius: '6px',
+                              backgroundColor: '#0070ff',
+                              border: 'none',
+                              boxShadow: '0 2px 8px rgba(0, 112, 255, 0.3)',
+                              transition: 'all 200ms cubic-bezier(0.23, 1, 0.32, 1)',
+                              transform: 'translateY(0)',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = '#0070ff';
+                              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 112, 255, 0.4)';
+                              e.currentTarget.style.transform = 'translateY(-1px)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = '#0070ff';
+                              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 112, 255, 0.3)';
+                              e.currentTarget.style.transform = 'translateY(0)';
                             }}
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -814,7 +893,7 @@ export function AISolutionCard({ solutions, isMobile = false, isDarkMode = false
                           >
                             <Send 
                               className={`${isMobile ? 'w-3.5 h-3.5' : 'w-4 h-4'} group-hover:scale-110 transition-transform duration-200`}
-                              style={{ color: '#3b82f6' }}
+                              style={{ color: '#ffffff' }}
                             />
                           </motion.button>
                         )}
@@ -825,7 +904,11 @@ export function AISolutionCard({ solutions, isMobile = false, isDarkMode = false
                     <AnimatePresence>
                       {feedbackExpanded.has(solutionId) && (
                         <motion.div
-                          className="mt-4 border-t border-gray-100 pt-4 feedback_form_container"
+                          className="mt-4 pt-4 feedback_form_container"
+                          style={{
+                            borderTop: `1px solid var(--solution-card-border)`,
+                            overflow: 'hidden'
+                          }}
                           initial={{ opacity: 0, height: 0, y: -10 }}
                           animate={{ opacity: 1, height: 'auto', y: 0 }}
                           exit={{ opacity: 0, height: 0, y: -10 }}
@@ -833,7 +916,6 @@ export function AISolutionCard({ solutions, isMobile = false, isDarkMode = false
                             duration: prefersReducedMotion ? 0 : 0.25,
                             ease: [0.22, 0.61, 0.36, 1]
                           }}
-                          style={{ overflow: 'hidden' }}
                         >
                           <div className="flex flex-col gap-3 px-1">
                             {/* Binds to: metadata.user_feedback.message */}
@@ -842,21 +924,34 @@ export function AISolutionCard({ solutions, isMobile = false, isDarkMode = false
                               value={feedbackMessages[solutionId] || ''}
                               onChange={(e) => updateFeedbackMessage(solutionId, e.target.value)}
                               placeholder="Tell us what could be improved or share your thoughts..."
-                              className="w-full p-3 border border-gray-200 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 feedback_message_input"
+                              className="w-full p-3 rounded-md resize-none focus:outline-none transition-all duration-200 feedback_message_input"
                               style={{
                                 fontSize: isMobile ? '15px' : '16px',
                                 lineHeight: isMobile ? '22px' : '24px',
                                 fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                                 minHeight: isMobile ? '80px' : '100px',
-                                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                                backgroundColor: isDarkMode ? 'rgba(12, 14, 18, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+                                color: 'var(--solution-title-color)',
+                                border: `1px solid var(--solution-card-border)`,
                                 backdropFilter: 'blur(8px)',
                                 borderRadius: '8px'
+                              }}
+                              onFocus={(e) => {
+                                e.currentTarget.style.backgroundColor = isDarkMode ? 'rgba(15, 17, 22, 0.9)' : 'rgba(255, 255, 255, 0.9)';
+                                e.currentTarget.style.borderColor = 'var(--solution-link-color)';
+                                e.currentTarget.style.boxShadow = '0 0 0 2px rgba(99, 110, 255, 0.3)';
+                              }}
+                              onBlur={(e) => {
+                                e.currentTarget.style.backgroundColor = isDarkMode ? 'rgba(12, 14, 18, 0.8)' : 'rgba(255, 255, 255, 0.8)';
+                                e.currentTarget.style.borderColor = 'var(--solution-card-border)';
+                                e.currentTarget.style.boxShadow = 'none';
                               }}
                               rows={isMobile ? 3 : 4}
                               onClick={(e) => e.stopPropagation()}
                             />
-                            <div className="text-xs text-gray-500 feedback_disclaimer" style={{
-                              fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+                            <div className="text-xs feedback_disclaimer" style={{
+                              fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                              color: 'var(--solution-secondary-color)'
                             }}>
                               This feedback is used to improve our machine learning models and solution accuracy.
                             </div>

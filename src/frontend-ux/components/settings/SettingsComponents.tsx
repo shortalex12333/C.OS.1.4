@@ -107,29 +107,38 @@ export const AppleSettingsRow = ({
     <div 
       style={{
         fontSize: isMobile ? '14px' : '16px',
-        lineHeight: '20px',
+        lineHeight: isMobile ? '44px' : '48px',
         fontWeight: '400',
         color: isDarkMode ? darkTheme.text.primary : '#1f2937',
         fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         flex: '0 0 auto',
         marginRight: 'var(--spacing-2)',
         minWidth: isMobile ? '120px' : '140px',
-        whiteSpace: isMobile ? 'nowrap' : 'normal'
+        whiteSpace: isMobile ? 'nowrap' : 'normal',
+        display: 'flex',
+        alignItems: 'center'
       }}
     >
       {label}
     </div>
     
     <div style={{ 
-      flex: '1 1 auto', 
+      flex: '0 0 auto', 
       textAlign: 'right', 
-      maxWidth: isMobile ? '45%' : '60%', 
+      width: isMobile ? '140px' : '200px', // Fixed width for uniform columns
       position: 'relative',
-      minWidth: '0'
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'flex-end'
     }}>
       {isEditable ? (
         type === 'select' && options ? (
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <div style={{ 
+            position: 'relative', 
+            display: 'flex', 
+            alignItems: 'center',
+            width: '100%' // Ensure select takes full width of container
+          }}>
             <select
               value={value}
               onChange={(e) => onChange?.(e.target.value)}
@@ -139,15 +148,16 @@ export const AppleSettingsRow = ({
                 border: isDarkMode ? `1px solid ${darkTheme.inputs.border}` : '1px solid rgba(255, 255, 255, 0.3)',
                 outline: 'none',
                 fontSize: isMobile ? '13px' : '16px',
-                lineHeight: '20px',
+                lineHeight: 'normal',
                 fontWeight: '400',
                 color: isDarkMode ? darkTheme.inputs.text : '#6b7280',
                 fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                 textAlign: 'right',
                 cursor: 'pointer',
                 width: '100%',
-                padding: isMobile ? 'var(--spacing-1) var(--spacing-5) var(--spacing-1) var(--spacing-2)' : 'var(--spacing-2) var(--spacing-6) var(--spacing-2) var(--spacing-2)',
-                borderRadius: '8px',
+                minWidth: '100%', // Ensure minimum width matches container
+                padding: isMobile ? '8px 28px 8px 12px' : '10px 32px 10px 16px', // Adjusted padding for better fit
+                borderRadius: '4px', // Base tier for interactive elements
                 backdropFilter: isDarkMode ? 'none' : 'blur(4px)',
                 WebkitBackdropFilter: isDarkMode ? 'none' : 'blur(4px)',
                 whiteSpace: 'nowrap',
@@ -177,7 +187,7 @@ export const AppleSettingsRow = ({
             <ChevronDown 
               style={{
                 position: 'absolute',
-                right: isMobile ? 'var(--spacing-1)' : 'var(--spacing-2)',
+                right: isMobile ? '8px' : '12px', // Fixed position for chevron
                 top: '50%',
                 transform: 'translateY(-50%)',
                 width: '16px',
@@ -198,13 +208,14 @@ export const AppleSettingsRow = ({
               border: isDarkMode ? `1px solid ${darkTheme.inputs.border}` : '1px solid rgba(255, 255, 255, 0.3)',
               outline: 'none',
               fontSize: isMobile ? '13px' : '16px',
-              lineHeight: '20px',
+              lineHeight: 'normal',
               fontWeight: '400',
               color: isDarkMode ? darkTheme.inputs.text : '#6b7280',
               fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
               textAlign: 'right',
               width: '100%',
-              padding: isMobile ? 'var(--spacing-1) var(--spacing-2)' : 'var(--spacing-2)',
+              minWidth: '100%', // Ensure consistent width
+              padding: isMobile ? '8px 12px' : '10px 16px', // Consistent padding with select
               borderRadius: '8px',
               backdropFilter: isDarkMode ? 'none' : 'blur(4px)',
               WebkitBackdropFilter: isDarkMode ? 'none' : 'blur(4px)',
@@ -231,7 +242,7 @@ export const AppleSettingsRow = ({
         <div 
           style={{
             fontSize: isMobile ? '13px' : '16px',
-            lineHeight: '20px',
+            lineHeight: 'normal',
             fontWeight: '400',
             color: isDarkMode ? darkTheme.text.secondary : '#6b7280',
             fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',

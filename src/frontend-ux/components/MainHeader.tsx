@@ -14,7 +14,7 @@ interface MainHeaderProps {
   isChatMode?: boolean;
   selectedModel?: string;
   onModelChange?: (modelId: string) => void;
-  onAskAlexClick?: () => void;
+  onFAQpageClick?: () => void;
 }
 
 const models: ModelType[] = [
@@ -38,7 +38,7 @@ const models: ModelType[] = [
   }
 ];
 
-export function MainHeader({ isMobile = false, isDarkMode = false, isChatMode = false, selectedModel = 'air', onModelChange, onAskAlexClick }: MainHeaderProps) {
+export function MainHeader({ isMobile = false, isDarkMode = false, isChatMode = false, selectedModel = 'air', onModelChange, onFAQpageClick }: MainHeaderProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleModelSelect = (modelId: string) => {
@@ -52,6 +52,7 @@ export function MainHeader({ isMobile = false, isDarkMode = false, isChatMode = 
     <div 
       className="flex items-center px-6 py-4 main_header_container"
       style={{
+        position: 'relative',
         padding: isMobile ? '12px 16px' : '16px 24px',
         minHeight: isMobile ? '60px' : '72px',
         background: 'transparent', // Make transparent
@@ -88,7 +89,7 @@ export function MainHeader({ isMobile = false, isDarkMode = false, isChatMode = 
                 className="celeste_os_suffix"
                 style={{
                   color: isDarkMode 
-                    ? 'var(--opulent-gold, #c8a951)' 
+                    ? 'var(--opulent-gold, #BADDE9)' 
                     : '#2563eb',
                   fontWeight: 500
                 }}
@@ -241,7 +242,7 @@ export function MainHeader({ isMobile = false, isDarkMode = false, isChatMode = 
                           style={{
                             color: isSelected 
                               ? isDarkMode 
-                                ? 'var(--opulent-gold, #c8a951)' 
+                                ? 'var(--opulent-gold, #BADDE9)' 
                                 : '#2563eb'
                               : isDarkMode 
                                 ? 'rgba(246, 247, 251, 0.7)' 
@@ -258,7 +259,7 @@ export function MainHeader({ isMobile = false, isDarkMode = false, isChatMode = 
                               lineHeight: '20px',
                               color: isSelected 
                                 ? isDarkMode 
-                                  ? 'var(--opulent-gold, #c8a951)' 
+                                  ? 'var(--opulent-gold, #BADDE9)' 
                                   : '#2563eb'
                                 : 'inherit'
                             }}
@@ -288,7 +289,7 @@ export function MainHeader({ isMobile = false, isDarkMode = false, isChatMode = 
                           className="w-4 h-4 ml-2" 
                           style={{
                             color: isDarkMode 
-                              ? 'var(--opulent-gold, #c8a951)' 
+                              ? 'var(--opulent-gold, #BADDE9)' 
                               : '#2563eb'
                           }}
                         />
@@ -318,24 +319,24 @@ export function MainHeader({ isMobile = false, isDarkMode = false, isChatMode = 
         </div>
       )}
       
-      {/* ASK ALEX Button - Always visible in top right */}
-      {onAskAlexClick && (
+      {/* FAQpage Button - Always visible in top right */}
+      {onFAQpageClick && (
         <button
-          onClick={onAskAlexClick}
-          className="absolute top-4 right-4 flex items-center gap-2 px-4 py-2 rounded-lg transition-all hover:scale-105"
+          onClick={onFAQpageClick}
+          className="absolute top-4 right-4 flex items-center gap-2 px-4 py-2 transition-all"
           style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: '#fff',
+            background: isDarkMode ? '#ffffff' : '#000000',
+            color: isDarkMode ? '#000000' : '#ffffff',
             border: 'none',
-            boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+            borderRadius: '6px',
             fontSize: isMobile ? '13px' : '14px',
             fontWeight: 600,
             fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            zIndex: 1000
           }}
         >
-          <Sparkles size={16} />
-          <span>ASK ALEX</span>
+          <span>Explore FAQ</span>
         </button>
       )}
     </div>

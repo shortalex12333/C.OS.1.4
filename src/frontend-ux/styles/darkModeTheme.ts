@@ -96,7 +96,7 @@ export const darkTheme = {
     shadow: '0 25px 50px rgba(0, 0, 0, 0.7)',  // Heavy shadow for elevation
     overlay: 'rgba(13, 14, 17, 0.95)',        // Specified overlay
     backdropBlur: 'blur(20px)',               // Glass morphism
-    borderRadius: '16px',                     // Premium radius
+    borderRadius: '8px',                      // Container tier radius
   },
 
   // Accents and branding
@@ -201,7 +201,7 @@ export const lightTheme = {
     shadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
     overlay: 'rgba(0, 0, 0, 0.5)',
     backdropBlur: 'blur(20px)',
-    borderRadius: '16px',
+    borderRadius: '8px',
   },
   brand: {
     primary: '#6366f1',

@@ -37,10 +37,17 @@ export function CleanSolutionCard({ solutions, isDarkMode = false }: SolutionCar
     setExpandedSolutions(newExpanded);
   };
 
-  const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 0.75) return '#f59e0b'; // Orange for high confidence
-    if (confidence >= 0.5) return '#f59e0b';  // Orange for medium
-    return '#ef4444'; // Red for low
+  const getConfidenceColor = (confidence: number, isDarkMode: boolean = false) => {
+    if (confidence >= 0.75) {
+      // High confidence - Green (premium)
+      return isDarkMode ? '#10b981' : '#059669';
+    }
+    if (confidence >= 0.5) {
+      // Medium confidence - Amber (premium) 
+      return isDarkMode ? '#f59e0b' : '#d97706';
+    }
+    // Low confidence - Red (premium)
+    return isDarkMode ? '#ef4444' : '#dc2626';
   };
 
   const formatConfidenceText = (confidence: number) => {
@@ -65,13 +72,17 @@ export function CleanSolutionCard({ solutions, isDarkMode = false }: SolutionCar
         return (
           <div
             key={solutionId}
-            className={`rounded-lg border overflow-hidden transition-colors ${
-              isDarkMode 
-                ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' 
-                : 'bg-white border-gray-200 hover:bg-gray-50'
-            }`}
+            className="rounded-lg border overflow-hidden transition-colors"
             style={{
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+              backgroundColor: 'var(--solution-card-bg)',
+              borderColor: 'var(--solution-card-border)',
+              boxShadow: 'var(--solution-card-shadow)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--solution-card-bg-hover)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--solution-card-bg)';
             }}
           >
             {/* Header - Always Visible */}
@@ -82,21 +93,20 @@ export function CleanSolutionCard({ solutions, isDarkMode = false }: SolutionCar
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-3">
                   <h3 
-                    className={`text-lg font-semibold ${
-                      isDarkMode ? 'text-white' : 'text-gray-900'
-                    }`}
+                    className="text-lg font-semibold"
                     style={{
-                      fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+                      fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                      color: 'var(--solution-title-color)'
                     }}
                   >
                     {solution.title}
                   </h3>
                   
-                  {/* Orange Confidence Indicator */}
+                  {/* Premium Confidence Indicator */}
                   <div
                     className="w-4 h-4 rounded-full flex-shrink-0"
                     style={{
-                      backgroundColor: getConfidenceColor(confidence)
+                      backgroundColor: getConfidenceColor(confidence, isDarkMode)
                     }}
                     title={formatConfidenceText(confidence)}
                   />
@@ -105,11 +115,10 @@ export function CleanSolutionCard({ solutions, isDarkMode = false }: SolutionCar
                 {/* Source Reference */}
                 {solution.source_document && (
                   <div 
-                    className={`text-sm flex items-center gap-2 ${
-                      isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                    }`}
+                    className="text-sm flex items-center gap-2"
                     style={{
-                      fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+                      fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                      color: 'var(--solution-secondary-color)'
                     }}
                   >
                     <ExternalLink className="w-3 h-3" />
@@ -121,24 +130,25 @@ export function CleanSolutionCard({ solutions, isDarkMode = false }: SolutionCar
               
               <div className="ml-4">
                 {isExpanded ? (
-                  <ChevronDown className={`w-5 h-5 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+                  <ChevronDown className="w-5 h-5" style={{ color: 'var(--solution-secondary-color)' }} />
                 ) : (
-                  <ChevronRight className={`w-5 h-5 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+                  <ChevronRight className="w-5 h-5" style={{ color: 'var(--solution-secondary-color)' }} />
                 )}
               </div>
             </button>
             
             {/* Expanded Content */}
             {isExpanded && (
-              <div className={`border-t px-6 pb-6 ${isDarkMode ? 'border-gray-700' : 'border-gray-100'}`}>
+              <div className="border-t px-6 pb-6" style={{ borderColor: 'var(--solution-card-border)' }}>
                 {/* Description */}
                 {solution.description && (
                   <div 
-                    className={`mt-4 mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}
+                    className="mt-4 mb-6"
                     style={{
                       fontSize: '15px',
                       lineHeight: '24px',
-                      fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+                      fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segue UI", Roboto, sans-serif',
+                      color: 'var(--solution-text-color)'
                     }}
                   >
                     {solution.description}
@@ -223,9 +233,16 @@ export function CleanSolutionCard({ solutions, isDarkMode = false }: SolutionCar
                     href={solution.original_doc_url || '#'}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1 transition-colors"
+                    className="text-sm font-medium flex items-center gap-1 transition-colors"
                     style={{
-                      fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+                      fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                      color: isDarkMode ? '#818cf8' : '#3b82f6'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = isDarkMode ? '#a5b4fc' : '#2563eb';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = isDarkMode ? '#818cf8' : '#3b82f6';
                     }}
                   >
                     <ExternalLink className="w-4 h-4" />
@@ -238,11 +255,19 @@ export function CleanSolutionCard({ solutions, isDarkMode = false }: SolutionCar
                       const text = `${solution.title}\n\n${solution.steps?.join('\n') || solution.description || ''}`;
                       navigator.clipboard.writeText(text);
                     }}
-                    className={`p-2 rounded-md transition-colors hover:bg-opacity-80 ${
-                      isDarkMode 
-                        ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' 
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                    }`}
+                    className="p-2 rounded-md transition-colors hover:bg-opacity-80"
+                    style={{
+                      color: isDarkMode ? '#8892a0' : '#6b7280',
+                      backgroundColor: 'transparent'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = isDarkMode ? '#f0f2f5' : '#374151';
+                      e.currentTarget.style.backgroundColor = isDarkMode ? '#252832' : '#f3f4f6';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = isDarkMode ? '#8892a0' : '#6b7280';
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
                     title="Copy solution"
                   >
                     <Copy className="w-4 h-4" />

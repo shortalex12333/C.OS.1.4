@@ -44,8 +44,17 @@ export function InputArea({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (message.trim()) {
-      onStartChat(message.trim(), selectedSearchType);
+      // Add slight delay for smooth transition effect
+      const messageToSend = message.trim();
       setMessage('');
+      // Reset textarea height immediately
+      if (textareaRef.current) {
+        textareaRef.current.style.height = '24px';
+      }
+      // Small delay to allow input to clear visually before message appears
+      setTimeout(() => {
+        onStartChat(messageToSend, selectedSearchType);
+      }, 50);
     }
   };
 
@@ -105,7 +114,7 @@ export function InputArea({
     <div 
       className="flex flex-col query_input_container"
       style={{
-        maxWidth: isMobile ? '390px' : '760px',
+        maxWidth: isMobile ? '390px' : 'min(1200px, calc(100vw - 320px))',
         margin: '0 auto',
         padding: isMobile ? '16px' : '24px'
       }}
@@ -154,7 +163,7 @@ export function InputArea({
               : '0 4px 12px rgba(0, 0, 0, 0.05)'
           }}
         >
-          <div className="flex items-start gap-3 p-4">
+          <div className="flex items-center gap-3 p-4">
             {/* Desktop: Search Type Selector Icons */}
             {!isMobile && (
               <>
@@ -173,10 +182,10 @@ export function InputArea({
                           width: '36px',
                           height: '36px',
                           color: isSelected 
-                            ? isDarkMode ? '#c8a951' : '#181818'
+                            ? isDarkMode ? '#BADDE9' : '#00a4ff'
                             : isDarkMode ? 'rgba(246, 247, 251, 0.7)' : '#6b7280',
                           backgroundColor: isSelected 
-                            ? isDarkMode ? 'rgba(200, 169, 81, 0.12)' : 'rgba(24, 24, 24, 0.08)'
+                            ? isDarkMode ? 'rgba(186, 221, 233, 0.12)' : 'rgba(0, 164, 255, 0.08)'
                             : 'transparent'
                         }}
                         title={searchType.title}
@@ -189,7 +198,7 @@ export function InputArea({
                 
                 {/* Separator */}
                 <div 
-                  className="w-px" 
+                  className="w-px self-center" 
                   style={{ 
                     height: '20px',
                     backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.1)'
@@ -253,9 +262,9 @@ export function InputArea({
                                 color: isDarkMode ? '#f6f7fb' : '#1f2937'
                               }}
                             >
-                              <IconComponent className="w-5 h-5 mr-3" style={{ color: isSelected ? isDarkMode ? '#c8a951' : '#2563eb' : isDarkMode ? 'rgba(246, 247, 251, 0.7)' : '#6b7280' }} />
+                              <IconComponent className="w-5 h-5 mr-3" style={{ color: isSelected ? isDarkMode ? '#BADDE9' : '#2563eb' : isDarkMode ? 'rgba(246, 247, 251, 0.7)' : '#6b7280' }} />
                               <div className="flex flex-col items-start flex-1">
-                                <div className="font-medium" style={{ color: isSelected ? isDarkMode ? '#c8a951' : '#2563eb' : 'inherit' }}>
+                                <div className="font-medium" style={{ color: isSelected ? isDarkMode ? '#BADDE9' : '#2563eb' : 'inherit' }}>
                                   {searchType.title}
                                 </div>
                                 <div className="text-sm" style={{ color: isDarkMode ? 'rgba(246, 247, 251, 0.65)' : '#6b7280' }}>
@@ -279,13 +288,15 @@ export function InputArea({
               onChange={handleMessageChange}
               onKeyDown={handleKeyDown}
               placeholder={getCurrentPlaceholder()}
-              className={`flex-1 resize-none bg-transparent border-none outline-none overflow-hidden ${isDarkMode ? 'placeholder:text-white/55' : 'placeholder:text-gray-500'}`}
+              className={`flex-1 resize-none bg-transparent border-none outline-none overflow-hidden self-center ${isDarkMode ? 'placeholder:text-white/55' : 'placeholder:text-gray-500'}`}
               style={{
                 color: isDarkMode ? '#f6f7fb' : '#1f2937',
                 fontSize: '16px',
                 lineHeight: '24px',
                 minHeight: '24px',
-                height: '24px'
+                height: '24px',
+                paddingTop: '6px',
+                paddingBottom: '6px'
               }}
               rows={1}
             />
@@ -294,16 +305,16 @@ export function InputArea({
             <button
               type="submit"
               disabled={!message.trim()}
-              className="flex items-center justify-center rounded-lg disabled:cursor-not-allowed flex-shrink-0"
+              className="flex items-center justify-center rounded-lg disabled:cursor-not-allowed flex-shrink-0 self-center"
               style={{
-                width: '44px',
-                height: '44px',
+                width: '36px',
+                height: '36px',
                 opacity: message.trim() ? 1 : 0.3,
                 background: message.trim() 
-                  ? 'linear-gradient(115deg, #BADDE9 0%, #2FB9E8 100%)'
-                  : isDarkMode ? 'rgba(186, 221, 233, 0.1)' : 'rgba(186, 221, 233, 0.15)',
+                  ? '#0070ff'
+                  : isDarkMode ? 'rgba(0, 112, 255, 0.1)' : 'rgba(0, 112, 255, 0.15)',
                 boxShadow: message.trim() 
-                  ? '0 1px 3px rgba(47, 185, 232, 0.2), 0 4px 12px rgba(47, 185, 232, 0.15)'
+                  ? '0 1px 3px rgba(0, 112, 255, 0.2), 0 4px 12px rgba(0, 112, 255, 0.15)'
                   : 'none',
                 transition: 'all 300ms cubic-bezier(0.23, 1, 0.32, 1)',
                 transform: 'translateY(0)'
@@ -311,17 +322,17 @@ export function InputArea({
               onMouseEnter={(e) => {
                 if (message.trim()) {
                   e.currentTarget.style.transform = 'translateY(-1px)';
-                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(47, 185, 232, 0.2), 0 8px 24px rgba(47, 185, 232, 0.25)';
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 112, 255, 0.2), 0 8px 24px rgba(0, 112, 255, 0.25)';
                 }
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
                 e.currentTarget.style.boxShadow = message.trim() 
-                  ? '0 1px 3px rgba(47, 185, 232, 0.2), 0 4px 12px rgba(47, 185, 232, 0.15)'
+                  ? '0 1px 3px rgba(0, 112, 255, 0.2), 0 4px 12px rgba(0, 112, 255, 0.15)'
                   : 'none';
               }}
             >
-              <Send className="w-5 h-5" style={{ color: message.trim() ? '#FFFFFF' : '#9ca3af' }} />
+              <Send className="w-4 h-4" style={{ color: message.trim() ? '#FFFFFF' : isDarkMode ? 'rgba(246, 247, 251, 0.4)' : '#9ca3af' }} />
             </button>
           </div>
         </div>

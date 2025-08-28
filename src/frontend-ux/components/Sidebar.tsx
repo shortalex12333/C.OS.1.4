@@ -103,29 +103,34 @@ export function Sidebar({
     setEditingChatName('');
   };
 
-  // Enterprise sidebar styling
+  // Enterprise sidebar styling with glassmorphism
   const getSidebarStyles = () => {
+    // Always apply glassmorphism, regardless of chat mode
+    // Using CSS string to apply !important for forcing glassmorphism
+    const blurEffect = 'blur(24px) saturate(1.5) !important';
+    
     return {
-      backgroundColor: isDarkMode ? 'rgba(15, 11, 18, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+      backgroundColor: isDarkMode ? 'rgba(15, 11, 18, 0.65) !important' : 'rgba(255, 255, 255, 0.65) !important',
       borderRight: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)'}`,
-      // Add premium glassmorphism effects for chat mode
-      ...(isChatMode ? {
-        backdropFilter: 'blur(20px) saturate(1.8)',
-        WebkitBackdropFilter: 'blur(20px) saturate(1.8)',
-        boxShadow: isDarkMode 
-          ? '0 25px 50px rgba(0, 0, 0, 0.25), inset -1px 0 0 rgba(255, 255, 255, 0.12)'
-          : '6px 0 24px rgba(0, 0, 0, 0.12), 2px 0 8px rgba(0, 0, 0, 0.06), inset -1px 0 0 rgba(255, 255, 255, 0.3)'
-      } : {})
+      // Force glassmorphism effects - enhanced for visibility
+      backdropFilter: blurEffect,
+      WebkitBackdropFilter: blurEffect,
+      boxShadow: isDarkMode 
+        ? '0 25px 50px rgba(0, 0, 0, 0.25), inset -1px 0 0 rgba(255, 255, 255, 0.12)'
+        : '6px 0 24px rgba(0, 0, 0, 0.12), 2px 0 8px rgba(0, 0, 0, 0.06), inset -1px 0 0 rgba(255, 255, 255, 0.3)'
     };
   };
 
   return (
     // Binds to: metadata.user_id, response.chat_history[], response.system_info.navigation
     <aside 
-      className="relative h-full flex flex-col transition-all duration-300 sidebar_navigation"
+      className={`relative h-full flex flex-col transition-all duration-300 sidebar_navigation sidebar-glassmorphism ${isDarkMode ? 'sidebar-glassmorphism-dark' : 'sidebar-glassmorphism-light'}`}
       style={{
         width: '100%',
-        ...getSidebarStyles()
+        borderRight: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)'}`,
+        boxShadow: isDarkMode 
+          ? '0 25px 50px rgba(0, 0, 0, 0.25), inset -1px 0 0 rgba(255, 255, 255, 0.12)'
+          : '6px 0 24px rgba(0, 0, 0, 0.12), 2px 0 8px rgba(0, 0, 0, 0.06), inset -1px 0 0 rgba(255, 255, 255, 0.3)'
       }}
     >
       {/* Header Section */}
@@ -136,10 +141,10 @@ export function Sidebar({
         }}
       >
         {/* Collapse Toggle - Desktop Only */}
-        {!isCollapsed && !isMobile && (
+        {!isMobile && (
           <div className="flex justify-between items-center mb-4 sidebar_header_actions">
-            {/* Logo - Desktop Only */}
-            {!isMobile && (
+            {/* Logo - Desktop Only, shown when not collapsed */}
+            {!isCollapsed && (
               <div className="flex items-center">
                 <BrainLogo size={48} isDarkMode={isDarkMode} className="brain_logo_display" />
               </div>
@@ -149,8 +154,16 @@ export function Sidebar({
               onClick={onToggleCollapse}
               className="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all duration-200 sidebar_collapse_toggle"
               title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              style={{
+                marginLeft: isCollapsed ? 'auto' : '0',
+                marginRight: isCollapsed ? 'auto' : '0'
+              }}
             >
-              <ChevronLeft className="w-4 h-4" />
+              {isCollapsed ? (
+                <ChevronRight className="w-4 h-4" />
+              ) : (
+                <ChevronLeft className="w-4 h-4" />
+              )}
             </button>
           </div>
         )}
@@ -215,7 +228,7 @@ export function Sidebar({
                   style={{ 
                     color: selectedSearchType === 'yacht' 
                       ? isDarkMode 
-                        ? 'var(--opulent-gold, #c8a951)' 
+                        ? 'var(--opulent-gold, #BADDE9)' 
                         : '#181818' 
                       : undefined 
                   }} 
@@ -252,7 +265,7 @@ export function Sidebar({
                   style={{ 
                     color: selectedSearchType === 'email' 
                       ? isDarkMode 
-                        ? 'var(--opulent-gold, #c8a951)' 
+                        ? 'var(--opulent-gold, #BADDE9)' 
                         : '#181818' 
                       : undefined 
                   }} 
