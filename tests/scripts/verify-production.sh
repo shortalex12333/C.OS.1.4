@@ -5,7 +5,7 @@ echo "=========================================="
 echo ""
 
 # Production URL
-PROD_URL="https://celesteos-v1-4-4uqaunvjj-c7s-projects-4a165667.vercel.app"
+PROD_URL="https://celeste7.ai"
 
 # Colors
 GREEN='\033[0;32m'

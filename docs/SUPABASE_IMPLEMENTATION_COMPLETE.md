@@ -54,7 +54,7 @@
 ## 📱 Production URLs
 
 ### Main Application
-- **Production**: https://celesteos-v1-4.vercel.app
+- **Production**: https://celeste7.ai
 - **Backup**: https://celesteos-v1-4-4uqaunvjj-c7s-projects-4a165667.vercel.app
 
 ### Test Credentials

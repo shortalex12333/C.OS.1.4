@@ -3,7 +3,7 @@
 echo "🧪 Testing Tutorial & Intro Flow"
 echo "================================="
 echo ""
-echo "Production URL: https://celesteos-v1-4-ogma7m74u-c7s-projects-4a165667.vercel.app"
+echo "Production URL: https://celeste7.ai"
 echo ""
 echo "📋 TEST CHECKLIST:"
 echo ""

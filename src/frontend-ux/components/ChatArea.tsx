@@ -15,6 +15,8 @@ interface ChatAreaProps {
   onFAQpageClick?: () => void;
   isWaitingForResponse?: boolean;
   searchType?: 'yacht' | 'email' | 'email-yacht';
+  onEditMessage?: (messageId: string, newContent: string) => void;
+  onRegenerateResponse?: (messageId: string) => void;
 }
 
 export function ChatArea({ 
@@ -27,7 +29,9 @@ export function ChatArea({
   messages = [], 
   onFAQpageClick,
   isWaitingForResponse = false,
-  searchType = 'yacht'
+  searchType = 'yacht',
+  onEditMessage,
+  onRegenerateResponse
 }: ChatAreaProps) {
   // Time-based greeting function
   const getTimeBasedGreeting = () => {
@@ -234,6 +238,8 @@ export function ChatArea({
                   displayName={displayName}
                   isDarkMode={isDarkMode}
                   isMobile={isMobile}
+                  onEditMessage={onEditMessage}
+                  onRegenerateResponse={onRegenerateResponse}
                 />
               </div>
             ))}

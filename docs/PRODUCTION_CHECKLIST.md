@@ -6,7 +6,7 @@
 - [x] Updated `.env.production` with production URLs
 - [x] Fixed hardcoded localhost references
 - [x] Set Vercel environment variables in `vercel.json`
-- [x] Configured OAuth redirect URLs for `celesteos-v1-4.vercel.app`
+- [x] Configured OAuth redirect URLs for `celeste7.ai`
 
 ### 2. Code Optimizations
 - [x] Simplified theme system (removed complex ThemeContext)
@@ -38,7 +38,7 @@ vercel --prod --yes
 
 ### Required:
 1. **Microsoft OAuth Setup**: Update the redirect URI in your Microsoft App Registration to:
-   - `https://celesteos-v1-4.vercel.app/api/auth/callback`
+   - `https://celeste7.ai/api/auth/callback`
 
 2. **Backend Integration**: Ensure your webhook service at `https://api.celeste7.ai` is running and accessible
 
@@ -49,9 +49,9 @@ vercel --prod --yes
 
 ## 🔗 Production URLs
 
-- **Frontend**: https://celesteos-v1-4.vercel.app
+- **Frontend**: https://celeste7.ai
 - **Backend API**: https://api.celeste7.ai
-- **OAuth Callback**: https://celesteos-v1-4.vercel.app/api/auth/callback
+- **OAuth Callback**: https://celeste7.ai/api/auth/callback
 
 ## 🎨 UI Features
 

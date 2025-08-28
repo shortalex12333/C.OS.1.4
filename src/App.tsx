@@ -521,6 +521,119 @@ export default function App() {
     }
   };
 
+  const handleEditMessage = async (messageId: string, newContent: string) => {
+    try {
+      console.log('🔄 Editing message:', messageId, 'New content:', newContent);
+      
+      // Find the message being edited
+      const messageIndex = chatMessages.findIndex(msg => msg.id === messageId);
+      if (messageIndex === -1) return;
+
+      // Remove messages after the edited message (including AI responses)
+      const updatedMessages = chatMessages.slice(0, messageIndex);
+      
+      // Update the message content
+      const editedMessage = {
+        ...chatMessages[messageIndex],
+        content: newContent
+      };
+      
+      // Update messages with the edited message
+      setChatMessages([...updatedMessages, editedMessage]);
+      
+      // Send new request to webhook
+      setIsWaitingForResponse(true);
+      
+      const response = await completeWebhookService.sendTextChatRequest({
+        userId: localStorage.getItem('user_id') || `user_${Date.now()}`,
+        user_id: localStorage.getItem('user_id') || `user_${Date.now()}`,
+        firstName: displayName.split(' ')[0] || 'User',
+        lastName: displayName.split(' ')[1] || '',
+        email: 'user@company.com',
+        conversation_id: currentConversationId,
+        session_id: currentConversationId,
+        message: newContent,
+        search_type: currentSearchType,
+        model: selectedModel
+      });
+
+      if (response) {
+        const aiMessage = {
+          id: `ai_${Date.now()}`,
+          content: response,
+          isUser: false,
+          timestamp: new Date().toISOString(),
+          isStreaming: false
+        };
+        
+        setChatMessages(prev => [...prev, aiMessage]);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error editing message:', error);
+    } finally {
+      setIsWaitingForResponse(false);
+    }
+  };
+
+  const handleRegenerateResponse = async (messageId: string) => {
+    try {
+      console.log('🔄 Regenerating response for message:', messageId);
+      
+      // Find the AI message being regenerated
+      const messageIndex = chatMessages.findIndex(msg => msg.id === messageId);
+      if (messageIndex === -1) return;
+
+      // Find the user message that prompted this AI response
+      let userMessage = null;
+      for (let i = messageIndex - 1; i >= 0; i--) {
+        if (chatMessages[i].isUser) {
+          userMessage = chatMessages[i];
+          break;
+        }
+      }
+      
+      if (!userMessage) return;
+
+      // Remove the AI message being regenerated
+      const updatedMessages = chatMessages.slice(0, messageIndex);
+      setChatMessages(updatedMessages);
+      
+      // Send new request to webhook
+      setIsWaitingForResponse(true);
+      
+      const response = await completeWebhookService.sendTextChatRequest({
+        userId: localStorage.getItem('user_id') || `user_${Date.now()}`,
+        user_id: localStorage.getItem('user_id') || `user_${Date.now()}`,
+        firstName: displayName.split(' ')[0] || 'User',
+        lastName: displayName.split(' ')[1] || '',
+        email: 'user@company.com',
+        conversation_id: currentConversationId,
+        session_id: currentConversationId,
+        message: typeof userMessage.content === 'string' ? userMessage.content : String(userMessage.content),
+        search_type: currentSearchType,
+        model: selectedModel
+      });
+
+      if (response) {
+        const newAiMessage = {
+          id: `ai_${Date.now()}`,
+          content: response,
+          isUser: false,
+          timestamp: new Date().toISOString(),
+          isStreaming: false
+        };
+        
+        setChatMessages(prev => [...prev, newAiMessage]);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error regenerating response:', error);
+    } finally {
+      setIsWaitingForResponse(false);
+    }
+  };
+
   // isDarkMode now comes from ThemeProvider
 
   if (showComparison) {
@@ -707,6 +820,8 @@ export default function App() {
                           onFAQpageClick={() => setShowAskAlex(true)}
                           isWaitingForResponse={isWaitingForResponse}
                           searchType={currentSearchType}
+                          onEditMessage={handleEditMessage}
+                          onRegenerateResponse={handleRegenerateResponse}
                         />
                       </div>
                       {/* Show preloaded questions when no messages, regardless of chat mode */}

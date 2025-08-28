@@ -11,13 +11,17 @@ interface ChatMessageProps {
   displayName: string;
   isDarkMode?: boolean;
   isMobile?: boolean;
+  onEditMessage?: (messageId: string, newContent: string) => void;
+  onRegenerateResponse?: (messageId: string) => void;
 }
 
-export function ChatMessage({ message, displayName, isDarkMode = false, isMobile = false }: ChatMessageProps) {
+export function ChatMessage({ message, displayName, isDarkMode = false, isMobile = false, onEditMessage, onRegenerateResponse }: ChatMessageProps) {
   const [isCurrentlyStreaming, setIsCurrentlyStreaming] = useState(message.isStreaming ?? false);
   const [isInitialRender, setIsInitialRender] = useState(true);
   const [feedbackGiven, setFeedbackGiven] = useState<'up' | 'down' | null>(null);
   const [copied, setCopied] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState('');
   
   useEffect(() => {
     setIsCurrentlyStreaming(message.isStreaming ?? false);
@@ -82,15 +86,28 @@ export function ChatMessage({ message, displayName, isDarkMode = false, isMobile
   };
 
   const handleEdit = () => {
-    // Trigger edit logic - this would need to be connected to parent component
-    console.log('Edit message:', message.id, 'Content:', text);
-    // TODO: Implement edit functionality via parent callback
+    if (message.isUser) {
+      setIsEditing(true);
+      setEditContent(text);
+    }
+  };
+
+  const handleSaveEdit = () => {
+    if (onEditMessage && editContent.trim()) {
+      onEditMessage(message.id, editContent.trim());
+      setIsEditing(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditContent('');
   };
 
   const handleRetry = () => {
-    // Trigger retry logic - this would need to be connected to parent component
-    console.log('Retry message:', message.id);
-    // TODO: Implement retry functionality via parent callback
+    if (onRegenerateResponse && !message.isUser) {
+      onRegenerateResponse(message.id);
+    }
   };
 
   const handleFeedback = (type: 'up' | 'down') => {
@@ -172,7 +189,66 @@ export function ChatMessage({ message, displayName, isDarkMode = false, isMobile
                 textAlign: message.isUser ? 'right' : 'left'
               }}
             >
-              {message.isUser ? (
+              {message.isUser && isEditing ? (
+                <div style={{ textAlign: 'right' }}>
+                  <textarea
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                    style={{
+                      width: '100%',
+                      minHeight: '60px',
+                      padding: '8px 12px',
+                      fontSize: isMobile ? '15px' : '16px',
+                      lineHeight: isMobile ? '22px' : '24px',
+                      fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                      color: isDarkMode ? '#f6f7fb' : '#1f2937',
+                      backgroundColor: isDarkMode ? 'rgba(246, 247, 251, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                      border: `1px solid ${isDarkMode ? 'rgba(246, 247, 251, 0.15)' : 'rgba(0, 0, 0, 0.1)'}`,
+                      borderRadius: '8px',
+                      resize: 'vertical',
+                      outline: 'none'
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                        handleSaveEdit();
+                      }
+                      if (e.key === 'Escape') {
+                        handleCancelEdit();
+                      }
+                    }}
+                  />
+                  <div style={{ marginTop: '8px', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                    <button
+                      onClick={handleCancelEdit}
+                      style={{
+                        padding: '4px 12px',
+                        fontSize: '12px',
+                        color: isDarkMode ? 'rgba(246, 247, 251, 0.7)' : '#6b7280',
+                        backgroundColor: 'transparent',
+                        border: `1px solid ${isDarkMode ? 'rgba(246, 247, 251, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`,
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSaveEdit}
+                      style={{
+                        padding: '4px 12px',
+                        fontSize: '12px',
+                        color: '#ffffff',
+                        backgroundColor: '#0070ff',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Save & Send
+                    </button>
+                  </div>
+                </div>
+              ) : message.isUser ? (
                 String(text)
               ) : (
                 <StreamingText 
@@ -195,7 +271,7 @@ export function ChatMessage({ message, displayName, isDarkMode = false, isMobile
           )}
           
           {/* Message Action Buttons - User messages */}
-          {message.isUser && (
+          {message.isUser && !isEditing && (
             <div 
               className="flex items-center gap-1 mt-3 justify-end user_message_actions"
               style={{

@@ -223,10 +223,13 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
   const getInitialPhase = () => {
     const hasCompletedInitial = localStorage.getItem('hasCompletedInitialTutorial');
     const hasCompletedSolution = localStorage.getItem('hasCompletedSolutionTutorial');
+    const hasSkippedInitial = localStorage.getItem('hasSkippedInitialTutorial');
     
     if (!hasCompletedInitial) {
       return 'initial';
     } else if (hasReceivedJSON && !hasCompletedSolution) {
+      // Show solution tutorial whether initial was completed or skipped
+      console.log('🎓 Initializing solution phase', { hasCompletedInitial, hasSkippedInitial, hasReceivedJSON });
       return 'solution';
     }
     return 'initial';
@@ -480,7 +483,27 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
   };
 
   const handleSkip = () => {
-    handleComplete();
+    // Skip only the current phase, not the entire tutorial
+    if (currentPhase === 'initial') {
+      // Mark initial tutorial as skipped, but allow solution tutorial later
+      localStorage.setItem('hasCompletedInitialTutorial', 'true');
+      localStorage.setItem('hasSkippedInitialTutorial', 'true');
+      console.log('🎓 Initial tutorial skipped - solution tutorial will still be available');
+      onComplete(); // Hide tutorial temporarily, will reshow for solution phase
+    } else if (currentPhase === 'solution') {
+      // Skip solution tutorial and mark entire tutorial as complete
+      localStorage.setItem('hasCompletedSolutionTutorial', 'true');
+      localStorage.setItem('hasSkippedSolutionTutorial', 'true');
+      localStorage.setItem('hasCompletedTutorial', 'true'); // Mark entire tutorial as complete
+      localStorage.setItem('tutorialCompletedAt', new Date().toISOString());
+      console.log('🎓 Solution tutorial skipped - tutorial fully completed');
+      onComplete(); // Fully complete tutorial
+    } else {
+      // For switch and export phases, just skip them
+      localStorage.setItem(`hasCompleted${currentPhase.charAt(0).toUpperCase() + currentPhase.slice(1)}Tutorial`, 'true');
+      localStorage.setItem(`hasSkipped${currentPhase.charAt(0).toUpperCase() + currentPhase.slice(1)}Tutorial`, 'true');
+      onComplete();
+    }
   };
 
   const handleComplete = () => {
