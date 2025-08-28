@@ -64,46 +64,57 @@ const initialSteps: TutorialStep[] = [
 // Solution card walkthrough - after first answer appears
 const solutionSteps: TutorialStep[] = [
   {
-    id: 'solution_card',
+    id: 'solution_card_found',
     title: 'Solution Found',
-    description: 'This is the solution our system found for your query.',
-    target: '.ai-solution-card',
-    position: 'top',
+    description: 'This is a solution card that contains the answer to your query.',
+    target: '.solution_card',
+    position: 'right',
     icon: <CheckCircle size={24} />,
     phase: 'solution'
   },
   {
-    id: 'document_summary',
-    title: 'Document Summary',
-    description: 'Here\'s the name and summary of the source document.',
-    target: '.solution-header',
-    position: 'top',
+    id: 'expand_solution',
+    title: 'Click to Expand',
+    description: 'Click on the solution card header to expand and see the full answer.',
+    target: '.solution_header',
+    position: 'right',
+    icon: <ChevronDown size={24} />,
+    requiresAction: true,
+    actionText: 'Click the header to expand',
+    phase: 'solution'
+  },
+  {
+    id: 'solution_title',
+    title: 'Solution Title',
+    description: 'This shows the title and confidence score of the solution.',
+    target: '.solution_title_display',
+    position: 'right',
     icon: <FileText size={24} />,
     phase: 'solution'
   },
   {
-    id: 'document_found',
+    id: 'source_document',
     title: 'Source Document',
-    description: 'This shows which manual or document contains the answer.',
-    target: '.source-document-chip',
-    position: 'bottom',
+    description: 'This chip shows which manual or document contains this answer.',
+    target: '.source_document_chip',
+    position: 'left',
     icon: <FileText size={24} />,
     phase: 'solution'
   },
   {
-    id: 'content_summary',
-    title: 'Content Summary',
-    description: 'A brief summary of the relevant content from the document.',
-    target: '.solution-steps',
-    position: 'top',
+    id: 'solution_steps',
+    title: 'Detailed Steps',
+    description: 'Here are the detailed steps or information from the source document.',
+    target: '.solution_steps_list',
+    position: 'right',
     icon: <FileText size={24} />,
     phase: 'solution'
   },
   {
-    id: 'feedback_ml',
-    title: 'Help Improve Results',
-    description: 'Your feedback helps our machine learning improve future responses.',
-    target: '.feedback-buttons',
+    id: 'feedback_controls',
+    title: 'Rate This Answer',
+    description: 'Use these thumbs up/down buttons to rate how helpful this answer was.',
+    target: '.feedback_controls',
     position: 'top',
     icon: <ThumbsUp size={24} />,
     phase: 'solution'
@@ -112,39 +123,39 @@ const solutionSteps: TutorialStep[] = [
     id: 'leave_feedback',
     title: 'Leave Detailed Feedback',
     description: 'Click here to provide specific feedback about this answer.',
-    target: '.leave-feedback-button',
-    position: 'top',
+    target: '.leave_feedback_button',
+    position: 'left',
     icon: <MessageCircle size={24} />,
     requiresAction: true,
-    actionText: 'Click to open feedback',
+    actionText: 'Click to open feedback form',
     phase: 'solution'
   },
   {
-    id: 'feedback_input',
+    id: 'feedback_form',
     title: 'Type Your Feedback',
-    description: 'Enter your feedback here to help us improve.',
-    target: '.feedback-textarea',
+    description: 'Enter your specific feedback to help us improve our responses.',
+    target: '.feedback_message_input',
     position: 'top',
     icon: <MessageSquare size={24} />,
     requiresAction: true,
-    actionText: 'Type feedback and continue',
+    actionText: 'Type some feedback and continue',
     phase: 'solution'
   },
   {
     id: 'send_feedback',
     title: 'Send Feedback',
-    description: 'Click here to submit your feedback.',
-    target: '.send-feedback-button',
+    description: 'Click here to submit your feedback to our improvement system.',
+    target: '.send_feedback_button',
     position: 'left',
     icon: <Send size={24} />,
     requiresAction: true,
-    actionText: 'Click to send',
+    actionText: 'Click to send feedback',
     phase: 'solution'
   },
   {
-    id: 'try_anything',
-    title: 'Try Any Question',
-    description: 'Now you can type any question and CelesteOS will help you find the answer.',
+    id: 'try_more_questions',
+    title: 'Ask More Questions',
+    description: 'Now you understand how to use solution cards! Ask any technical question.',
     target: '.query_input_container',
     position: 'top',
     icon: <MessageSquare size={24} />,
@@ -311,10 +322,22 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
 
   useEffect(() => {
     if (isVisible && step?.target) {
-      // Add delay to ensure DOM elements are rendered
-      const timer = setTimeout(() => {
+      // Add delay and retry mechanism to ensure DOM elements are rendered
+      let retryCount = 0;
+      const maxRetries = 5;
+      
+      const tryUpdatePosition = () => {
         updateHighlightPosition();
-      }, 500);
+        
+        // If no highlight position was set and we have retries left, try again
+        if (!highlightPosition && retryCount < maxRetries) {
+          retryCount++;
+          console.log(`Tutorial: Retrying position update (${retryCount}/${maxRetries}) for "${step.target}"`);
+          setTimeout(tryUpdatePosition, 200 * retryCount); // Increasing delay
+        }
+      };
+      
+      const timer = setTimeout(tryUpdatePosition, 500);
       return () => clearTimeout(timer);
     }
   }, [currentStepIndex, isVisible, currentPhase]);
@@ -337,12 +360,33 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
     }
 
     let element: Element | null = null;
+    
+    // Enhanced element finding logic
     if (step.target.startsWith('button:has-text')) {
       const text = step.target.match(/\("(.+)"\)/)?.[1];
       const buttons = document.querySelectorAll('button');
       element = Array.from(buttons).find(btn => btn.textContent?.includes(text || '')) || null;
     } else {
-      element = document.querySelector(step.target);
+      // Try multiple selectors for better reliability
+      const selectors = [
+        step.target,
+        step.target.replace('.', ''), // Try without dot
+        `[class*="${step.target.replace('.', '')}"]`, // Try partial class match
+        `${step.target}:first-child`, // Try first child
+        `${step.target}:first-of-type` // Try first of type
+      ];
+      
+      for (const selector of selectors) {
+        try {
+          element = document.querySelector(selector);
+          if (element) {
+            console.log(`Tutorial: Found element with selector "${selector}"`);
+            break;
+          }
+        } catch (e) {
+          // Invalid selector, continue
+        }
+      }
     }
 
     if (element) {
@@ -353,13 +397,62 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
         width: rect.width + 16,
         height: rect.height + 16
       });
+      console.log(`Tutorial: Positioned tooltip for "${step.target}" at`, rect);
     } else {
-      console.warn(`Tutorial: Element not found for selector "${step.target}"`);
-      setHighlightPosition(null);
+      console.warn(`Tutorial: Element not found for any selector variations of "${step.target}"`);
+      console.log('Available elements:', Array.from(document.querySelectorAll('[class*="solution"], [class*="feedback"]')).map(el => el.className));
+      
+      // Fallback: try to find any solution card element
+      const fallbackElement = document.querySelector('.solution_card, .solutions_container, .chat-message');
+      if (fallbackElement) {
+        const rect = fallbackElement.getBoundingClientRect();
+        setHighlightPosition({
+          top: rect.top - 8,
+          left: rect.left - 8,
+          width: rect.width + 16,
+          height: rect.height + 16
+        });
+        console.log(`Tutorial: Using fallback element for "${step.target}"`);
+      } else {
+        setHighlightPosition(null);
+      }
     }
   };
 
   const handleNext = () => {
+    // Check if current step requires action and warn user
+    if (step?.requiresAction) {
+      const element = document.querySelector(step.target);
+      if (element && step.id === 'expand_solution') {
+        // Check if solution card is expanded
+        const solutionCard = element.closest('.solution_card');
+        const isExpanded = solutionCard?.querySelector('.solution_expanded_content');
+        if (!isExpanded) {
+          console.log('Tutorial: Solution card needs to be expanded first');
+          // Don't advance until expanded
+          return;
+        }
+      }
+      
+      if (step.id === 'leave_feedback') {
+        // Check if feedback form is visible
+        const feedbackForm = document.querySelector('.feedback_form_container');
+        if (!feedbackForm) {
+          console.log('Tutorial: Feedback form needs to be opened first');
+          return;
+        }
+      }
+      
+      if (step.id === 'feedback_form') {
+        // Check if feedback has been typed
+        const feedbackInput = document.querySelector('.feedback_message_input') as HTMLTextAreaElement;
+        if (!feedbackInput?.value?.trim()) {
+          console.log('Tutorial: Please type some feedback first');
+          return;
+        }
+      }
+    }
+    
     if (currentStepIndex < tutorialSteps.length - 1) {
       setIsAnimating(true);
       setTimeout(() => {
@@ -369,9 +462,7 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
     } else {
       // End of current phase
       if (currentPhase === 'initial' || currentPhase === 'solution') {
-        // Wait for next trigger
-        setCurrentPhase('initial');
-        setCurrentStepIndex(0);
+        handleComplete();
       } else {
         handleComplete();
       }
