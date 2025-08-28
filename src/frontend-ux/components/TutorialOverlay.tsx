@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, ChevronRight, ChevronLeft, CheckCircle, MessageSquare, Search, FileText, Mail, Ship, ArrowRight, Settings, Download, Calendar, Send, ThumbsUp, MessageCircle } from 'lucide-react';
+import { X, ChevronRight, ChevronLeft, ChevronDown, CheckCircle, MessageSquare, Search, FileText, Mail, Ship, ArrowRight, Settings, Download, Calendar, Send, ThumbsUp, MessageCircle } from 'lucide-react';
 
 interface TutorialStep {
   id: string;
