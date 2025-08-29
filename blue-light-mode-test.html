@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CelesteOS • Blue Light Mode</title>
+<style>
+  /* ========= BLUE LIGHT LUXURY TOKENS ========= */
+  :root{
+    /* Light blue spectrum */
+    --white-blue: #fefeff;
+    --ice-pure: #fcfdff;
+    --ice-soft: #fafcfe;
+    --sky-whisper: #f8fbfe;
+    --sky-soft: #f5f9fd;
+    --sky-mid: #f2f7fc;
+    --sky-deep: #eff5fb;
+    --azure-light: #ecf3fa;
+    --azure-mid: #e9f1f9;
+    --azure-deep: #e6eff8;
+    
+    /* Enhanced blue accents */
+    --brand-primary: rgba(47, 185, 232, 0.08);
+    --brand-secondary: rgba(0, 112, 255, 0.06);
+    --brand-tertiary: rgba(186, 221, 233, 0.12);
+    --brand-quaternary: rgba(129, 200, 228, 0.10);
+    --brand-whisper: rgba(67, 166, 216, 0.04);
+    --warm-accent: rgba(200, 169, 81, 0.03);
+
+    /* Irregular premium timing */
+    --rhythm-1: 47s;
+    --rhythm-2: 63s;
+    --rhythm-3: 79s;
+    --rhythm-4: 53s;
+    --rhythm-5: 97s;
+    --rhythm-6: 71s;
+  }
+
+  html,body{
+    height:100%;
+    margin:0;
+    overflow:hidden;
+  }
+
+  body{
+    background: var(--white-blue);
+  }
+
+  /* ========= BLUE LUXURY LAYERING ========= */
+  .blue-luxury{ 
+    position:fixed; 
+    inset:0; 
+  }
+  
+  /* Foundation: Blue-white gradient */
+  .blue-luxury .foundation{
+    position:absolute; 
+    inset:0;
+    background: 
+      linear-gradient(138deg, var(--white-blue) 0%, var(--ice-pure) 15%, var(--ice-soft) 30%, var(--sky-whisper) 50%, var(--sky-soft) 70%, var(--ice-soft) 85%, var(--white-blue) 100%);
+  }
+  
+  /* Blue Mass 1: Primary formation */
+  .blue-luxury .mass-alpha{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(90vmax 80vmax at 14% 22%, var(--azure-light) 0%, var(--sky-deep) 40%, transparent 75%);
+    animation: blueFlow1 var(--rhythm-1) ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+  
+  /* Blue Mass 2: Counter formation */
+  .blue-luxury .mass-beta{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(100vmax 90vmax at 86% 18%, var(--azure-mid) 0%, var(--sky-mid) 45%, transparent 80%);
+    animation: blueFlow2 var(--rhythm-2) ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+  
+  /* Blue Mass 3: Lower sweep */
+  .blue-luxury .mass-gamma{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(80vmax 100vmax at 22% 82%, var(--sky-deep) 0%, var(--sky-soft) 35%, transparent 70%);
+    animation: blueFlow3 var(--rhythm-3) ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+  
+  /* Blue Mass 4: Corner accent */
+  .blue-luxury .mass-delta{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(85vmax 85vmax at 78% 78%, var(--azure-deep) 0%, var(--sky-mid) 30%, transparent 65%);
+    animation: blueFlow4 var(--rhythm-4) ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+  
+  /* Brand Accent 1: Strong presence */
+  .blue-luxury .brand-alpha{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(70vmax 70vmax at 38% 28%, var(--brand-tertiary) 0%, transparent 55%);
+    animation: brandPulse1 var(--rhythm-5) ease-in-out infinite;
+    will-change: opacity;
+  }
+  
+  /* Brand Accent 2: Secondary flow */
+  .blue-luxury .brand-beta{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(60vmax 80vmax at 62% 68%, var(--brand-primary) 0%, transparent 50%);
+    animation: brandPulse2 var(--rhythm-6) ease-in-out infinite 18s;
+    will-change: opacity;
+  }
+  
+  /* Brand Accent 3: Tertiary whisper */
+  .blue-luxury .brand-gamma{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(55vmax 65vmax at 75% 35%, var(--brand-quaternary) 0%, transparent 45%);
+    animation: brandPulse3 var(--rhythm-1) ease-in-out infinite 28s;
+    will-change: opacity;
+  }
+  
+  /* Warm touches */
+  .blue-luxury .warmth{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(50vmax 50vmax at 25% 75%, var(--warm-accent) 0%, transparent 40%);
+    animation: warmFlow var(--rhythm-3) ease-in-out infinite 40s;
+    will-change: opacity;
+  }
+  
+  /* Texture overlay */
+  .blue-luxury .texture{
+    position:absolute; 
+    inset:0;
+    background: 
+      radial-gradient(at 18% 15%, var(--sky-deep) 0px, transparent 35%),
+      radial-gradient(at 58% 8%, var(--azure-light) 0px, transparent 32%),
+      radial-gradient(at 82% 25%, var(--sky-mid) 0px, transparent 38%),
+      radial-gradient(at 32% 78%, var(--azure-mid) 0px, transparent 40%),
+      radial-gradient(at 85% 88%, var(--sky-deep) 0px, transparent 33%);
+    opacity: 0.4;
+    mix-blend-mode: soft-light;
+  }
+
+  /* Blue animations with irregular patterns */
+  @keyframes blueFlow1 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.85; }
+    31% { transform: translate3d(-1.8%, 1.2%, 0) scale(1.04); opacity: 0.95; }
+    67% { transform: translate3d(1.5%, -1.8%, 0) scale(0.96); opacity: 0.88; }
+    84% { transform: translate3d(-0.7%, 0.9%, 0) scale(1.02); opacity: 0.92; }
+  }
+  
+  @keyframes blueFlow2 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.80; }
+    26% { transform: translate3d(2.0%, -1.4%, 0) scale(0.93); opacity: 0.90; }
+    62% { transform: translate3d(-1.3%, 2.1%, 0) scale(1.07); opacity: 0.85; }
+    89% { transform: translate3d(1.1%, -0.8%, 0) scale(1.03); opacity: 0.87; }
+  }
+  
+  @keyframes blueFlow3 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.75; }
+    39% { transform: translate3d(1.6%, 2.2%, 0) scale(1.05); opacity: 0.85; }
+    73% { transform: translate3d(-2.0%, -1.0%, 0) scale(0.95); opacity: 0.80; }
+  }
+  
+  @keyframes blueFlow4 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.70; }
+    33% { transform: translate3d(-1.4%, -1.7%, 0) scale(1.03); opacity: 0.82; }
+    71% { transform: translate3d(1.9%, 1.3%, 0) scale(0.97); opacity: 0.76; }
+  }
+  
+  @keyframes brandPulse1 {
+    0%, 100% { opacity: 0.25; }
+    43% { opacity: 0.45; }
+    78% { opacity: 0.32; }
+  }
+  
+  @keyframes brandPulse2 {
+    0%, 100% { opacity: 0.20; }
+    36% { opacity: 0.38; }
+    69% { opacity: 0.28; }
+  }
+  
+  @keyframes brandPulse3 {
+    0%, 100% { opacity: 0.18; }
+    48% { opacity: 0.35; }
+    82% { opacity: 0.25; }
+  }
+  
+  @keyframes warmFlow {
+    0%, 100% { opacity: 0.15; }
+    50% { opacity: 0.25; }
+  }
+
+  /* Demo styling */
+  .demo {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(24, 24, 24, 0.9);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 36px;
+    font-weight: 200;
+    text-align: center;
+    letter-spacing: 2px;
+    z-index: 100;
+  }
+  
+  .demo .sub {
+    font-size: 11px;
+    opacity: 0.6;
+    margin-top: 16px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: 400;
+    color: rgba(24, 24, 24, 0.5);
+  }
+</style>
+</head>
+<body>
+  <!-- Blue Light Luxury System -->
+  <div class="blue-luxury">
+    <div class="foundation"></div>
+    <div class="mass-alpha"></div>
+    <div class="mass-beta"></div>
+    <div class="mass-gamma"></div>
+    <div class="mass-delta"></div>
+    <div class="brand-alpha"></div>
+    <div class="brand-beta"></div>
+    <div class="brand-gamma"></div>
+    <div class="warmth"></div>
+    <div class="texture"></div>
+  </div>
+  
+  <!-- Demo overlay -->
+  <div class="demo">
+    CelesteOS
+    <div class="sub">Blue Light Mode</div>
+  </div>
+</body>
+</html>

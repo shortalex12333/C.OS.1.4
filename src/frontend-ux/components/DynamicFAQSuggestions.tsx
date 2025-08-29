@@ -59,8 +59,8 @@ export function DynamicFAQSuggestions({
 
   const baseTextColor = isDarkMode ? '#ffffff' : '#1f2937';
   const secondaryTextColor = isDarkMode ? 'rgba(255, 255, 255, 0.7)' : '#6b7280';
-  const backgroundColor = isDarkMode ? 'rgba(255, 255, 255, 0.03)' : 'rgba(255, 255, 255, 0.95)';
-  const borderColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(229, 231, 235, 0.95)';
+  const backgroundColor = isDarkMode ? '#181818' : 'rgba(255, 255, 255, 0.95)';
+  const borderColor = isDarkMode ? '#313235' : 'rgba(229, 231, 235, 0.95)';
   const hoverBackgroundColor = isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(249, 250, 251, 0.95)';
 
   if (displayedSuggestions.length === 0) {
@@ -74,7 +74,8 @@ export function DynamicFAQSuggestions({
         maxWidth: isMobile ? '100%' : '760px',
         margin: '0 auto',
         padding: isMobile ? '16px' : '24px',
-        animation: 'fadeIn 0.4s ease-out'
+        animation: 'fadeIn 0.4s ease-out',
+        backgroundColor: isDarkMode ? '#2e2e2e' : 'transparent'
       }}
     >
       {/* Header */}
@@ -146,7 +147,7 @@ export function DynamicFAQSuggestions({
               background: backgroundColor,
               backdropFilter: 'blur(12px) saturate(1.2)',
               WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
-              border: `1px solid ${borderColor}`,
+              border: 'none',
               borderRadius: '4px', // Base tier for inner elements // Container tier for cards
               cursor: 'pointer',
               transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',

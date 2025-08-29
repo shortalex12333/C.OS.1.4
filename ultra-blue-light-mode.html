@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CelesteOS • Ultra Blue Light Mode</title>
+<style>
+  /* ========= ULTRA BLUE LIGHT TOKENS ========= */
+  :root{
+    /* Rich blue-white spectrum */
+    --white-ice: #fdfdff;
+    --blue-crystal: #fafcff;
+    --blue-whisper: #f7faff;
+    --blue-soft: #f4f8ff;
+    --blue-light: #f1f6fe;
+    --blue-mid: #eef4fe;
+    --blue-rich: #ebf2fd;
+    --blue-deep: #e8f0fc;
+    --blue-strong: #e5eefc;
+    --blue-intense: #e2ecfb;
+    --blue-ocean: #dfebfa;
+    
+    /* Strong blue accents */
+    --top-strong-1: rgba(47, 185, 232, 0.25);
+    --top-strong-2: rgba(0, 112, 255, 0.22);
+    --top-strong-3: rgba(186, 221, 233, 0.28);
+    --top-strong-4: rgba(129, 200, 228, 0.24);
+    --top-strong-5: rgba(67, 166, 216, 0.20);
+    --top-strong-6: rgba(91, 184, 247, 0.18);
+    --mid-strong-1: rgba(47, 185, 232, 0.15);
+    --mid-strong-2: rgba(186, 221, 233, 0.18);
+    --mid-strong-3: rgba(0, 112, 255, 0.12);
+    --base-blue: rgba(129, 200, 228, 0.10);
+    --warm-balance: rgba(200, 169, 81, 0.06);
+
+    /* Chaotic premium timing */
+    --tempo-a: 37s;
+    --tempo-b: 53s;
+    --tempo-c: 71s;
+    --tempo-d: 43s;
+    --tempo-e: 89s;
+    --tempo-f: 61s;
+    --tempo-g: 97s;
+    --tempo-h: 79s;
+  }
+
+  html,body{
+    height:100%;
+    margin:0;
+    overflow:hidden;
+  }
+
+  body{
+    background: var(--white-ice);
+  }
+
+  /* ========= ULTRA BLUE LUXURY SYSTEM ========= */
+  .ultra-blue{ 
+    position:fixed; 
+    inset:0; 
+  }
+  
+  /* Foundation: Deep blue progression */
+  .ultra-blue .foundation{
+    position:absolute; 
+    inset:0;
+    background: 
+      linear-gradient(148deg, 
+        var(--white-ice) 0%, 
+        var(--blue-crystal) 8%, 
+        var(--blue-whisper) 16%, 
+        var(--blue-soft) 24%, 
+        var(--blue-light) 32%, 
+        var(--blue-mid) 40%, 
+        var(--blue-rich) 48%, 
+        var(--blue-deep) 56%, 
+        var(--blue-rich) 64%, 
+        var(--blue-mid) 72%, 
+        var(--blue-light) 80%, 
+        var(--blue-soft) 88%, 
+        var(--white-ice) 96%);
+  }
+  
+  /* TOP BLUE DOMINANCE - Heavy concentration */
+  .ultra-blue .top-prime{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(80vmax 50vmax at 15% 5%, var(--top-strong-1) 0%, var(--blue-rich) 35%, transparent 70%);
+    animation: blueStorm1 var(--tempo-a) ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+  
+  .ultra-blue .top-secondary{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(90vmax 45vmax at 42% 8%, var(--top-strong-3) 0%, var(--blue-deep) 40%, transparent 75%);
+    animation: blueStorm2 var(--tempo-b) ease-in-out infinite 5s;
+    will-change: transform, opacity;
+  }
+  
+  .ultra-blue .top-tertiary{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(70vmax 55vmax at 68% 12%, var(--top-strong-2) 0%, var(--blue-strong) 30%, transparent 65%);
+    animation: blueStorm3 var(--tempo-c) ease-in-out infinite 12s;
+    will-change: transform, opacity;
+  }
+  
+  .ultra-blue .top-quaternary{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(100vmax 40vmax at 85% 18%, var(--top-strong-4) 0%, var(--blue-intense) 45%, transparent 80%);
+    animation: blueStorm4 var(--tempo-d) ease-in-out infinite 18s;
+    will-change: transform, opacity;
+  }
+  
+  .ultra-blue .top-quinary{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(60vmax 35vmax at 75% 2%, var(--top-strong-5) 0%, transparent 58%);
+    animation: blueStorm5 var(--tempo-e) ease-in-out infinite 25s;
+    will-change: transform, opacity;
+  }
+  
+  .ultra-blue .top-senary{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(55vmax 45vmax at 28% 15%, var(--top-strong-6) 0%, var(--blue-ocean) 25%, transparent 60%);
+    animation: blueStorm6 var(--tempo-f) ease-in-out infinite 32s;
+    will-change: transform, opacity;
+  }
+  
+  /* MID BLUE FLOWS - Sustained presence */
+  .ultra-blue .mid-flow-1{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(110vmax 90vmax at 22% 45%, var(--mid-strong-1) 0%, var(--blue-rich) 50%, transparent 85%);
+    animation: blueCascade1 var(--tempo-g) ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+  
+  .ultra-blue .mid-flow-2{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(95vmax 100vmax at 78% 55%, var(--mid-strong-2) 0%, var(--blue-deep) 45%, transparent 80%);
+    animation: blueCascade2 var(--tempo-h) ease-in-out infinite 15s;
+    will-change: transform, opacity;
+  }
+  
+  .ultra-blue .mid-flow-3{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(85vmax 85vmax at 50% 60%, var(--mid-strong-3) 0%, var(--blue-strong) 40%, transparent 75%);
+    animation: blueCascade3 var(--tempo-b) ease-in-out infinite 28s;
+    will-change: transform, opacity;
+  }
+  
+  /* BASE BLUE FOUNDATION */
+  .ultra-blue .base-support{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(130vmax 110vmax at 35% 85%, var(--base-blue) 0%, transparent 75%);
+    animation: baseBlue var(--tempo-c) ease-in-out infinite 20s;
+    will-change: transform, opacity;
+  }
+  
+  /* Warm balance */
+  .ultra-blue .warmth{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(65vmax 65vmax at 88% 22%, var(--warm-balance) 0%, transparent 50%);
+    animation: warmBalance var(--tempo-e) ease-in-out infinite 42s;
+    will-change: opacity;
+  }
+
+  /* BLUE STORM ANIMATIONS - Chaotic and intense */
+  @keyframes blueStorm1 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.95; }
+    21% { transform: translate3d(-3.2%, 1.8%, 0) scale(1.12); opacity: 1.0; }
+    54% { transform: translate3d(2.7%, -2.5%, 0) scale(0.88); opacity: 0.87; }
+    78% { transform: translate3d(-1.4%, 1.1%, 0) scale(1.06); opacity: 0.93; }
+  }
+  
+  @keyframes blueStorm2 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.90; }
+    17% { transform: translate3d(2.8%, -1.2%, 0) scale(0.93); opacity: 0.98; }
+    43% { transform: translate3d(-3.1%, 2.9%, 0) scale(1.09); opacity: 0.85; }
+    71% { transform: translate3d(1.6%, -2.1%, 0) scale(1.04); opacity: 0.92; }
+    89% { transform: translate3d(-0.8%, 1.3%, 0) scale(0.97); opacity: 0.94; }
+  }
+  
+  @keyframes blueStorm3 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.85; }
+    29% { transform: translate3d(-2.4%, -2.8%, 0) scale(1.08); opacity: 0.95; }
+    63% { transform: translate3d(3.0%, 2.2%, 0) scale(0.92); opacity: 0.88; }
+  }
+  
+  @keyframes blueStorm4 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.80; }
+    24% { transform: translate3d(3.5%, 1.7%, 0) scale(0.89); opacity: 0.92; }
+    58% { transform: translate3d(-2.8%, -3.2%, 0) scale(1.11); opacity: 0.84; }
+    84% { transform: translate3d(1.9%, 1.5%, 0) scale(1.03); opacity: 0.88; }
+  }
+  
+  @keyframes blueStorm5 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.75; }
+    38% { transform: translate3d(-2.1%, 3.4%, 0) scale(1.13); opacity: 0.87; }
+    74% { transform: translate3d(2.5%, -1.8%, 0) scale(0.86); opacity: 0.81; }
+  }
+  
+  @keyframes blueStorm6 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.70; }
+    33% { transform: translate3d(1.8%, -2.6%, 0) scale(1.07); opacity: 0.83; }
+    67% { transform: translate3d(-2.9%, 1.9%, 0) scale(0.94); opacity: 0.77; }
+  }
+  
+  @keyframes blueCascade1 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.75; }
+    35% { transform: translate3d(2.2%, 2.1%, 0) scale(1.05); opacity: 0.88; }
+    70% { transform: translate3d(-1.8%, -2.4%, 0) scale(0.95); opacity: 0.82; }
+  }
+  
+  @keyframes blueCascade2 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.70; }
+    27% { transform: translate3d(-2.5%, -1.6%, 0) scale(1.04); opacity: 0.83; }
+    61% { transform: translate3d(2.1%, 2.8%, 0) scale(0.96); opacity: 0.76; }
+  }
+  
+  @keyframes blueCascade3 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.65; }
+    44% { transform: translate3d(1.4%, -2.2%, 0) scale(1.06); opacity: 0.78; }
+    81% { transform: translate3d(-1.9%, 1.7%, 0) scale(0.94); opacity: 0.71; }
+  }
+  
+  @keyframes baseBlue {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.60; }
+    50% { transform: translate3d(1.2%, 1.8%, 0) scale(1.02); opacity: 0.72; }
+  }
+  
+  @keyframes warmBalance {
+    0%, 100% { opacity: 0.25; }
+    50% { opacity: 0.40; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .ultra-blue * { animation: none; }
+  }
+
+  /* Demo styling */
+  .demo {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(24, 24, 24, 0.8);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 40px;
+    font-weight: 100;
+    text-align: center;
+    letter-spacing: 3px;
+    z-index: 100;
+  }
+  
+  .demo .sub {
+    font-size: 10px;
+    opacity: 0.6;
+    margin-top: 20px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    font-weight: 500;
+    color: rgba(0, 112, 255, 0.7);
+  }
+</style>
+</head>
+<body>
+  <!-- Ultra Blue Light System -->
+  <div class="ultra-blue">
+    <div class="foundation"></div>
+    <!-- INTENSE TOP BLUE STORM -->
+    <div class="top-prime"></div>
+    <div class="top-secondary"></div>
+    <div class="top-tertiary"></div>
+    <div class="top-quaternary"></div>
+    <div class="top-quinary"></div>
+    <div class="top-senary"></div>
+    <!-- MID BLUE CASCADES -->
+    <div class="mid-flow-1"></div>
+    <div class="mid-flow-2"></div>
+    <div class="mid-flow-3"></div>
+    <!-- BASE SUPPORT -->
+    <div class="base-support"></div>
+    <div class="warmth"></div>
+  </div>
+  
+  <!-- Demo overlay -->
+  <div class="demo">
+    CelesteOS
+    <div class="sub">Ultra Blue Light</div>
+  </div>
+
+  <style>
+    /* INLINE STYLES FOR LAYERS */
+    .ultra-blue .top-prime{
+      position:absolute; 
+      inset:0;
+      background: radial-gradient(85vmax 55vmax at 12% 8%, var(--top-strong-1) 0%, var(--blue-rich) 35%, transparent 70%);
+      animation: blueStorm1 var(--tempo-a) ease-in-out infinite;
+      will-change: transform, opacity;
+    }
+    
+    .ultra-blue .top-secondary{
+      position:absolute; 
+      inset:0;
+      background: radial-gradient(95vmax 50vmax at 38% 5%, var(--top-strong-3) 0%, var(--blue-deep) 40%, transparent 75%);
+      animation: blueStorm2 var(--tempo-b) ease-in-out infinite 5s;
+      will-change: transform, opacity;
+    }
+    
+    .ultra-blue .top-tertiary{
+      position:absolute; 
+      inset:0;
+      background: radial-gradient(75vmax 60vmax at 64% 10%, var(--top-strong-2) 0%, var(--blue-strong) 30%, transparent 65%);
+      animation: blueStorm3 var(--tempo-c) ease-in-out infinite 12s;
+      will-change: transform, opacity;
+    }
+    
+    .ultra-blue .top-quaternary{
+      position:absolute; 
+      inset:0;
+      background: radial-gradient(110vmax 45vmax at 82% 15%, var(--top-strong-4) 0%, var(--blue-intense) 45%, transparent 80%);
+      animation: blueStorm4 var(--tempo-d) ease-in-out infinite 18s;
+      will-change: transform, opacity;
+    }
+    
+    .ultra-blue .top-quinary{
+      position:absolute; 
+      inset:0;
+      background: radial-gradient(65vmax 40vmax at 25% 3%, var(--top-strong-5) 0%, transparent 60%);
+      animation: blueStorm5 var(--tempo-e) ease-in-out infinite 25s;
+      will-change: transform, opacity;
+    }
+    
+    .ultra-blue .top-senary{
+      position:absolute; 
+      inset:0;
+      background: radial-gradient(70vmax 50vmax at 58% 7%, var(--top-strong-6) 0%, var(--blue-ocean) 28%, transparent 62%);
+      animation: blueStorm6 var(--tempo-f) ease-in-out infinite 35s;
+      will-change: transform, opacity;
+    }
+    
+    .ultra-blue .mid-flow-1{
+      position:absolute; 
+      inset:0;
+      background: radial-gradient(120vmax 95vmax at 18% 48%, var(--mid-strong-1) 0%, var(--blue-rich) 50%, transparent 85%);
+      animation: blueCascade1 var(--tempo-g) ease-in-out infinite;
+      will-change: transform, opacity;
+    }
+    
+    .ultra-blue .mid-flow-2{
+      position:absolute; 
+      inset:0;
+      background: radial-gradient(105vmax 110vmax at 82% 52%, var(--mid-strong-2) 0%, var(--blue-deep) 48%, transparent 82%);
+      animation: blueCascade2 var(--tempo-h) ease-in-out infinite 15s;
+      will-change: transform, opacity;
+    }
+    
+    .ultra-blue .mid-flow-3{
+      position:absolute; 
+      inset:0;
+      background: radial-gradient(90vmax 90vmax at 55% 65%, var(--mid-strong-3) 0%, var(--blue-strong) 42%, transparent 78%);
+      animation: blueCascade3 var(--tempo-b) ease-in-out infinite 28s;
+      will-change: transform, opacity;
+    }
+    
+    .ultra-blue .base-support{
+      position:absolute; 
+      inset:0;
+      background: radial-gradient(140vmax 120vmax at 45% 88%, var(--base-blue) 0%, transparent 78%);
+      animation: baseBlue var(--tempo-c) ease-in-out infinite 22s;
+      will-change: transform, opacity;
+    }
+    
+    .ultra-blue .warmth{
+      position:absolute; 
+      inset:0;
+      background: radial-gradient(70vmax 70vmax at 85% 25%, var(--warm-balance) 0%, transparent 52%);
+      animation: warmBalance var(--tempo-e) ease-in-out infinite 48s;
+      will-change: opacity;
+    }
+  </style>
+</body>
+</html>

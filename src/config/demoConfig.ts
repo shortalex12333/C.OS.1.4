@@ -34,24 +34,19 @@ export const demoConfig = {
       screens: [
         {
           lines: [
-            "Chiefs lose ~2 hours a day searching manuals and emails.",
-            "Handovers drag, knowledge gets lost, mistakes repeat."
+            "40,000+ emails. Buried attachments. Misspelt file names."
           ],
           duration_ms: 3500
         },
         {
           lines: [
-            "CelesteOS finds the right document in seconds.",
-            "Handover notes: 30 seconds.",
-            "Save 10+ hours a week, per engineer."
+            "The notes you need? Hidden on the NAS, no one remembers."
           ],
           duration_ms: 3500
         },
         {
           lines: [
-            "Runs offline, on your yacht's LAN.",
-            "Read-only: no data ever leaves your NAS.",
-            "Built for Captains and Chiefs."
+            "CelesteOS brings it back in seconds"
           ],
           duration_ms: 3500,
           transition_to: "app"

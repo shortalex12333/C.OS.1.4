@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CelesteOS Chat Light Mode Background</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden;
+        }
+        
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Animation keyframes */
+        @keyframes fadeToWhite {
+            0% { opacity: 0; transform: scale(1.02); }
+            30% { opacity: 0.3; transform: scale(1.01); }
+            60% { opacity: 0.7; transform: scale(1.005); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        
+        /* Background layers */
+        .background-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transition: all 1200ms ease-out;
+        }
+        
+        .base-layer {
+            background: #fcfeff;
+            animation: fadeToWhite 1.2s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+        }
+        
+        .gradient-layer {
+            background: linear-gradient(180deg, rgba(252, 254, 255, 0.9) 0%, rgba(255, 255, 255, 1) 100%);
+            animation: fadeToWhite 1.2s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+        }
+        
+        /* Demo content for visualization */
+        .demo-content {
+            position: relative;
+            z-index: 10;
+            padding: 40px;
+            color: #333;
+            text-align: center;
+            margin-top: 20vh;
+        }
+        
+        .demo-title {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            opacity: 0.8;
+        }
+        
+        .demo-description {
+            font-size: 16px;
+            opacity: 0.6;
+            max-width: 600px;
+            margin: 0 auto 40px;
+            line-height: 1.5;
+        }
+        
+        .color-info {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 500px;
+            text-align: left;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        
+        .color-info h3 {
+            margin: 0 0 12px 0;
+            font-size: 16px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        
+        .color-swatch {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            margin-right: 8px;
+            vertical-align: middle;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+        }
+        
+        .toggle-button {
+            background: #0070f3;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        .toggle-button:hover {
+            background: #0051a2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Light Mode Chat Background Layers -->
+        <div class="background-layer base-layer"></div>
+        <div class="background-layer gradient-layer"></div>
+        
+        <!-- Demo Content -->
+        <div class="demo-content">
+            <h1 class="demo-title">CelesteOS Chat Light Mode Background</h1>
+            <p class="demo-description">
+                This is the light mode background used in the CelesteOS chat interface when users are in conversation mode.
+                The background consists of two layered elements with subtle animations.
+            </p>
+            
+            <div class="color-info">
+                <h3>Background Specifications:</h3>
+                <p><span class="color-swatch" style="background: #fcfeff;"></span><strong>Base Layer:</strong> #fcfeff</p>
+                <p><span class="color-swatch" style="background: linear-gradient(180deg, rgba(252, 254, 255, 0.9) 0%, rgba(255, 255, 255, 1) 100%);"></span><strong>Gradient:</strong> linear-gradient(180deg, rgba(252, 254, 255, 0.9) 0%, rgba(255, 255, 255, 1) 100%)</p>
+                <p><strong>Animation:</strong> fadeToWhite 1.2s cubic-bezier(0.22, 0.61, 0.36, 1)</p>
+                <p><strong>Transition:</strong> all 1200ms ease-out</p>
+            </div>
+            
+            <button class="toggle-button" onclick="restartAnimation()">Restart Animation</button>
+        </div>
+    </div>
+    
+    <script>
+        function restartAnimation() {
+            const layers = document.querySelectorAll('.background-layer');
+            layers.forEach(layer => {
+                layer.style.animation = 'none';
+                layer.offsetHeight; // Trigger reflow
+                layer.style.animation = 'fadeToWhite 1.2s cubic-bezier(0.22, 0.61, 0.36, 1) forwards';
+            });
+        }
+        
+        // Auto-restart animation every 5 seconds for demo
+        setInterval(restartAnimation, 5000);
+    </script>
+</body>
+</html>

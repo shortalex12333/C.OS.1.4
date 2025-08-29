@@ -422,8 +422,9 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
             border: 'none',
             borderRadius: '50px', // Completely rounded (pill shape)
             fontSize: isMobile ? '13px' : '14px',
-            fontWeight: 600,
-            fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            fontWeight: 400,
+            textTransform: 'uppercase',
+            fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
             cursor: 'pointer',
             transition: 'all 0.2s ease',
             zIndex: 10005
@@ -463,7 +464,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
               marginBottom: '32px'
             }}>
               <img 
-                src="/dark-faq-logo.png"
+                src="/1.png"
                 alt="FAQ Logo" 
                 style={{
                   width: '256px',
@@ -530,7 +531,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
                   fontSize: isMobile ? '15px' : '16px',
                   lineHeight: isMobile ? '22px' : '24px',
                   letterSpacing: '-0.32px',
-                  fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                  fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                   minHeight: '48px',
                   height: '48px'
                 }}
@@ -826,7 +827,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
               marginBottom: '20px'
             }}>
               <img 
-                src="/dark-faq-logo.png"
+                src="/1.png"
                 alt="FAQ Logo" 
                 style={{
                   width: '256px',
@@ -876,7 +877,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
               fontSize: isMobile ? '15px' : '16px',
               lineHeight: isMobile ? '22px' : '24px',
               letterSpacing: '-0.32px',
-              fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
               textAlign: 'center'
             }}>
               Start a conversation by typing a question below
@@ -929,7 +930,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
                       style={{
                         fontSize: '14px',
                         lineHeight: '20px',
-                        fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                        fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                         color: '#939293',
                         textAlign: message.isUser ? 'right' : 'left'
                       }}
@@ -945,7 +946,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
                           fontSize: isMobile ? '15px' : '16px',
                           lineHeight: isMobile ? '22px' : '24px',
                           letterSpacing: '-0.32px',
-                          fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                          fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                           color: 'var(--headline, #f6f7fb)',
                           textAlign: message.isUser ? 'right' : 'left'
                         }}

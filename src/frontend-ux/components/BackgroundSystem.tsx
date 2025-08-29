@@ -11,7 +11,7 @@ export const BackgroundSystem: React.FC<BackgroundSystemProps> = ({
   isChatMode,
   isLoggedIn,
 }) => {
-  // Enhanced animation keyframes with ambient movements
+  // Enhanced animation keyframes with luxury movements
   const keyframeStyles = `
     @keyframes fadeBlueGradient {
       0% { opacity: 1; transform: scale(1); }
@@ -59,6 +59,99 @@ export const BackgroundSystem: React.FC<BackgroundSystemProps> = ({
       0%, 100% { opacity: 0.2; filter: blur(40px); }
       50% { opacity: 0.4; filter: blur(60px); }
     }
+    @keyframes luxuryFloat1 {
+      0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.7; }
+      30% { transform: translate3d(-2%, 1.5%, 0) scale(1.05); opacity: 0.85; }
+      65% { transform: translate3d(1.8%, -2.2%, 0) scale(0.95); opacity: 0.75; }
+      85% { transform: translate3d(-0.8%, 0.9%, 0) scale(1.02); opacity: 0.80; }
+    }
+    @keyframes luxuryFloat2 {
+      0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.65; }
+      25% { transform: translate3d(2.2%, -1.8%, 0) scale(0.92); opacity: 0.78; }
+      60% { transform: translate3d(-1.5%, 2%, 0) scale(1.08); opacity: 0.72; }
+      90% { transform: translate3d(1%, -0.6%, 0) scale(1.03); opacity: 0.69; }
+    }
+    @keyframes luxuryFloat3 {
+      0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.6; }
+      40% { transform: translate3d(1.4%, 2.5%, 0) scale(1.06); opacity: 0.75; }
+      75% { transform: translate3d(-2.1%, -1.2%, 0) scale(0.94); opacity: 0.65; }
+    }
+    @keyframes luxuryFloat4 {
+      0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.55; }
+      35% { transform: translate3d(-1.8%, -2.0%, 0) scale(1.04); opacity: 0.68; }
+      70% { transform: translate3d(2.3%, 1.6%, 0) scale(0.96); opacity: 0.61; }
+    }
+    @keyframes luxuryGlow1 {
+      0%, 100% { opacity: 0.15; }
+      45% { opacity: 0.35; }
+      80% { opacity: 0.22; }
+    }
+    @keyframes luxuryGlow2 {
+      0%, 100% { opacity: 0.12; }
+      38% { opacity: 0.28; }
+      72% { opacity: 0.18; }
+    }
+    @keyframes luxuryWarm {
+      0%, 100% { opacity: 0.08; }
+      50% { opacity: 0.20; }
+    }
+    @keyframes blueStorm1 {
+      0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.95; }
+      21% { transform: translate3d(-3.2%, 1.8%, 0) scale(1.12); opacity: 1.0; }
+      54% { transform: translate3d(2.7%, -2.5%, 0) scale(0.88); opacity: 0.87; }
+      78% { transform: translate3d(-1.4%, 1.1%, 0) scale(1.06); opacity: 0.93; }
+    }
+    @keyframes blueStorm2 {
+      0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.90; }
+      17% { transform: translate3d(2.8%, -1.2%, 0) scale(0.93); opacity: 0.98; }
+      43% { transform: translate3d(-3.1%, 2.9%, 0) scale(1.09); opacity: 0.85; }
+      71% { transform: translate3d(1.6%, -2.1%, 0) scale(1.04); opacity: 0.92; }
+      89% { transform: translate3d(-0.8%, 1.3%, 0) scale(0.97); opacity: 0.94; }
+    }
+    @keyframes blueStorm3 {
+      0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.85; }
+      29% { transform: translate3d(-2.4%, -2.8%, 0) scale(1.08); opacity: 0.95; }
+      63% { transform: translate3d(3.0%, 2.2%, 0) scale(0.92); opacity: 0.88; }
+    }
+    @keyframes blueStorm4 {
+      0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.80; }
+      24% { transform: translate3d(3.5%, 1.7%, 0) scale(0.89); opacity: 0.92; }
+      58% { transform: translate3d(-2.8%, -3.2%, 0) scale(1.11); opacity: 0.84; }
+      84% { transform: translate3d(1.9%, 1.5%, 0) scale(1.03); opacity: 0.88; }
+    }
+    @keyframes blueStorm5 {
+      0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.75; }
+      38% { transform: translate3d(-2.1%, 3.4%, 0) scale(1.13); opacity: 0.87; }
+      74% { transform: translate3d(2.5%, -1.8%, 0) scale(0.86); opacity: 0.81; }
+    }
+    @keyframes blueStorm6 {
+      0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.70; }
+      33% { transform: translate3d(1.8%, -2.6%, 0) scale(1.07); opacity: 0.83; }
+      67% { transform: translate3d(-2.9%, 1.9%, 0) scale(0.94); opacity: 0.77; }
+    }
+    @keyframes blueCascade1 {
+      0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.75; }
+      35% { transform: translate3d(2.2%, 2.1%, 0) scale(1.05); opacity: 0.88; }
+      70% { transform: translate3d(-1.8%, -2.4%, 0) scale(0.95); opacity: 0.82; }
+    }
+    @keyframes blueCascade2 {
+      0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.70; }
+      27% { transform: translate3d(-2.5%, -1.6%, 0) scale(1.04); opacity: 0.83; }
+      61% { transform: translate3d(2.1%, 2.8%, 0) scale(0.96); opacity: 0.76; }
+    }
+    @keyframes blueCascade3 {
+      0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.65; }
+      44% { transform: translate3d(1.4%, -2.2%, 0) scale(1.06); opacity: 0.78; }
+      81% { transform: translate3d(-1.9%, 1.7%, 0) scale(0.94); opacity: 0.71; }
+    }
+    @keyframes baseBlue {
+      0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.60; }
+      50% { transform: translate3d(1.2%, 1.8%, 0) scale(1.02); opacity: 0.72; }
+    }
+    @keyframes warmBalance {
+      0%, 100% { opacity: 0.25; }
+      50% { opacity: 0.40; }
+    }
   `;
 
   return (
@@ -67,121 +160,159 @@ export const BackgroundSystem: React.FC<BackgroundSystemProps> = ({
       
       {(!isLoggedIn || !isChatMode) ? (
         !isDarkMode ? (
-          /* Light Mode Dashboard - CelesteOS Ocean Gradient Theme */
+          /* Light Mode Dashboard - Ultra Blue Luxury Theme */
           <>
-            {/* Base unifying wash */}
+            {/* Foundation: Rich blue progression */}
             <div className="absolute inset-0 h-full w-full" style={{ 
-              background: 'linear-gradient(180deg, #f7fbff 0%, #BADDE9 100%)'
+              background: 'linear-gradient(148deg, #fdfdff 0%, #fafcff 8%, #f7faff 16%, #f4f8ff 24%, #f1f6fe 32%, #eef4fe 40%, #ebf2fd 48%, #e8f0fc 56%, #ebf2fd 64%, #eef4fe 72%, #f1f6fe 80%, #f4f8ff 88%, #fdfdff 96%)'
             }} />
             
-            {/* Layered ocean blues with brand logo gradient - Position 1: soft cyan glow */}
+            {/* TOP BLUE STORM - Heavy concentration */}
             <div className="absolute inset-0 h-full w-full" style={{ 
-              background: 'radial-gradient(60vmax 60vmax at 18% 20%, rgba(47, 185, 232, 0.35) 0%, transparent 55%)',
-              filter: 'saturate(110%) contrast(102%)',
-              animation: 'ambientFloat 26s ease-in-out infinite'
+              background: 'radial-gradient(85vmax 55vmax at 12% 8%, rgba(47, 185, 232, 0.25) 0%, #ebf2fd 35%, transparent 70%)',
+              animation: 'blueStorm1 37s ease-in-out infinite',
+              willChange: 'transform, opacity'
             }} />
             
-            {/* Position 2: pure blue glow */}
             <div className="absolute inset-0 h-full w-full" style={{ 
-              background: 'radial-gradient(70vmax 70vmax at 82% 18%, rgba(0, 112, 255, 0.4) 0%, transparent 60%)',
-              filter: 'saturate(110%) contrast(102%)',
-              animation: 'ambientDrift 26s ease-in-out infinite'
+              background: 'radial-gradient(95vmax 50vmax at 38% 5%, rgba(186, 221, 233, 0.28) 0%, #e8f0fc 40%, transparent 75%)',
+              animation: 'blueStorm2 53s ease-in-out infinite 5s',
+              willChange: 'transform, opacity'
             }} />
             
-            {/* Position 3: logo turquoise */}
             <div className="absolute inset-0 h-full w-full" style={{ 
-              background: 'radial-gradient(70vmax 70vmax at 22% 78%, rgba(186, 221, 233, 0.6) 0%, transparent 55%)',
-              filter: 'saturate(110%) contrast(102%)',
-              animation: 'subtlePulse 26s ease-in-out infinite'
+              background: 'radial-gradient(75vmax 60vmax at 64% 10%, rgba(0, 112, 255, 0.22) 0%, #e5eefc 30%, transparent 65%)',
+              animation: 'blueStorm3 71s ease-in-out infinite 12s',
+              willChange: 'transform, opacity'
             }} />
             
-            {/* Position 4: navy lift */}
             <div className="absolute inset-0 h-full w-full" style={{ 
-              background: 'radial-gradient(85vmax 85vmax at 78% 82%, rgba(0, 40, 90, 0.18) 0%, transparent 65%)',
-              filter: 'saturate(110%) contrast(102%)'
+              background: 'radial-gradient(110vmax 45vmax at 82% 15%, rgba(129, 200, 228, 0.24) 0%, #e2ecfb 45%, transparent 80%)',
+              animation: 'blueStorm4 43s ease-in-out infinite 18s',
+              willChange: 'transform, opacity'
             }} />
             
-            {/* Vignette to hold focus center */}
-            <div className="absolute h-full w-full" style={{ 
-              position: 'absolute',
-              inset: '-10vmax',
-              background: 'radial-gradient(120vmax 90vmax at 50% 45%, transparent 0 64%, rgba(0, 15, 40, 0.06) 100%)',
-              pointerEvents: 'none',
-              mixBlendMode: 'multiply'
+            <div className="absolute inset-0 h-full w-full" style={{ 
+              background: 'radial-gradient(65vmax 40vmax at 75% 2%, rgba(67, 166, 216, 0.20) 0%, transparent 60%)',
+              animation: 'blueStorm5 89s ease-in-out infinite 25s',
+              willChange: 'transform, opacity'
             }} />
             
-            {/* Grain to remove banding (very light) */}
             <div className="absolute inset-0 h-full w-full" style={{ 
-              pointerEvents: 'none',
-              opacity: 0.05,
-              mixBlendMode: 'overlay',
-              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E")`,
-              backgroundSize: '280px 280px',
-              animation: 'ambientFloat 26s ease-in-out infinite reverse'
+              background: 'radial-gradient(70vmax 50vmax at 28% 15%, rgba(91, 184, 247, 0.18) 0%, #dfebfa 28%, transparent 62%)',
+              animation: 'blueStorm6 61s ease-in-out infinite 32s',
+              willChange: 'transform, opacity'
+            }} />
+            
+            {/* MID BLUE CASCADES */}
+            <div className="absolute inset-0 h-full w-full" style={{ 
+              background: 'radial-gradient(120vmax 95vmax at 18% 48%, rgba(47, 185, 232, 0.15) 0%, #ebf2fd 50%, transparent 85%)',
+              animation: 'blueCascade1 97s ease-in-out infinite',
+              willChange: 'transform, opacity'
+            }} />
+            
+            <div className="absolute inset-0 h-full w-full" style={{ 
+              background: 'radial-gradient(105vmax 110vmax at 82% 52%, rgba(186, 221, 233, 0.18) 0%, #e8f0fc 48%, transparent 82%)',
+              animation: 'blueCascade2 79s ease-in-out infinite 15s',
+              willChange: 'transform, opacity'
+            }} />
+            
+            <div className="absolute inset-0 h-full w-full" style={{ 
+              background: 'radial-gradient(90vmax 90vmax at 50% 60%, rgba(0, 112, 255, 0.12) 0%, #e5eefc 42%, transparent 78%)',
+              animation: 'blueCascade3 53s ease-in-out infinite 28s',
+              willChange: 'transform, opacity'
+            }} />
+            
+            {/* BASE SUPPORT */}
+            <div className="absolute inset-0 h-full w-full" style={{ 
+              background: 'radial-gradient(140vmax 120vmax at 45% 88%, rgba(129, 200, 228, 0.10) 0%, transparent 78%)',
+              animation: 'baseBlue 71s ease-in-out infinite 20s',
+              willChange: 'transform, opacity'
+            }} />
+            
+            {/* Warm balance */}
+            <div className="absolute inset-0 h-full w-full" style={{ 
+              background: 'radial-gradient(70vmax 70vmax at 85% 25%, rgba(200, 169, 81, 0.06) 0%, transparent 52%)',
+              animation: 'warmBalance 89s ease-in-out infinite 45s',
+              willChange: 'opacity'
             }} />
           </>
         ) : (
-          /* Dark Mode Dashboard - Deep Ocean Aurora Theme */
+          /* Dark Mode Dashboard - Premium Luxury Theme */
           <>
-            {/* Deep base */}
+            {/* Foundation: Rich gradient base */}
             <div className="absolute inset-0 h-full w-full" style={{ 
-              background: 'linear-gradient(135deg, #0a0f1b 0%, #0f1823 50%, #0a0f1b 100%)' 
+              background: 'linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 25%, #242424 50%, #1a1a1a 75%, #0f0f0f 100%)'
             }} />
             
-            {/* Aurora borealis effect */}
+            {/* Depth Layer 1: Primary mass */}
             <div className="absolute inset-0 h-full w-full" style={{ 
-              background: 'linear-gradient(90deg, transparent 0%, rgba(67, 166, 216, 0.15) 25%, rgba(91, 184, 247, 0.1) 50%, rgba(129, 200, 228, 0.15) 75%, transparent 100%)',
-              animation: 'auroraWave 25s ease-in-out infinite',
-              filter: 'blur(40px)',
-              opacity: 0.6
+              background: 'radial-gradient(80vmax 70vmax at 15% 20%, #424242 0%, #2e2e2e 35%, transparent 70%)',
+              animation: 'luxuryFloat1 43s ease-in-out infinite',
+              willChange: 'transform, opacity'
             }} />
             
-            {/* Primary animated gradients - more visible */}
+            {/* Depth Layer 2: Counter mass */}
             <div className="absolute inset-0 h-full w-full" style={{ 
-              background: 'radial-gradient(circle at 20% -5%, rgba(67, 166, 216, 0.25) 0%, rgba(91, 184, 247, 0.15) 20%, transparent 45%)',
-              animation: 'ambientFloat 18s ease-in-out infinite'
+              background: 'radial-gradient(90vmax 80vmax at 85% 15%, #4a4a4a 0%, #383838 40%, transparent 75%)',
+              animation: 'luxuryFloat2 59s ease-in-out infinite',
+              willChange: 'transform, opacity'
             }} />
             
+            {/* Depth Layer 3: Lower formation */}
             <div className="absolute inset-0 h-full w-full" style={{ 
-              background: 'radial-gradient(circle at 70% 0%, rgba(129, 200, 228, 0.2) 0%, rgba(67, 166, 216, 0.1) 25%, transparent 50%)',
-              animation: 'ambientDrift 22s ease-in-out infinite'
+              background: 'radial-gradient(70vmax 90vmax at 20% 80%, #2e2e2e 0%, #1a1a1a 30%, transparent 65%)',
+              animation: 'luxuryFloat3 67s ease-in-out infinite',
+              willChange: 'transform, opacity'
             }} />
             
+            {/* Depth Layer 4: Corner accent */}
             <div className="absolute inset-0 h-full w-full" style={{ 
-              background: 'radial-gradient(circle at 45% -10%, rgba(91, 184, 247, 0.15) 0%, transparent 35%)',
-              animation: 'subtlePulse 12s ease-in-out infinite'
+              background: 'radial-gradient(75vmax 75vmax at 78% 82%, #4a4a4a 0%, #242424 25%, transparent 60%)',
+              animation: 'luxuryFloat4 37s ease-in-out infinite',
+              willChange: 'transform, opacity'
             }} />
             
-            {/* Glowing orbs for depth */}
+            {/* Brand Accent 1: Minimal presence */}
             <div className="absolute inset-0 h-full w-full" style={{ 
-              background: 'radial-gradient(circle at 30% 15%, rgba(67, 166, 216, 0.2) 0%, transparent 25%)',
-              filter: 'blur(60px)',
-              animation: 'glowPulse 8s ease-in-out infinite'
+              background: 'radial-gradient(60vmax 60vmax at 45% 25%, rgba(186, 221, 233, 0.12) 0%, transparent 50%)',
+              animation: 'luxuryGlow1 71s ease-in-out infinite',
+              willChange: 'opacity'
             }} />
             
+            {/* Brand Accent 2: Secondary whisper */}
             <div className="absolute inset-0 h-full w-full" style={{ 
-              background: 'radial-gradient(circle at 75% 20%, rgba(129, 200, 228, 0.15) 0%, transparent 30%)',
-              filter: 'blur(50px)',
-              animation: 'glowPulse 10s ease-in-out infinite 2s'
+              background: 'radial-gradient(50vmax 70vmax at 65% 70%, rgba(186, 221, 233, 0.08) 0%, transparent 45%)',
+              animation: 'luxuryGlow2 43s ease-in-out infinite 20s',
+              willChange: 'opacity'
             }} />
             
-            {/* Mesh overlay for texture */}
+            {/* Warm Accent: Luxury gold hints */}
+            <div className="absolute inset-0 h-full w-full" style={{ 
+              background: 'radial-gradient(55vmax 55vmax at 75% 25%, rgba(200, 169, 81, 0.06) 0%, transparent 40%)',
+              animation: 'luxuryWarm 67s ease-in-out infinite 30s',
+              willChange: 'opacity'
+            }} />
+            
+            {/* Material texture system */}
             <div className="absolute inset-0 h-full w-full" style={{ 
               background: `
-                radial-gradient(at 20% 10%, rgba(67, 166, 216, 0.08) 0px, transparent 40%),
-                radial-gradient(at 60% 5%, rgba(91, 184, 247, 0.06) 0px, transparent 40%),
-                radial-gradient(at 85% 15%, rgba(129, 200, 228, 0.07) 0px, transparent 40%),
-                radial-gradient(at 40% 30%, rgba(67, 166, 216, 0.04) 0px, transparent 50%)
+                radial-gradient(at 18% 15%, #2e2e2e 0px, transparent 40%),
+                radial-gradient(at 62% 8%, #242424 0px, transparent 35%),
+                radial-gradient(at 85% 22%, #424242 0px, transparent 38%),
+                radial-gradient(at 25% 75%, #242424 0px, transparent 42%),
+                radial-gradient(at 88% 88%, #2e2e2e 0px, transparent 35%)
               `,
-              backgroundBlendMode: 'screen'
+              opacity: 0.4,
+              mixBlendMode: 'soft-light'
             }} />
             
-            {/* Subtle noise texture for depth */}
+            {/* Premium vignette */}
             <div className="absolute inset-0 h-full w-full" style={{ 
-              opacity: 0.03,
-              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E")`,
-              backgroundRepeat: 'repeat',
-              backgroundSize: '256px 256px'
+              position: 'absolute',
+              inset: '-10vmax',
+              background: 'radial-gradient(120vmax 90vmax at 50% 50%, transparent 0 65%, rgba(0,0,0,0.6) 100%)',
+              pointerEvents: 'none'
             }} />
           </>
         )

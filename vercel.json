@@ -1,0 +1,46 @@
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/((?!api).*)", "destination": "/" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+  ],
+  "env": {
+    "VITE_APP_NAME": "CelesteOS ChatGPT Clone",
+    "VITE_APP_VERSION": "1.0.0",
+    "VITE_APP_ENVIRONMENT": "production",
+    "VITE_API_BASE_URL": "https://api.celeste7.ai",
+    "VITE_WEBHOOK_BASE_URL": "https://api.celeste7.ai/webhook/",
+    "VITE_MICROSOFT_CLIENT_ID": "41f6dc82-8127-4330-97e0-c6b26e6aa967",
+    "VITE_MICROSOFT_TENANT_ID": "073af86c-74f3-422b-ad5c-a35d41fce4be",
+    "VITE_OAUTH_REDIRECT_URI": "https://celeste7.ai/api/auth/callback",
+    "VITE_OAUTH_SCOPES": "openid profile email offline_access User.Read IMAP.AccessAsUser.All",
+    "VITE_ENABLE_DARK_MODE": "true",
+    "VITE_ENABLE_EMAIL_INTEGRATION": "true",
+    "VITE_ENABLE_YACHT_SEARCH": "true",
+    "VITE_DEBUG_MODE": "false",
+    "VITE_SUPABASE_URL": "https://vivovcnaapmcfxxfhzxk.supabase.co",
+    "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpdm92Y25hYXBtY2Z4eGZoenhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4NjQ5ODIsImV4cCI6MjA3MTQ0MDk4Mn0.eUICOqJRP_MyVMNJNlZu3Mc-1-jAG6nQE-Oy0k3Yr0E"
+  }
+}

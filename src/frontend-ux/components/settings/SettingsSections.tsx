@@ -220,8 +220,9 @@ export const renderSectionContent = ({
                 padding: '0 20px', // Reduced padding for better proportions
                 fontSize: '15px', // Slightly smaller font
                 lineHeight: '20px',
-                fontWeight: '600',
-                fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                fontWeight: '400',
+                textTransform: 'uppercase',
+                fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                 background: isDarkMode ? '#343434' : '#f8f8f8',
                 color: isDarkMode ? '#939293' : '#8a8a8a',
                 border: `1px solid ${isDarkMode ? '#343434' : '#e7e7e7'}`,
@@ -258,8 +259,9 @@ export const renderSectionContent = ({
                 padding: '0 20px', // Reduced padding for better proportions
                 fontSize: '15px', // Slightly smaller font
                 lineHeight: '20px',
-                fontWeight: '600',
-                fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                fontWeight: '400',
+                textTransform: 'uppercase',
+                fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                 background: '#0078fa',
                 color: '#FFFFFF',
                 border: 'none',
@@ -733,7 +735,7 @@ Timestamp: ${new Date().toISOString()}
                     fontSize: '15px', // Slightly smaller font
                     lineHeight: '20px',
                     fontWeight: '600',
-                    fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                     background: isFullyEnabled 
                       ? (isDarkMode ? '#0078fa' : '#0078fa')
                       : isPartiallyEnabled
@@ -817,7 +819,7 @@ Timestamp: ${new Date().toISOString()}
                       color: isDarkMode ? darkTheme.buttons.disabled.tooltipText : '#ffffff',
                       fontSize: '12px',
                       lineHeight: '16px',
-                      fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                      fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                       borderRadius: '4px', // Base tier for buttons
                       whiteSpace: 'nowrap',
                       opacity: 0,

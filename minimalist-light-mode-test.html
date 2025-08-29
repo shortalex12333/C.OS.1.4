@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CelesteOS • Minimalist Light Mode</title>
+<style>
+  /* ========= MINIMALIST LIGHT TOKENS ========= */
+  :root{
+    /* Ultra-light spectrum */
+    --white-pure: #ffffff;
+    --white-warm: #fefefe;
+    --cream-whisper: #fcfcfc;
+    --pearl-soft: #fafafa;
+    --pearl-mid: #f8f8f8;
+    --pearl-deep: #f5f5f5;
+    --silver-light: #f2f2f2;
+    --silver-mid: #eeeeee;
+    --silver-deep: #eaeaea;
+    
+    /* Minimal luxury accents */
+    --brand-ghost: rgba(186, 221, 233, 0.03);
+    --brand-whisper: rgba(186, 221, 233, 0.06);
+    --brand-breath: rgba(186, 221, 233, 0.09);
+    --warm-hint: rgba(200, 169, 81, 0.02);
+
+    /* Refined timing */
+    --flow-1: 51s;
+    --flow-2: 67s;
+    --flow-3: 73s;
+    --flow-4: 41s;
+    --flow-5: 89s;
+  }
+
+  html,body{
+    height:100%;
+    margin:0;
+    overflow:hidden;
+  }
+
+  body{
+    background: var(--white-pure);
+  }
+
+  /* ========= MINIMALIST LUXURY SYSTEM ========= */
+  .minimal{ 
+    position:fixed; 
+    inset:0; 
+  }
+  
+  /* Foundation: Subtle warmth gradient */
+  .minimal .base{
+    position:absolute; 
+    inset:0;
+    background: 
+      linear-gradient(142deg, var(--white-pure) 0%, var(--white-warm) 20%, var(--cream-whisper) 40%, var(--pearl-soft) 60%, var(--cream-whisper) 80%, var(--white-pure) 100%);
+  }
+  
+  /* Depth System: Gentle layering */
+  .minimal .layer-alpha{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(85vmax 75vmax at 12% 18%, var(--silver-light) 0%, var(--pearl-mid) 40%, transparent 75%);
+    animation: gentleFloat1 var(--flow-1) ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+  
+  .minimal .layer-beta{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(95vmax 85vmax at 88% 12%, var(--silver-mid) 0%, var(--pearl-deep) 45%, transparent 80%);
+    animation: gentleFloat2 var(--flow-2) ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+  
+  .minimal .layer-gamma{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(75vmax 95vmax at 18% 85%, var(--pearl-deep) 0%, var(--pearl-soft) 35%, transparent 70%);
+    animation: gentleFloat3 var(--flow-3) ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+  
+  .minimal .layer-delta{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(80vmax 80vmax at 82% 78%, var(--silver-deep) 0%, var(--pearl-mid) 30%, transparent 65%);
+    animation: gentleFloat4 var(--flow-4) ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+  
+  /* Brand Accent 1: Subtle presence */
+  .minimal .accent-primary{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(65vmax 65vmax at 42% 22%, var(--brand-breath) 0%, transparent 55%);
+    animation: gentleGlow1 var(--flow-5) ease-in-out infinite;
+    will-change: opacity;
+  }
+  
+  /* Brand Accent 2: Secondary touch */
+  .minimal .accent-secondary{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(55vmax 75vmax at 68% 72%, var(--brand-whisper) 0%, transparent 50%);
+    animation: gentleGlow2 var(--flow-1) ease-in-out infinite 25s;
+    will-change: opacity;
+  }
+  
+  /* Warm Layer: Luxury warmth */
+  .minimal .warmth{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(60vmax 60vmax at 72% 28%, var(--warm-hint) 0%, transparent 45%);
+    animation: gentleWarm var(--flow-3) ease-in-out infinite 35s;
+    will-change: opacity;
+  }
+  
+  /* Texture System: Soft material depth */
+  .minimal .texture{
+    position:absolute; 
+    inset:0;
+    background: 
+      radial-gradient(at 22% 18%, var(--pearl-deep) 0px, transparent 42%),
+      radial-gradient(at 65% 12%, var(--pearl-mid) 0px, transparent 38%),
+      radial-gradient(at 85% 28%, var(--silver-light) 0px, transparent 40%),
+      radial-gradient(at 35% 82%, var(--pearl-deep) 0px, transparent 45%),
+      radial-gradient(at 88% 85%, var(--silver-mid) 0px, transparent 38%);
+    opacity: 0.3;
+    mix-blend-mode: multiply;
+  }
+  
+  /* Gentle vignette */
+  .minimal .vignette{
+    position:absolute; 
+    inset:-8vmax;
+    background: radial-gradient(110vmax 85vmax at 50% 50%, transparent 0 70%, rgba(0,0,0,0.02) 100%);
+    pointer-events:none;
+  }
+
+  /* Gentle minimalist animations */
+  @keyframes gentleFloat1 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.8; }
+    32% { transform: translate3d(-1.2%, 0.9%, 0) scale(1.03); opacity: 0.9; }
+    68% { transform: translate3d(1.0%, -1.1%, 0) scale(0.97); opacity: 0.85; }
+    85% { transform: translate3d(-0.6%, 0.4%, 0) scale(1.01); opacity: 0.88; }
+  }
+  
+  @keyframes gentleFloat2 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.75; }
+    28% { transform: translate3d(1.1%, -0.8%, 0) scale(0.98); opacity: 0.85; }
+    64% { transform: translate3d(-0.9%, 1.2%, 0) scale(1.02); opacity: 0.80; }
+    90% { transform: translate3d(0.5%, -0.3%, 0) scale(1.005); opacity: 0.82; }
+  }
+  
+  @keyframes gentleFloat3 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.70; }
+    38% { transform: translate3d(0.8%, 1.3%, 0) scale(1.02); opacity: 0.80; }
+    72% { transform: translate3d(-1.0%, -0.7%, 0) scale(0.98); opacity: 0.75; }
+  }
+  
+  @keyframes gentleFloat4 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.65; }
+    35% { transform: translate3d(-0.9%, -1.0%, 0) scale(1.015); opacity: 0.75; }
+    75% { transform: translate3d(1.2%, 0.8%, 0) scale(0.985); opacity: 0.70; }
+  }
+  
+  @keyframes gentleGlow1 {
+    0%, 100% { opacity: 0.20; }
+    45% { opacity: 0.35; }
+    80% { opacity: 0.25; }
+  }
+  
+  @keyframes gentleGlow2 {
+    0%, 100% { opacity: 0.15; }
+    40% { opacity: 0.28; }
+    75% { opacity: 0.20; }
+  }
+  
+  @keyframes gentleWarm {
+    0%, 100% { opacity: 0.12; }
+    50% { opacity: 0.22; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .minimal * { animation: none; }
+  }
+
+  /* Demo overlay */
+  .demo {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(24, 24, 24, 0.9);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 36px;
+    font-weight: 200;
+    text-align: center;
+    letter-spacing: 2px;
+    z-index: 100;
+  }
+  
+  .demo .sub {
+    font-size: 11px;
+    opacity: 0.6;
+    margin-top: 16px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: 400;
+    color: rgba(24, 24, 24, 0.5);
+  }
+</style>
+</head>
+<body>
+  <!-- Minimalist Luxury Light System -->
+  <div class="minimal">
+    <div class="base"></div>
+    <div class="layer-alpha"></div>
+    <div class="layer-beta"></div>
+    <div class="layer-gamma"></div>
+    <div class="layer-delta"></div>
+    <div class="accent-primary"></div>
+    <div class="accent-secondary"></div>
+    <div class="warmth"></div>
+    <div class="texture"></div>
+    <div class="vignette"></div>
+  </div>
+  
+  <!-- Demo overlay -->
+  <div class="demo">
+    CelesteOS
+    <div class="sub">Minimalist Light Mode</div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CelesteOS • Premium Luxury Dark Mode</title>
+<style>
+  /* ========= PREMIUM LUXURY TOKENS ========= */
+  :root{
+    /* Ultra-premium dark palette */
+    --black-void: #000000;
+    --black-deep: #0a0a0a;
+    --black-rich: #101010;
+    --charcoal-dark: #151515;
+    --charcoal-mid: #1a1a1a;
+    --charcoal-soft: #202020;
+    --charcoal-light: #252525;
+    --gray-premium: #2a2a2a;
+    
+    /* Minimal luxury accents */
+    --brand-whisper: rgba(186, 221, 233, 0.02);
+    --brand-breath: rgba(186, 221, 233, 0.04);
+    --shadow-deep: rgba(0, 0, 0, 0.8);
+
+    /* Irregular timing for premium feel */
+    --drift-1: 47s;
+    --drift-2: 53s;
+    --drift-3: 61s;
+    --drift-4: 41s;
+    --drift-5: 67s;
+  }
+
+  html,body{
+    height:100%;
+    margin:0;
+    overflow:hidden;
+  }
+
+  body{
+    background: var(--black-void);
+  }
+
+  /* ========= LUXURY LAYERING SYSTEM ========= */
+  .luxury-bg{ 
+    position:fixed; 
+    inset:0; 
+  }
+  
+  /* Layer 1: Foundation */
+  .luxury-bg .foundation{
+    position:absolute; 
+    inset:0;
+    background: linear-gradient(138deg, var(--black-void) 0%, var(--black-deep) 30%, var(--black-rich) 70%, var(--black-void) 100%);
+  }
+  
+  /* Layer 2: Depth gradients */
+  .luxury-bg .depth-1{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(95vmax 85vmax at 12% 18%, var(--charcoal-dark) 0%, transparent 65%);
+    animation: luxuryFloat var(--drift-1) ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+  
+  .luxury-bg .depth-2{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(110vmax 90vmax at 88% 15%, var(--charcoal-mid) 0%, transparent 70%);
+    animation: luxuryShift var(--drift-2) ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+  
+  .luxury-bg .depth-3{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(75vmax 75vmax at 25% 82%, var(--charcoal-soft) 0%, transparent 60%);
+    animation: luxuryPulse var(--drift-3) ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+  
+  .luxury-bg .depth-4{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(85vmax 95vmax at 78% 75%, var(--charcoal-light) 0%, transparent 65%);
+    animation: luxuryDrift var(--drift-4) ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+  
+  /* Layer 3: Subtle premium accents */
+  .luxury-bg .accent-1{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(60vmax 60vmax at 35% 25%, var(--brand-whisper) 0%, transparent 50%);
+    animation: luxuryBreath var(--drift-5) ease-in-out infinite;
+    will-change: opacity;
+  }
+  
+  .luxury-bg .accent-2{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(70vmax 70vmax at 65% 70%, var(--brand-breath) 0%, transparent 55%);
+    animation: luxuryGlow var(--drift-1) ease-in-out infinite 15s;
+    will-change: opacity;
+  }
+  
+  /* Layer 4: Texture overlays */
+  .luxury-bg .texture-1{
+    position:absolute; 
+    inset:0;
+    background: 
+      radial-gradient(at 15% 12%, var(--gray-premium) 0px, transparent 45%),
+      radial-gradient(at 65% 8%, var(--charcoal-light) 0px, transparent 40%),
+      radial-gradient(at 85% 25%, var(--charcoal-mid) 0px, transparent 35%),
+      radial-gradient(at 45% 85%, var(--charcoal-dark) 0px, transparent 50%);
+    opacity: 0.3;
+    mix-blend-mode: screen;
+  }
+  
+  /* Layer 5: Deep vignette */
+  .luxury-bg .vignette{
+    position:absolute; 
+    inset:-20vmax;
+    background: radial-gradient(140vmax 110vmax at 50% 45%, transparent 0 75%, var(--shadow-deep) 100%);
+    pointer-events:none;
+    mix-blend-mode:multiply;
+  }
+
+  /* Premium irregular animations */
+  @keyframes luxuryFloat {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.9; }
+    33% { transform: translate3d(-0.8%,0.3%,0) scale(1.02); opacity: 0.95; }
+    66% { transform: translate3d(0.5%,-0.6%,0) scale(0.98); opacity: 0.85; }
+  }
+  
+  @keyframes luxuryShift {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.8; }
+    25% { transform: translate3d(0.4%,0.2%,0) scale(1.01); opacity: 0.88; }
+    75% { transform: translate3d(-0.3%,-0.4%,0) scale(0.99); opacity: 0.82; }
+  }
+  
+  @keyframes luxuryPulse {
+    0%, 100% { transform: scale(1); opacity: 0.7; }
+    40% { transform: scale(1.015); opacity: 0.77; }
+    70% { transform: scale(0.985); opacity: 0.73; }
+  }
+  
+  @keyframes luxuryDrift {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.6; }
+    45% { transform: translate3d(-0.6%,0.8%,0) scale(1.008); opacity: 0.66; }
+    80% { transform: translate3d(0.4%,-0.2%,0) scale(0.992); opacity: 0.64; }
+  }
+  
+  @keyframes luxuryBreath {
+    0%, 100% { opacity: 0.15; }
+    50% { opacity: 0.25; }
+  }
+  
+  @keyframes luxuryGlow {
+    0%, 100% { opacity: 0.1; }
+    35% { opacity: 0.18; }
+    65% { opacity: 0.12; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .luxury-bg * { animation: none; }
+  }
+
+  /* Demo text overlay */
+  .demo-text {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(255, 255, 255, 0.9);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 28px;
+    font-weight: 300;
+    text-align: center;
+    letter-spacing: 1px;
+    z-index: 100;
+  }
+  
+  .demo-subtitle {
+    font-size: 14px;
+    opacity: 0.5;
+    margin-top: 8px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+  <!-- Premium Luxury Dark Background System -->
+  <div class="luxury-bg">
+    <div class="foundation"></div>
+    <div class="depth-1"></div>
+    <div class="depth-2"></div>
+    <div class="depth-3"></div>
+    <div class="depth-4"></div>
+    <div class="accent-1"></div>
+    <div class="accent-2"></div>
+    <div class="texture-1"></div>
+    <div class="vignette"></div>
+  </div>
+  
+  <!-- Demo text -->
+  <div class="demo-text">
+    CelesteOS
+    <div class="demo-subtitle">Premium Dark Mode</div>
+  </div>
+</body>
+</html>

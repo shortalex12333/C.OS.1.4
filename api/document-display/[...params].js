@@ -8,6 +8,17 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Table configuration mapping
 const TABLE_CONFIGS = {
+  'verified_parts': {
+    tableName: 'verified_parts',
+    titleField: 'description',
+    contentField: 'description',
+    partNumberField: 'part_number',
+    manufacturerField: 'manufacturer',
+    priceField: 'price_usd',
+    locationField: 'typical_location',
+    dateField: 'created_at',
+    documentType: 'parts_catalog'
+  },
   'yacht_emails': {
     tableName: 'yacht_emails',
     titleField: 'subject',
@@ -114,12 +125,25 @@ export default async function handler(req, res) {
     // Check if PDF export is requested
     const isPdfExport = req.query.export === 'pdf';
     
-    // Fetch document from Supabase
-    const { data: document, error } = await supabase
-      .from(config.tableName)
-      .select('*')
-      .eq('id', documentId)
-      .single();
+    // Fetch document from Supabase - use appropriate key field
+    let document, error;
+    if (config.tableName === 'verified_parts') {
+      const result = await supabase
+        .from(config.tableName)
+        .select('*')
+        .eq('part_number', documentId)
+        .single();
+      document = result.data;
+      error = result.error;
+    } else {
+      const result = await supabase
+        .from(config.tableName)
+        .select('*')
+        .eq('id', documentId)
+        .single();
+      document = result.data;
+      error = result.error;
+    }
     
     if (error || !document) {
       return res.status(404).json({ 
@@ -176,19 +200,48 @@ export default async function handler(req, res) {
     const version = getFieldValue(config.versionField);
     const documentType = config.documentType;
     
-    // Generate appropriate header gradient based on document type
-    const getHeaderGradient = () => {
+    // Generate appropriate styling based on document type
+    const getDocumentStyling = () => {
       switch (documentType) {
+        case 'parts_catalog':
+          return {
+            headerBg: '#f8f9fa',
+            headerColor: '#212529',
+            accent: '#0066cc',
+            border: '#dee2e6'
+          };
         case 'email':
-          return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+          return {
+            headerBg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            headerColor: 'white',
+            accent: '#667eea',
+            border: '#e0e0e0'
+          };
         case 'manual':
-          return 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
+          return {
+            headerBg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            headerColor: 'white', 
+            accent: '#f093fb',
+            border: '#e0e0e0'
+          };
         case 'document':
-          return 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
+          return {
+            headerBg: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+            headerColor: 'white',
+            accent: '#4facfe', 
+            border: '#e0e0e0'
+          };
         default:
-          return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+          return {
+            headerBg: '#f8f9fa',
+            headerColor: '#212529',
+            accent: '#0066cc',
+            border: '#dee2e6'
+          };
       }
     };
+    
+    const styling = getDocumentStyling();
     
     // Generate HTML response
     const html = `<!DOCTYPE html>
@@ -226,9 +279,10 @@ export default async function handler(req, res) {
         }
         
         .document-header {
-            background: ${getHeaderGradient()};
-            color: white;
-            padding: 32px;
+            background: ${styling.headerBg};
+            color: ${styling.headerColor};
+            padding: ${documentType === 'parts_catalog' ? '24px 32px' : '32px'};
+            ${documentType === 'parts_catalog' ? 'border-bottom: 2px solid ' + styling.border + ';' : ''}
         }
         
         .document-title {
@@ -331,12 +385,58 @@ export default async function handler(req, res) {
         }
         
         .yacht-badge {
-            background: ${getHeaderGradient()};
-            color: white;
+            background: ${styling.headerBg};
+            color: ${styling.headerColor};
             padding: 6px 16px;
             border-radius: 20px;
             font-weight: 600;
             font-size: 14px;
+        }
+        
+        /* Parts Catalog Specific Styles */
+        .part-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .part-number {
+            font-size: 18px;
+            font-weight: 700;
+            color: ${styling.accent};
+            background: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 2px solid ${styling.accent};
+        }
+        
+        .manufacturer {
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .parts-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            border-left: 4px solid ${styling.accent};
+        }
+        
+        .price {
+            font-size: 24px;
+            font-weight: 700;
+            color: #28a745;
+            margin-bottom: 8px;
+        }
+        
+        .location {
+            font-size: 14px;
+            color: #666;
         }
         
         @media print {
@@ -382,6 +482,25 @@ export default async function handler(req, res) {
     ${isPdfExport ? '<div class="pdf-notice">Press Ctrl/Cmd + P to save as PDF</div>' : ''}
     
     <div class="document-container">
+        ${documentType === 'parts_catalog' ? `
+        <!-- Parts Catalog Layout -->
+        <div class="document-header">
+            <div class="part-header">
+                <div class="part-number">${escapeHtml(getFieldValue(config.partNumberField) || documentId)}</div>
+                <div class="manufacturer">${escapeHtml(getFieldValue(config.manufacturerField) || 'Unknown')}</div>
+            </div>
+            <h1 class="document-title">${escapeHtml(title || 'Part Description')}</h1>
+        </div>
+        
+        <div class="document-body">
+            <div class="parts-info">
+                ${getFieldValue(config.priceField) ? `<div class="price">$${getFieldValue(config.priceField)}</div>` : ''}
+                ${getFieldValue(config.locationField) ? `<div class="location"><strong>Location:</strong> ${escapeHtml(getFieldValue(config.locationField))}</div>` : ''}
+            </div>
+            <div class="body-content">${escapeHtml(content || 'No description available')}</div>
+        </div>
+        ` : `
+        <!-- Generic Document Layout -->
         <div class="document-header">
             <div class="document-type-badge">${escapeHtml(documentType)}</div>
             <h1 class="document-title">${escapeHtml(title || 'No Title')}</h1>
@@ -426,6 +545,7 @@ export default async function handler(req, res) {
         <div class="document-body">
             <div class="body-content">${escapeHtml(content || 'No content available')}</div>
         </div>
+        `}
         
         <div class="document-footer">
             <div class="footer-info">
@@ -434,7 +554,7 @@ export default async function handler(req, res) {
                     <div>Retrieved: ${new Date().toLocaleString('en-GB')}</div>
                     <div>Table: ${escapeHtml(tableName)}</div>
                 </div>
-                ${yacht ? `<div class="yacht-badge">${escapeHtml(yacht)}</div>` : ''}
+                ${documentType === 'parts_catalog' && getFieldValue(config.manufacturerField) ? `<div class="yacht-badge">${escapeHtml(getFieldValue(config.manufacturerField))}</div>` : yacht ? `<div class="yacht-badge">${escapeHtml(yacht)}</div>` : ''}
             </div>
         </div>
     </div>

@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Solution Card - Brand Aligned</title>
+    <style>
+        :root {
+            /* Exact CelesteOS Solution Card Tokens */
+            --solution-card-bg: rgba(255, 255, 255, 0.95);
+            --solution-card-bg-expanded: rgba(255, 255, 255, 0.95);
+            --solution-card-bg-hover: rgba(255, 255, 255, 0.98);
+            --solution-card-border: rgba(0, 0, 0, 0.08);
+            --solution-card-border-expanded: rgba(0, 0, 0, 0.12);
+            --solution-card-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            --solution-card-shadow-expanded: 0 8px 32px rgba(0, 0, 0, 0.15);
+            --solution-title-color: #1a1a1a;
+            --solution-text-color: #374151;
+        }
+
+        body {
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(180deg, #fcfeff 0%, rgba(255, 255, 255, 1) 100%);
+            font-family: 'Eloquia Text', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .demo-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .demo-title {
+            text-align: center;
+            font-family: 'Eloquia Display', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 32px;
+            font-weight: 600;
+            color: var(--solution-title-color);
+            margin-bottom: 40px;
+        }
+
+        .cards-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        /* EMAIL CARD - Portrait, Same Brand Aesthetic */
+        .email-card {
+            /* EXACT same styling as solution cards */
+            border-radius: 8px; /* Same 8px radius */
+            background-color: var(--solution-card-bg);
+            backdrop-filter: blur(20px) saturate(1.4); /* Exact same blur */
+            -webkit-backdrop-filter: blur(20px) saturate(1.4);
+            box-shadow: var(--solution-card-shadow); /* Same shadow */
+            border: 1px solid var(--solution-card-border); /* Same border */
+            
+            /* Portrait dimensions */
+            max-width: 380px;
+            min-height: 520px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .email-card:hover {
+            background-color: var(--solution-card-bg-hover);
+            border-color: var(--solution-card-border-expanded);
+            box-shadow: var(--solution-card-shadow-expanded);
+            transform: translateY(-2px);
+        }
+
+        /* Email Header - Same padding as solution cards */
+        .email-header {
+            padding: 24px; /* Same padding as solution cards */
+            border-bottom: 1px solid var(--solution-card-border);
+        }
+
+        .sender-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .profile-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, #0070f3, #00a8ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .sender-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .company-tag {
+            font-size: 11px;
+            font-weight: 600;
+            color: #0070f3;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .sender-name {
+            /* Same title styling as solution cards */
+            font-size: 20px;
+            line-height: 28px;
+            font-weight: 700;
+            color: var(--solution-title-color);
+            font-family: 'Eloquia Display', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin-bottom: 2px;
+        }
+
+        .email-meta {
+            font-size: 13px;
+            color: var(--solution-text-color);
+            line-height: 1.4;
+        }
+
+        /* Email Content - Same padding */
+        .email-content {
+            padding: 20px 24px; /* Consistent with solution card internal padding */
+        }
+
+        .subject-line {
+            /* Same title hierarchy as solution cards */
+            font-size: 18px;
+            line-height: 25px;
+            font-weight: 700;
+            color: var(--solution-title-color);
+            font-family: 'Eloquia Display', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin-bottom: 16px;
+        }
+
+        .body-preview {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--solution-text-color);
+            margin-bottom: 16px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .ai-summary-section {
+            background: rgba(0, 112, 255, 0.05); /* Same blue as confidence badges */
+            border: 1px solid rgba(0, 112, 255, 0.15);
+            border-radius: 6px; /* Smaller radius for internal elements */
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .ai-summary-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #0070f3;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ai-icon {
+            width: 14px;
+            height: 14px;
+            background: #0070f3;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 8px;
+            font-weight: 600;
+        }
+
+        .ai-summary-text {
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--solution-text-color);
+        }
+
+        /* Email Footer - Same padding */
+        .email-footer {
+            padding: 16px 24px 24px; /* Consistent padding */
+            border-top: 1px solid var(--solution-card-border);
+        }
+
+        .attachment-row, .thread-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            background: rgba(34, 197, 94, 0.08);
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--solution-text-color);
+        }
+
+        .thread-row {
+            background: rgba(251, 191, 36, 0.08);
+        }
+
+        /* Feedback Buttons - EXACT same styling as solution cards */
+        .email-feedback-container {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .feedback-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 16px;
+            border-radius: 8px; /* Same radius */
+            background-color: transparent;
+            backdrop-filter: blur(16px) saturate(1.2); /* Same blur */
+            -webkit-backdrop-filter: blur(16px) saturate(1.2);
+            border: 1px solid rgba(107, 114, 128, 0.25); /* Same border */
+            box-shadow: 0 4px 16px rgba(107, 114, 128, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2); /* Same shadow */
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--solution-text-color);
+            cursor: pointer;
+            transition: all 200ms cubic-bezier(0.23, 1, 0.32, 1); /* Same transition */
+        }
+
+        .feedback-btn:hover {
+            transform: scale(1.02); /* Same hover effect */
+        }
+
+        .feedback-btn:active {
+            transform: scale(0.98); /* Same active effect */
+        }
+
+        .feedback-btn.selected {
+            background-color: rgba(0, 112, 255, 0.1);
+            border-color: rgba(0, 112, 255, 0.3);
+            color: #0070f3;
+        }
+
+        /* View Email Button - Same style as solution card buttons */
+        .view-email-btn {
+            width: 100%;
+            background: #0070ff; /* Same blue */
+            color: white;
+            border: none;
+            border-radius: 8px; /* Same radius */
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: 'Eloquia Display', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            cursor: pointer;
+            transition: all 200ms cubic-bezier(0.23, 1, 0.32, 1); /* Same transition */
+            box-shadow: 0 2px 8px rgba(0, 112, 255, 0.3); /* Same button shadow */
+        }
+
+        .view-email-btn:hover {
+            background: #0070ff;
+            box-shadow: 0 4px 12px rgba(0, 112, 255, 0.4);
+            transform: translateY(-1px); /* Same hover transform */
+        }
+
+        /* SOLUTION CARD - For comparison (landscape) */
+        .solution-card {
+            /* Same exact styling */
+            border-radius: 8px;
+            background-color: var(--solution-card-bg);
+            backdrop-filter: blur(20px) saturate(1.4);
+            -webkit-backdrop-filter: blur(20px) saturate(1.4);
+            box-shadow: var(--solution-card-shadow);
+            border: 1px solid var(--solution-card-border);
+            
+            /* Landscape dimensions */
+            width: 100%;
+            min-height: 200px;
+            padding: 24px;
+            cursor: pointer;
+        }
+
+        .solution-title {
+            font-size: 20px;
+            line-height: 28px;
+            font-weight: 700;
+            color: var(--solution-title-color);
+            font-family: 'Eloquia Display', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin-bottom: 16px;
+        }
+
+        .icons {
+            width: 16px;
+            height: 16px;
+        }
+
+        .comparison-label {
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--solution-text-color);
+            margin-bottom: 16px;
+            padding: 8px 16px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 20px;
+            display: inline-block;
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1 class="demo-title">Email vs Solution Cards - Brand Aligned</h1>
+        
+        <div class="cards-comparison">
+            <!-- EMAIL CARD (Portrait) - Same Brand Aesthetic -->
+            <div>
+                <div class="comparison-label">📧 EMAIL CARD (Portrait)</div>
+                <div class="email-card">
+                    <!-- Email Header -->
+                    <div class="email-header">
+                        <div class="sender-row">
+                            <div class="profile-circle">MT</div>
+                            <div class="sender-details">
+                                <div class="company-tag">MTU Engines</div>
+                                <div class="sender-name">Mark Thompson</div>
+                                <div class="email-meta">→ Engineering Team<br>Aug 27, 2025</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Email Content -->
+                    <div class="email-content">
+                        <div class="subject-line">Re: Fuel pressure sensor E-047 fault code</div>
+                        
+                        <div class="body-preview">
+                            Hi team, regarding the E-047 fault you reported yesterday - this typically indicates a fuel pressure sensor malfunction. I've attached the diagnostic procedure from our latest service bulletin...
+                        </div>
+                        
+                        <div class="ai-summary-section">
+                            <div class="ai-summary-label">
+                                <span class="ai-icon">AI</span>
+                                Summary
+                            </div>
+                            <div class="ai-summary-text">
+                                Email confirms E-047 is fuel pressure sensor issue. Provides official diagnostic procedure and recommends sensor replacement.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Email Footer -->
+                    <div class="email-footer">
+                        <div class="attachment-row">
+                            <span class="icons">📄</span>
+                            E-047_Diagnostic_Procedure.pdf
+                        </div>
+                        
+                        <div class="thread-row">
+                            <span class="icons">💬</span>
+                            3 replies in thread
+                        </div>
+                        
+                        <!-- Same feedback buttons as solution cards -->
+                        <div class="email-feedback-container">
+                            <button class="feedback-btn">
+                                <span class="icons">👍</span>
+                                Helpful
+                            </button>
+                            <button class="feedback-btn">
+                                <span class="icons">👎</span>
+                                Not Helpful
+                            </button>
+                        </div>
+                        
+                        <button class="view-email-btn">View Full Email & Solution</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SOLUTION CARD (Landscape) - For comparison -->
+            <div>
+                <div class="comparison-label">🔧 SOLUTION CARD (Landscape)</div>
+                <div class="solution-card">
+                    <div class="solution-title">MTU Fault Code E-047 - Main Engine Fuel System</div>
+                    
+                    <div style="color: var(--solution-text-color); margin-bottom: 16px;">
+                        Official MTU diagnostic procedure for main engine fuel pressure sensor. Normal operating pressure: 45-50 PSI. Torque specification: 25 Nm.
+                    </div>
+                    
+                    <!-- Same feedback buttons -->
+                    <div class="email-feedback-container">
+                        <button class="feedback-btn">
+                            <span class="icons">👍</span>
+                            Helpful
+                        </button>
+                        <button class="feedback-btn">
+                            <span class="icons">👎</span>
+                            Not Helpful
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Brand Consistency Note -->
+        <div style="background: rgba(0, 112, 255, 0.05); border: 1px solid rgba(0, 112, 255, 0.2); border-radius: 8px; padding: 20px; margin-top: 24px;">
+            <h3 style="margin: 0 0 12px 0; color: #0070f3; font-family: 'Eloquia Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">✅ Brand Alignment Achieved</h3>
+            <p style="margin: 0; font-size: 14px; line-height: 1.5; color: var(--solution-text-color);">
+                <strong>Shared Elements:</strong> 8px border-radius, blur(20px) backdrop-filter, same shadows, same CSS variables, same feedback buttons, Eloquia fonts, same transitions & hover effects.
+                <br><br>
+                <strong>Different:</strong> Only orientation (portrait vs landscape) and data structure (email metadata vs technical procedures).
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Same interaction patterns as solution cards
+        document.querySelectorAll('.email-card, .solution-card').forEach(card => {
+            card.addEventListener('click', function() {
+                console.log('Card clicked');
+            });
+        });
+        
+        document.querySelectorAll('.feedback-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                // Toggle selection state
+                this.classList.toggle('selected');
+                // Remove selection from sibling
+                const parent = this.parentNode;
+                Array.from(parent.children).forEach(sibling => {
+                    if (sibling !== this) sibling.classList.remove('selected');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

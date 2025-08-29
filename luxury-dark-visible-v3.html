@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CelesteOS • Luxury Dark Mode - Visible Layers</title>
+<style>
+  /* ========= VISIBLE LUXURY DARK TOKENS ========= */
+  :root{
+    /* Actually visible dark spectrum */
+    --base-dark: #0f0f0f;
+    --layer-1: #1a1a1a;
+    --layer-2: #242424;
+    --layer-3: #2e2e2e;
+    --layer-4: #383838;
+    --layer-5: #424242;
+    --accent-dark: #4a4a4a;
+    
+    /* Visible luxury accents */
+    --brand-visible: rgba(186, 221, 233, 0.08);
+    --brand-strong: rgba(186, 221, 233, 0.12);
+    --warm-accent: rgba(200, 169, 81, 0.06);
+
+    /* Irregular luxury timing */
+    --tempo-1: 43s;
+    --tempo-2: 59s;
+    --tempo-3: 67s;
+    --tempo-4: 37s;
+    --tempo-5: 71s;
+  }
+
+  html,body{
+    height:100%;
+    margin:0;
+    overflow:hidden;
+  }
+
+  body{
+    background: var(--base-dark);
+  }
+
+  /* ========= VISIBLE LUXURY SYSTEM ========= */
+  .luxury{ 
+    position:fixed; 
+    inset:0; 
+  }
+  
+  /* Foundation: Rich gradient base */
+  .luxury .base{
+    position:absolute; 
+    inset:0;
+    background: 
+      linear-gradient(135deg, var(--base-dark) 0%, var(--layer-1) 25%, var(--layer-2) 50%, var(--layer-1) 75%, var(--base-dark) 100%);
+  }
+  
+  /* Depth System: Visible layering */
+  .luxury .depth-alpha{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(80vmax 70vmax at 15% 20%, var(--layer-4) 0%, var(--layer-2) 35%, transparent 70%);
+    animation: luxFloat1 var(--tempo-1) ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+  
+  .luxury .depth-beta{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(90vmax 80vmax at 85% 15%, var(--layer-5) 0%, var(--layer-3) 40%, transparent 75%);
+    animation: luxFloat2 var(--tempo-2) ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+  
+  .luxury .depth-gamma{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(70vmax 90vmax at 20% 80%, var(--layer-3) 0%, var(--layer-1) 30%, transparent 65%);
+    animation: luxFloat3 var(--tempo-3) ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+  
+  .luxury .depth-delta{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(75vmax 75vmax at 78% 82%, var(--accent-dark) 0%, var(--layer-2) 25%, transparent 60%);
+    animation: luxFloat4 var(--tempo-4) ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+  
+  /* Accent System: Minimal brand presence */
+  .luxury .accent-primary{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(60vmax 60vmax at 45% 25%, var(--brand-strong) 0%, transparent 50%);
+    animation: luxGlow1 var(--tempo-5) ease-in-out infinite;
+    will-change: opacity;
+  }
+  
+  .luxury .accent-secondary{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(50vmax 70vmax at 65% 70%, var(--brand-visible) 0%, transparent 45%);
+    animation: luxGlow2 var(--tempo-1) ease-in-out infinite 20s;
+    will-change: opacity;
+  }
+  
+  /* Warm Layer: Luxury gold hints */
+  .luxury .warmth{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(55vmax 55vmax at 75% 25%, var(--warm-accent) 0%, transparent 40%);
+    animation: luxWarm var(--tempo-3) ease-in-out infinite 30s;
+    will-change: opacity;
+  }
+  
+  /* Texture System: Material depth */
+  .luxury .material{
+    position:absolute; 
+    inset:0;
+    background: 
+      radial-gradient(at 18% 15%, var(--layer-3) 0px, transparent 40%),
+      radial-gradient(at 62% 8%, var(--layer-2) 0px, transparent 35%),
+      radial-gradient(at 85% 22%, var(--layer-4) 0px, transparent 38%),
+      radial-gradient(at 25% 75%, var(--layer-2) 0px, transparent 42%),
+      radial-gradient(at 88% 88%, var(--layer-3) 0px, transparent 35%);
+    opacity: 0.4;
+    mix-blend-mode: soft-light;
+  }
+  
+  /* Premium vignette */
+  .luxury .vignette{
+    position:absolute; 
+    inset:-10vmax;
+    background: radial-gradient(120vmax 90vmax at 50% 50%, transparent 0 65%, rgba(0,0,0,0.6) 100%);
+    pointer-events:none;
+  }
+
+  /* Visible luxury animations with meaningful movement */
+  @keyframes luxFloat1 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.7; }
+    30% { transform: translate3d(-2%, 1.5%, 0) scale(1.05); opacity: 0.85; }
+    65% { transform: translate3d(1.8%, -2.2%, 0) scale(0.95); opacity: 0.75; }
+    85% { transform: translate3d(-0.8%, 0.9%, 0) scale(1.02); opacity: 0.80; }
+  }
+  
+  @keyframes luxFloat2 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.65; }
+    25% { transform: translate3d(2.2%, -1.8%, 0) scale(0.92); opacity: 0.78; }
+    60% { transform: translate3d(-1.5%, 2%, 0) scale(1.08); opacity: 0.72; }
+    90% { transform: translate3d(1%, -0.6%, 0) scale(1.03); opacity: 0.69; }
+  }
+  
+  @keyframes luxFloat3 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.6; }
+    40% { transform: translate3d(1.4%, 2.5%, 0) scale(1.06); opacity: 0.75; }
+    75% { transform: translate3d(-2.1%, -1.2%, 0) scale(0.94); opacity: 0.65; }
+  }
+  
+  @keyframes luxFloat4 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.55; }
+    35% { transform: translate3d(-1.8%, -2.0%, 0) scale(1.04); opacity: 0.68; }
+    70% { transform: translate3d(2.3%, 1.6%, 0) scale(0.96); opacity: 0.61; }
+  }
+  
+  @keyframes luxGlow1 {
+    0%, 100% { opacity: 0.15; }
+    45% { opacity: 0.35; }
+    80% { opacity: 0.22; }
+  }
+  
+  @keyframes luxGlow2 {
+    0%, 100% { opacity: 0.12; }
+    38% { opacity: 0.28; }
+    72% { opacity: 0.18; }
+  }
+  
+  @keyframes luxWarm {
+    0%, 100% { opacity: 0.08; }
+    50% { opacity: 0.20; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .luxury * { animation: none; }
+  }
+
+  /* Demo overlay */
+  .demo {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(255, 255, 255, 0.95);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 36px;
+    font-weight: 200;
+    text-align: center;
+    letter-spacing: 3px;
+    z-index: 100;
+  }
+  
+  .demo .sub {
+    font-size: 11px;
+    opacity: 0.5;
+    margin-top: 16px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    font-weight: 400;
+  }
+</style>
+</head>
+<body>
+  <!-- Visible Luxury Dark System -->
+  <div class="luxury">
+    <div class="base"></div>
+    <div class="depth-alpha"></div>
+    <div class="depth-beta"></div>
+    <div class="depth-gamma"></div>
+    <div class="depth-delta"></div>
+    <div class="accent-primary"></div>
+    <div class="accent-secondary"></div>
+    <div class="warmth"></div>
+    <div class="material"></div>
+    <div class="vignette"></div>
+  </div>
+  
+  <!-- Demo overlay -->
+  <div class="demo">
+    CelesteOS
+    <div class="sub">Visible Luxury Dark</div>
+  </div>
+</body>
+</html>

@@ -117,9 +117,10 @@ export function MainHeader({ isMobile = false, isDarkMode = false, isChatMode = 
             className="model_type_subheader"
             style={{
               fontSize: isMobile ? '10px' : '11px',
-              fontWeight: 500,
+              fontWeight: 400,
+              textTransform: 'uppercase',
               lineHeight: isMobile ? '12px' : '14px',
-              fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
               color: isDarkMode 
                 ? 'rgba(246, 247, 251, 0.65)' 
                 : 'rgba(31, 41, 55, 0.6)',
@@ -271,7 +272,7 @@ export function MainHeader({ isMobile = false, isDarkMode = false, isChatMode = 
                           <div 
                             className="text-sm"
                             style={{
-                              fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                              fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                               fontSize: isMobile ? '13px' : '14px',
                               lineHeight: '18px',
                               color: isDarkMode 
@@ -334,8 +335,9 @@ export function MainHeader({ isMobile = false, isDarkMode = false, isChatMode = 
               border: 'none',
               borderRadius: '50px', // Completely rounded (pill shape)
               fontSize: isMobile ? '13px' : '14px',
-              fontWeight: 600,
-              fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontWeight: 400,
+              textTransform: 'uppercase',
+              fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
               cursor: 'pointer'
             }}
           >
@@ -354,8 +356,9 @@ export function MainHeader({ isMobile = false, isDarkMode = false, isChatMode = 
               border: 'none',
               borderRadius: '50px', // Completely rounded (pill shape)
               fontSize: isMobile ? '13px' : '14px',
-              fontWeight: 600,
-              fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontWeight: 400,
+              textTransform: 'uppercase',
+              fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
               cursor: 'pointer'
             }}
             onMouseEnter={(e) => {

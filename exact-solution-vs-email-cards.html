@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXACT Solution Card vs Email Card Comparison</title>
+    <style>
+        /* EXACT CSS Variables from globals.css */
+        :root {
+            /* Light Mode Solution Card Variables */
+            --solution-card-bg: rgba(255, 255, 255, 0.95);
+            --solution-card-bg-expanded: rgba(255, 255, 255, 0.95);
+            --solution-card-bg-hover: rgba(255, 255, 255, 0.98);
+            --solution-card-border: rgba(0, 0, 0, 0.08);
+            --solution-card-border-expanded: rgba(0, 0, 0, 0.12);
+            --solution-card-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            --solution-card-shadow-expanded: 0 8px 32px rgba(0, 0, 0, 0.15);
+            --solution-title-color: #1a1a1a;
+            --solution-text-color: #374151;
+            --solution-secondary-color: #6b7280;
+            --solution-link-color: #0070f3;
+            --solution-link-hover: #0051a2;
+            
+            /* Confidence Variables */
+            --confidence-high-bg: linear-gradient(135deg, #059669 0%, #047857 100%);
+            --confidence-high-text: #ffffff;
+            --confidence-high-border: rgba(5, 150, 105, 0.3);
+            --confidence-medium-bg: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            --confidence-medium-text: #ffffff;
+            --confidence-medium-border: rgba(217, 119, 6, 0.3);
+            --confidence-low-bg: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            --confidence-low-text: #ffffff;
+            --confidence-low-border: rgba(220, 38, 38, 0.3);
+            
+            /* Feedback Button Variables */
+            --button-helpful-bg: rgba(34, 197, 94, 0.1);
+            --button-helpful-border: rgba(34, 197, 94, 0.3);
+            --button-helpful-text: #059669;
+            --button-not-helpful-bg: rgba(239, 68, 68, 0.1);
+            --button-not-helpful-border: rgba(239, 68, 68, 0.3);
+            --button-not-helpful-text: #dc2626;
+        }
+
+        body {
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(180deg, #fcfeff 0%, rgba(255, 255, 255, 1) 100%);
+            font-family: 'Eloquia Text', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .title {
+            text-align: center;
+            font-family: 'Eloquia Display', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--solution-title-color);
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 16px;
+            color: var(--solution-secondary-color);
+            margin-bottom: 40px;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: flex-start;
+        }
+
+        .card-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .card-label {
+            font-family: 'Eloquia Display', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--solution-title-color);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* EXACT Solution Card Styling */
+        .solution-card, .email-card {
+            /* EXACT styling from AISolutionCard.tsx lines 391-397 */
+            border-radius: 8px;
+            background-color: var(--solution-card-bg);
+            backdrop-filter: blur(20px) saturate(1.4);
+            -webkit-backdrop-filter: blur(20px) saturate(1.4);
+            box-shadow: var(--solution-card-shadow);
+            border: 1px solid var(--solution-card-border);
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .solution-card:hover, .email-card:hover {
+            background-color: var(--solution-card-bg-hover);
+            border-color: var(--solution-card-border-expanded);
+            box-shadow: var(--solution-card-shadow-expanded);
+        }
+
+        /* Solution Card (Landscape) */
+        .solution-card {
+            width: 100%;
+            min-height: 200px;
+        }
+
+        /* Email Card (Portrait) */
+        .email-card {
+            width: 380px;
+            min-height: 520px;
+            margin: 0 auto;
+        }
+
+        /* EXACT Header Styling from lines 403-408 */
+        .card-header {
+            padding: 24px; /* EXACT from AISolutionCard.tsx */
+            cursor: pointer;
+            transition: colors 0.2s;
+        }
+
+        .header-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .header-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .title-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        /* EXACT Title Styling from lines 414-430 */
+        .card-title {
+            flex: 1;
+            min-width: 0;
+            font-size: 20px; /* EXACT from line 417 */
+            line-height: 28px; /* EXACT from line 418 */
+            font-weight: 700; /* EXACT from line 419 */
+            color: var(--solution-title-color); /* EXACT from line 420 */
+            font-family: 'Eloquia Display', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; /* EXACT from line 421 */
+            letter-spacing: -0.025em; /* EXACT from line 425 */
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            margin: 0;
+        }
+
+        /* EXACT Confidence Circle from lines 433-448 */
+        .confidence-circle {
+            width: 28px; /* EXACT from line 437 */
+            height: 28px; /* EXACT from line 438 */
+            min-width: 28px; /* EXACT from line 439 */
+            min-height: 28px; /* EXACT from line 440 */
+            border: none; /* EXACT from line 441 */
+            cursor: pointer; /* EXACT from line 442 */
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s cubic-bezier(0.22, 0.61, 0.36, 1);
+            flex-shrink: 0;
+        }
+
+        .confidence-high {
+            background: var(--confidence-high-bg);
+            color: var(--confidence-high-text);
+            border: 1px solid var(--confidence-high-border);
+            box-shadow: 0 3px 12px rgba(5, 150, 105, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .confidence-medium {
+            background: var(--confidence-medium-bg);
+            color: var(--confidence-medium-text);
+            border: 1px solid var(--confidence-medium-border);
+            box-shadow: 0 3px 12px rgba(217, 119, 6, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        /* Source Chip - EXACT styling from lines 452-475 */
+        .source-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px; /* EXACT from line 455 */
+            line-height: 18px; /* EXACT from line 456 */
+            color: var(--solution-secondary-color); /* EXACT from line 457 */
+            font-family: 'Eloquia Text', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; /* EXACT from line 458 */
+            background-color: var(--solution-card-bg); /* EXACT from line 459 */
+            border: 1px solid var(--solution-card-border); /* EXACT from line 460 */
+        }
+
+        /* Chevron - EXACT styling */
+        .chevron {
+            width: 20px;
+            height: 20px;
+            color: #6b7280;
+            flex-shrink: 0;
+            transition: transform 0.18s cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+
+        /* EXACT Feedback Buttons from lines 846-866 */
+        .feedback-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            padding: 20px 24px; /* EXACT padding from line 713 */
+            border-top: 1px solid var(--solution-card-border);
+        }
+
+        .feedback-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 16px; /* EXACT from inline styles */
+            border-radius: 8px; /* EXACT from line 848 */
+            background-color: transparent; /* EXACT from line 849 */
+            backdrop-filter: blur(16px) saturate(1.2); /* EXACT from lines 850-851 */
+            -webkit-backdrop-filter: blur(16px) saturate(1.2);
+            border: 1px solid rgba(107, 114, 128, 0.25); /* EXACT from line 852 */
+            box-shadow: 0 4px 16px rgba(107, 114, 128, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2); /* EXACT from line 853 */
+            font-size: 14px; /* EXACT from line 854 */
+            line-height: 20px; /* EXACT from line 855 */
+            font-weight: 500; /* EXACT from line 856 */
+            color: #6b7280; /* EXACT from line 857 */
+            font-family: 'Eloquia Text', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; /* EXACT from line 858 */
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .feedback-btn:hover {
+            transform: scale(1.02); /* EXACT hover effect */
+        }
+
+        .feedback-btn:active {
+            transform: scale(0.98); /* EXACT active effect */
+        }
+
+        .feedback-btn.selected-helpful {
+            background: var(--button-helpful-bg);
+            border-color: var(--button-helpful-border);
+            color: var(--button-helpful-text);
+        }
+
+        .feedback-btn.selected-not-helpful {
+            background: var(--button-not-helpful-bg);
+            border-color: var(--button-not-helpful-border);
+            color: var(--button-not-helpful-text);
+        }
+
+        /* Email-specific content styling */
+        .email-header-section {
+            padding: 20px 24px 16px; /* Consistent with solution card padding */
+            border-bottom: 1px solid var(--solution-card-border);
+        }
+
+        .email-sender-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .email-profile-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, #0070f3, #00a8ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .email-sender-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .email-company {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--solution-link-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .email-sender-name {
+            /* Use same title styling as solution cards */
+            font-size: 18px;
+            line-height: 25px;
+            font-weight: 700;
+            color: var(--solution-title-color);
+            font-family: 'Eloquia Display', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin-bottom: 4px;
+        }
+
+        .email-meta {
+            font-size: 13px;
+            color: var(--solution-secondary-color);
+            line-height: 1.4;
+        }
+
+        .email-content-section {
+            padding: 20px 24px; /* EXACT solution card padding */
+        }
+
+        .email-subject {
+            font-size: 18px; /* Same as solution card secondary titles */
+            line-height: 25px;
+            font-weight: 700;
+            color: var(--solution-title-color);
+            font-family: 'Eloquia Display', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin-bottom: 16px;
+        }
+
+        .email-body-preview {
+            font-size: 15px; /* Same as solution card step text */
+            line-height: 23px;
+            color: var(--solution-text-color);
+            font-family: 'Eloquia Text', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin-bottom: 16px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .ai-summary-box {
+            background: rgba(0, 112, 255, 0.05);
+            border: 1px solid rgba(0, 112, 255, 0.15);
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .ai-summary-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--solution-link-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ai-icon {
+            width: 14px;
+            height: 14px;
+            background: var(--solution-link-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 8px;
+            font-weight: 600;
+        }
+
+        .ai-summary-text {
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--solution-text-color);
+            font-family: 'Eloquia Text', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .email-footer-section {
+            padding: 16px 24px 24px; /* EXACT solution card footer padding */
+            border-top: 1px solid var(--solution-card-border);
+        }
+
+        .attachment-info, .thread-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            background: rgba(34, 197, 94, 0.08);
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--solution-text-color);
+            font-family: 'Eloquia Text', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .thread-info {
+            background: rgba(251, 191, 36, 0.08);
+        }
+
+        /* View Email Button - EXACT same style as solution card action buttons */
+        .view-email-btn {
+            width: 100%;
+            background: #0070ff; /* EXACT from line 879 */
+            color: white;
+            border: none;
+            border-radius: 6px; /* EXACT from line 878 */
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: 'Eloquia Display', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            cursor: pointer;
+            transition: all 200ms cubic-bezier(0.23, 1, 0.32, 1); /* EXACT from line 882 */
+            box-shadow: 0 2px 8px rgba(0, 112, 255, 0.3); /* EXACT from line 881 */
+            transform: translateY(0); /* EXACT from line 883 */
+        }
+
+        .view-email-btn:hover {
+            background: #0070ff; /* EXACT from line 886 */
+            box-shadow: 0 4px 12px rgba(0, 112, 255, 0.4); /* EXACT from line 887 */
+            transform: translateY(-1px); /* EXACT from line 888 */
+        }
+
+        /* Solution Card Content */
+        .solution-content {
+            padding: 24px; /* EXACT header padding */
+        }
+
+        .solution-description {
+            font-size: 16px;
+            line-height: 24px;
+            color: var(--solution-text-color);
+            font-family: 'Eloquia Text', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin-bottom: 20px;
+        }
+
+        .solution-steps {
+            background: var(--solution-card-bg);
+            border: 1px solid var(--solution-card-border);
+            border-radius: 4px;
+            padding: 20px;
+            margin: 6px 0;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .step-icon {
+            width: 16px;
+            height: 16px;
+            color: #059669;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .step-text {
+            font-size: 16px; /* EXACT from line 553 */
+            line-height: 25px; /* EXACT from line 554 */
+            color: var(--solution-text-color); /* EXACT from line 555 */
+            font-family: 'Eloquia Text', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; /* EXACT from line 556 */
+            font-weight: 500; /* EXACT from line 557 */
+            letter-spacing: -0.01em; /* EXACT from line 558 */
+        }
+
+        /* Icons */
+        .icon {
+            width: 16px;
+            height: 16px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">EXACT Solution Card vs Email Card</h1>
+        <p class="subtitle">Same brand aesthetics, different orientations and data presentation</p>
+        
+        <div class="cards-grid">
+            <!-- EXACT SOLUTION CARD REPLICA -->
+            <div class="card-section">
+                <div class="card-label">🔧 SOLUTION CARD (Landscape)</div>
+                <div class="solution-card">
+                    <!-- EXACT Header Structure -->
+                    <div class="card-header">
+                        <div class="header-row">
+                            <div class="header-content">
+                                <div class="title-row">
+                                    <h3 class="card-title">MTU Fault Code E-047 - Main Engine Fuel System</h3>
+                                    <!-- EXACT Confidence Circle -->
+                                    <button class="confidence-circle confidence-high" title="85% confidence">
+                                        <!-- Empty circle with gradient background -->
+                                    </button>
+                                </div>
+                                <!-- EXACT Source Chip -->
+                                <div class="source-chip">
+                                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                    </svg>
+                                    MTU Service Manual p.47
+                                </div>
+                            </div>
+                            <div class="chevron">
+                                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Solution Content -->
+                    <div class="solution-content">
+                        <div class="solution-description">
+                            Official MTU diagnostic procedure for main engine fuel pressure sensor. Normal operating pressure: 45-50 PSI. Torque specification: 25 Nm.
+                        </div>
+                        
+                        <!-- EXACT Steps Container -->
+                        <div class="solution-steps">
+                            <div class="step-item">
+                                <svg class="step-icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span class="step-text">Shut down engine and depressurize fuel system safely</span>
+                            </div>
+                            <div class="step-item">
+                                <svg class="step-icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span class="step-text">Locate fuel pressure sensor per schematics</span>
+                            </div>
+                            <div class="step-item">
+                                <svg class="step-icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span class="step-text">Test sensor with multimeter for proper readings</span>
+                            </div>
+                        </div>
+                        
+                        <!-- EXACT Feedback Buttons -->
+                        <div class="feedback-buttons">
+                            <button class="feedback-btn">
+                                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path>
+                                </svg>
+                                Helpful
+                            </button>
+                            <button class="feedback-btn">
+                                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018c.163 0 .326.02.485.06L17 4m-7 10v2a2 2 0 002 2h.095c.5 0 .905-.405.905-.905 0-.714.211-1.412.608-2.006L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5"></path>
+                                </svg>
+                                Not Helpful
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EMAIL CARD WITH EXACT SOLUTION CARD STYLING -->
+            <div class="card-section">
+                <div class="card-label">📧 EMAIL CARD (Portrait)</div>
+                <div class="email-card">
+                    <!-- EXACT Header Structure adapted for email -->
+                    <div class="card-header">
+                        <div class="header-row">
+                            <div class="header-content">
+                                <div class="title-row">
+                                    <h3 class="card-title">Re: E-047 Fuel Pressure Sensor</h3>
+                                    <!-- EXACT Confidence Circle -->
+                                    <button class="confidence-circle confidence-high" title="90% confidence">
+                                        <!-- Empty circle with gradient background -->
+                                    </button>
+                                </div>
+                                <!-- EXACT Source Chip adapted for email -->
+                                <div class="source-chip">
+                                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                    </svg>
+                                    MTU Engines • Aug 27, 2025
+                                </div>
+                            </div>
+                            <div class="chevron">
+                                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Email Header Section -->
+                    <div class="email-header-section">
+                        <div class="email-sender-row">
+                            <div class="email-profile-circle">MT</div>
+                            <div class="email-sender-details">
+                                <div class="email-company">MTU Engines</div>
+                                <div class="email-sender-name">Mark Thompson</div>
+                                <div class="email-meta">→ Engineering Team</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Email Content Section -->
+                    <div class="email-content-section">
+                        <div class="email-body-preview">
+                            Hi team, regarding the E-047 fault you reported yesterday - this typically indicates a fuel pressure sensor malfunction. I've attached the diagnostic procedure from our latest service bulletin. The sensor should be reading between 45-50 PSI at idle...
+                        </div>
+                        
+                        <div class="ai-summary-box">
+                            <div class="ai-summary-label">
+                                <span class="ai-icon">AI</span>
+                                Email Summary
+                            </div>
+                            <div class="ai-summary-text">
+                                Email confirms E-047 is fuel pressure sensor issue. Provides official diagnostic procedure and recommends sensor replacement with calibration steps. Includes pressure specifications and torque values.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Email Footer Section -->
+                    <div class="email-footer-section">
+                        <div class="attachment-info">
+                            <span class="icon">📄</span>
+                            E-047_Diagnostic_Procedure.pdf
+                        </div>
+                        
+                        <div class="thread-info">
+                            <span class="icon">💬</span>
+                            3 replies in thread
+                        </div>
+                        
+                        <!-- EXACT Feedback Buttons -->
+                        <div class="feedback-buttons">
+                            <button class="feedback-btn">
+                                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path>
+                                </svg>
+                                Helpful
+                            </button>
+                            <button class="feedback-btn">
+                                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018c.163 0 .326.02.485.06L17 4m-7 10v2a2 2 0 002 2h.095c.5 0 .905-.405.905-.905 0-.714.211-1.412.608-2.006L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5"></path>
+                                </svg>
+                                Not Helpful
+                            </button>
+                        </div>
+                        
+                        <button class="view-email-btn">View Full Email & Solution</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // EXACT same interaction patterns
+        document.querySelectorAll('.feedback-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Remove selection from sibling
+                const parent = this.parentNode;
+                Array.from(parent.children).forEach(sibling => {
+                    if (sibling !== this && sibling.classList.contains('feedback-btn')) {
+                        sibling.classList.remove('selected-helpful', 'selected-not-helpful');
+                    }
+                });
+                
+                // Toggle selection state
+                if (this.textContent.includes('Helpful')) {
+                    this.classList.toggle('selected-helpful');
+                } else {
+                    this.classList.toggle('selected-not-helpful');
+                }
+            });
+        });
+        
+        document.querySelectorAll('.view-email-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                console.log('View email clicked');
+                this.textContent = 'Opening...';
+                setTimeout(() => {
+                    this.textContent = 'View Full Email & Solution';
+                }, 1500);
+            });
+        });
+    </script>
+</body>
+</html>

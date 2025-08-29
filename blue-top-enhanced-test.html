@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CelesteOS • Enhanced Blue Light Mode</title>
+<style>
+  /* ========= ENHANCED BLUE LIGHT TOKENS ========= */
+  :root{
+    /* Enhanced light blue spectrum */
+    --white-blue: #fefeff;
+    --ice-crystal: #fcfdff;
+    --ice-soft: #f9fcfe;
+    --sky-whisper: #f6fafd;
+    --sky-light: #f3f8fc;
+    --sky-mid: #f0f6fb;
+    --sky-rich: #edf4fa;
+    --azure-soft: #eaf2f9;
+    --azure-mid: #e7f0f8;
+    --azure-deep: #e4eef7;
+    --blue-mist: #e1ecf6;
+    
+    /* Strong blue accents for top area */
+    --top-blue-1: rgba(47, 185, 232, 0.15);
+    --top-blue-2: rgba(0, 112, 255, 0.12);
+    --top-blue-3: rgba(186, 221, 233, 0.18);
+    --top-blue-4: rgba(129, 200, 228, 0.14);
+    --top-blue-5: rgba(67, 166, 216, 0.10);
+    --mid-blue-1: rgba(47, 185, 232, 0.08);
+    --mid-blue-2: rgba(186, 221, 233, 0.10);
+    --subtle-blue: rgba(129, 200, 228, 0.06);
+    --warm-touch: rgba(200, 169, 81, 0.04);
+
+    /* Random irregular timing */
+    --chaos-1: 41s;
+    --chaos-2: 59s;
+    --chaos-3: 73s;
+    --chaos-4: 47s;
+    --chaos-5: 83s;
+    --chaos-6: 67s;
+    --chaos-7: 91s;
+  }
+
+  html,body{
+    height:100%;
+    margin:0;
+    overflow:hidden;
+  }
+
+  body{
+    background: var(--white-blue);
+  }
+
+  /* ========= ENHANCED BLUE LUXURY SYSTEM ========= */
+  .blue-enhanced{ 
+    position:fixed; 
+    inset:0; 
+  }
+  
+  /* Foundation: Rich blue-white gradient */
+  .blue-enhanced .foundation{
+    position:absolute; 
+    inset:0;
+    background: 
+      linear-gradient(145deg, var(--white-blue) 0%, var(--ice-crystal) 12%, var(--ice-soft) 24%, var(--sky-whisper) 36%, var(--sky-light) 48%, var(--sky-mid) 60%, var(--sky-light) 72%, var(--ice-soft) 84%, var(--white-blue) 100%);
+  }
+  
+  /* TOP BLUE CONCENTRATION - Randomized */
+  .blue-enhanced .top-alpha{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(70vmax 50vmax at 18% 8%, var(--top-blue-1) 0%, var(--sky-rich) 30%, transparent 65%);
+    animation: topBlue1 var(--chaos-1) ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+  
+  .blue-enhanced .top-beta{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(85vmax 60vmax at 45% 5%, var(--top-blue-3) 0%, var(--azure-soft) 35%, transparent 70%);
+    animation: topBlue2 var(--chaos-2) ease-in-out infinite 8s;
+    will-change: transform, opacity;
+  }
+  
+  .blue-enhanced .top-gamma{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(60vmax 45vmax at 72% 12%, var(--top-blue-2) 0%, var(--sky-mid) 25%, transparent 60%);
+    animation: topBlue3 var(--chaos-3) ease-in-out infinite 15s;
+    will-change: transform, opacity;
+  }
+  
+  .blue-enhanced .top-delta{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(90vmax 55vmax at 88% 15%, var(--top-blue-4) 0%, var(--azure-mid) 40%, transparent 75%);
+    animation: topBlue4 var(--chaos-4) ease-in-out infinite 22s;
+    will-change: transform, opacity;
+  }
+  
+  .blue-enhanced .top-epsilon{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(50vmax 35vmax at 65% 2%, var(--top-blue-5) 0%, transparent 55%);
+    animation: topBlue5 var(--chaos-5) ease-in-out infinite 35s;
+    will-change: transform, opacity;
+  }
+  
+  /* MID-LEVEL BLUE FLOWS */
+  .blue-enhanced .mid-alpha{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(95vmax 85vmax at 25% 45%, var(--mid-blue-1) 0%, var(--sky-rich) 45%, transparent 80%);
+    animation: midFlow1 var(--chaos-6) ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+  
+  .blue-enhanced .mid-beta{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(80vmax 90vmax at 75% 55%, var(--mid-blue-2) 0%, var(--azure-soft) 40%, transparent 75%);
+    animation: midFlow2 var(--chaos-7) ease-in-out infinite 12s;
+    will-change: transform, opacity;
+  }
+  
+  /* SUBTLE FOUNDATION SUPPORTS */
+  .blue-enhanced .support-alpha{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(120vmax 100vmax at 15% 85%, var(--subtle-blue) 0%, transparent 70%);
+    animation: supportFlow1 var(--chaos-2) ease-in-out infinite 25s;
+    will-change: transform, opacity;
+  }
+  
+  .blue-enhanced .support-beta{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(100vmax 120vmax at 85% 80%, var(--azure-deep) 0%, var(--sky-deep) 35%, transparent 75%);
+    animation: supportFlow2 var(--chaos-4) ease-in-out infinite 18s;
+    will-change: transform, opacity;
+  }
+  
+  /* Warm accent */
+  .blue-enhanced .warmth{
+    position:absolute; 
+    inset:0;
+    background: radial-gradient(55vmax 55vmax at 82% 25%, var(--warm-touch) 0%, transparent 45%);
+    animation: warmGlow var(--chaos-5) ease-in-out infinite 45s;
+    will-change: opacity;
+  }
+
+  /* TOP BLUE ANIMATIONS - Irregular and random */
+  @keyframes topBlue1 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.9; }
+    23% { transform: translate3d(-2.5%, 0.8%, 0) scale(1.08); opacity: 1.0; }
+    58% { transform: translate3d(1.8%, -1.2%, 0) scale(0.92); opacity: 0.85; }
+    81% { transform: translate3d(-1.1%, 0.4%, 0) scale(1.04); opacity: 0.95; }
+  }
+  
+  @keyframes topBlue2 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.85; }
+    19% { transform: translate3d(1.9%, -0.6%, 0) scale(0.96); opacity: 0.95; }
+    47% { transform: translate3d(-2.2%, 1.8%, 0) scale(1.06); opacity: 0.92; }
+    74% { transform: translate3d(0.8%, -1.5%, 0) scale(1.02); opacity: 0.88; }
+    92% { transform: translate3d(-0.4%, 0.9%, 0) scale(0.98); opacity: 0.90; }
+  }
+  
+  @keyframes topBlue3 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.80; }
+    34% { transform: translate3d(-1.6%, -1.8%, 0) scale(1.05); opacity: 0.92; }
+    66% { transform: translate3d(2.1%, 1.3%, 0) scale(0.94); opacity: 0.86; }
+  }
+  
+  @keyframes topBlue4 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.75; }
+    28% { transform: translate3d(2.4%, 1.1%, 0) scale(0.93); opacity: 0.88; }
+    61% { transform: translate3d(-1.7%, -2.0%, 0) scale(1.07); opacity: 0.82; }
+    87% { transform: translate3d(1.2%, 0.7%, 0) scale(1.01); opacity: 0.85; }
+  }
+  
+  @keyframes topBlue5 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.70; }
+    42% { transform: translate3d(-1.3%, 2.3%, 0) scale(1.09); opacity: 0.83; }
+    78% { transform: translate3d(1.6%, -0.9%, 0) scale(0.91); opacity: 0.77; }
+  }
+  
+  @keyframes midFlow1 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.65; }
+    37% { transform: translate3d(1.8%, 1.4%, 0) scale(1.04); opacity: 0.78; }
+    72% { transform: translate3d(-1.2%, -1.6%, 0) scale(0.96); opacity: 0.71; }
+  }
+  
+  @keyframes midFlow2 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.60; }
+    31% { transform: translate3d(-2.0%, -1.1%, 0) scale(1.03); opacity: 0.73; }
+    69% { transform: translate3d(1.4%, 1.9%, 0) scale(0.97); opacity: 0.67; }
+  }
+  
+  @keyframes supportFlow1 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.55; }
+    45% { transform: translate3d(0.9%, -1.3%, 0) scale(1.02); opacity: 0.68; }
+  }
+  
+  @keyframes supportFlow2 {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.50; }
+    38% { transform: translate3d(-1.1%, 1.7%, 0) scale(1.01); opacity: 0.63; }
+  }
+  
+  @keyframes warmGlow {
+    0%, 100% { opacity: 0.20; }
+    50% { opacity: 0.35; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .blue-enhanced * { animation: none; }
+  }
+
+  /* Demo styling */
+  .demo {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(24, 24, 24, 0.85);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 36px;
+    font-weight: 200;
+    text-align: center;
+    letter-spacing: 2px;
+    z-index: 100;
+  }
+  
+  .demo .sub {
+    font-size: 11px;
+    opacity: 0.6;
+    margin-top: 16px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: 400;
+    color: rgba(24, 24, 24, 0.5);
+  }
+</style>
+</head>
+<body>
+  <!-- Enhanced Blue Light System -->
+  <div class="blue-enhanced">
+    <div class="foundation"></div>
+    <!-- TOP BLUE CONCENTRATION -->
+    <div class="top-alpha"></div>
+    <div class="top-beta"></div>
+    <div class="top-gamma"></div>
+    <div class="top-delta"></div>
+    <div class="top-epsilon"></div>
+    <!-- MID FLOWS -->
+    <div class="mid-alpha"></div>
+    <div class="mid-beta"></div>
+    <!-- SUPPORTS -->
+    <div class="support-alpha"></div>
+    <div class="support-beta"></div>
+    <div class="warmth"></div>
+  </div>
+  
+  <!-- Demo overlay -->
+  <div class="demo">
+    CelesteOS
+    <div class="sub">Enhanced Blue Light</div>
+  </div>
+</body>
+</html>

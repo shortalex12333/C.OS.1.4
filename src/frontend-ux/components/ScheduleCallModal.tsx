@@ -40,7 +40,7 @@ export function ScheduleCallModal({
   const [loadingBookedSlots, setLoadingBookedSlots] = useState(false);
 
   // Use explicitly passed isDarkMode prop to prevent modal closing on theme change
-  const isCurrentlyDark = isDarkMode || false;
+  const isCurrentlyDark = isDarkMode ?? true;
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -390,20 +390,24 @@ export function ScheduleCallModal({
                 fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
               }}
             >
-              Schedule a Call with Alex
+              Pick your time
             </h2>
             
-            <p 
+            <div 
               style={{
                 fontSize: '15px',
                 lineHeight: '22px',
                 color: '#00a4ff',
-                margin: 0,
-                fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+                margin: '0 auto',
+                maxWidth: '280px',
+                textAlign: 'center',
+                padding: '0 16px',
+                textTransform: 'uppercase',
+                fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
               }}
             >
-              Former Superyacht ETO. Let's discuss how CelesteOS can solve your engineering challenges.
-            </p>
+              Alex, Superyacht ETO
+            </div>
           </div>
 
           {/* Success State */}
@@ -453,7 +457,8 @@ export function ScheduleCallModal({
                   lineHeight: '24px',
                   color: themeStyles.text.secondary,
                   margin: 0,
-                  fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+                  textTransform: 'uppercase',
+                fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                 }}
               >
                 We will send confirmation of invite shortly.
@@ -464,18 +469,6 @@ export function ScheduleCallModal({
             <div style={{ flex: '1 1 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {/* Step 1: Date Selection */}
               <div>
-                <h3 
-                  style={{
-                    fontSize: '16px',
-                    fontWeight: 400,
-                    color: themeStyles.text.primary,
-                    marginBottom: '16px',
-                    textAlign: 'center',
-                    fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-                  }}
-                >
-                  Select a Date
-                </h3>
                 
                 {/* Glassmorphism Calendar Container */}
                 <div 
@@ -595,10 +588,10 @@ export function ScheduleCallModal({
                                   ? '#ffffff' 
                                   : themeStyles.text.primary,
                               fontSize: '13px',
-                              fontWeight: 400,
                               cursor: isBooked ? 'not-allowed' : 'pointer',
                               transition: 'all 0.2s ease',
-                              fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                              textTransform: 'uppercase',
+                fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                               backdropFilter: 'blur(8px) saturate(1.1)',
                               display: 'flex',
                               alignItems: 'center',
@@ -680,7 +673,8 @@ export function ScheduleCallModal({
                               fontSize: '13px',
                               color: themeStyles.text.secondary,
                               marginBottom: '8px',
-                              fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+                              textTransform: 'uppercase',
+                fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                             }}
                           >
                             Phone Number *
@@ -710,7 +704,8 @@ export function ScheduleCallModal({
                                 borderRadius: '6px',
                                 fontSize: '14px',
                                 outline: 'none',
-                                fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                                textTransform: 'uppercase',
+                fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                                 transition: 'border-color 0.2s ease',
                                 boxSizing: 'border-box'
                               }}
@@ -732,7 +727,8 @@ export function ScheduleCallModal({
                               fontSize: '13px',
                               color: themeStyles.text.secondary,
                               marginBottom: '8px',
-                              fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+                              textTransform: 'uppercase',
+                fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                             }}
                           >
                             Yacht Size (meters) *
@@ -764,7 +760,8 @@ export function ScheduleCallModal({
                                 borderRadius: '6px',
                                 fontSize: '14px',
                                 outline: 'none',
-                                fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                                textTransform: 'uppercase',
+                fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                                 transition: 'border-color 0.2s ease',
                                 boxSizing: 'border-box'
                               }}
@@ -797,12 +794,12 @@ export function ScheduleCallModal({
                         ? (isCurrentlyDark ? '#6b7280' : '#9ca3af')
                         : '#ffffff',
                       fontSize: '15px',
-                      fontWeight: 500,
                       cursor: (!selectedDate || !selectedTime || !formData.phone || !formData.yachtSize || isSubmitting) 
                         ? 'not-allowed' 
                         : 'pointer',
                       transition: 'all 0.2s ease',
-                      fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                      textTransform: 'uppercase',
+                fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                       boxShadow: (!selectedDate || !selectedTime || !formData.phone || !formData.yachtSize || isSubmitting)
                         ? 'none'
                         : '0 4px 12px rgba(0, 112, 255, 0.2)'
