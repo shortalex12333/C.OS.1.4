@@ -813,7 +813,7 @@ export function EmailSolutionCard({ solutions, isMobile = false, isDarkMode = fa
                         </button>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 </motion.div>
               )}
             </AnimatePresence>
