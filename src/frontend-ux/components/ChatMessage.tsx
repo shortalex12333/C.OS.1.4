@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AISolutionCard } from './AISolutionCard';
+import { EmailSolutionCard } from './EmailSolutionCard';
 import ReactMarkdown from 'react-markdown';
 import { StreamingText } from './StreamingText';
 import { BrainLogo } from './BrainLogo';
@@ -69,6 +70,7 @@ export function ChatMessage({ message, displayName, isDarkMode = false, isMobile
         items: content.items || content.documents_used || [],
         sources: content.sources || [],
         references: content.references || content.documents_used || [],
+        searchStrategy: content.search_strategy || content.metadata?.search_strategy,
         showRaw: false
       };
     }
@@ -91,6 +93,7 @@ export function ChatMessage({ message, displayName, isDarkMode = false, isMobile
     ? parsedContent.text 
     : String(parsedContent.text || 'Processing your request...');
   const solutions = parsedContent.solutions;
+  const searchStrategy = parsedContent.searchStrategy;
 
   // Action handlers for message buttons
   const handleCopy = async () => {
@@ -312,13 +315,21 @@ export function ChatMessage({ message, displayName, isDarkMode = false, isMobile
             </div>
           )}
           
-          {/* Solution Cards */}
+          {/* Solution Cards - Conditional based on search strategy */}
           {solutions && solutions.length > 0 && !message.isUser && (
-            <AISolutionCard 
-              solutions={solutions}
-              isDarkMode={isDarkMode}
-              isMobile={isMobile}
-            />
+            searchStrategy === 'email' || searchStrategy === 'email-yacht' ? (
+              <EmailSolutionCard 
+                solutions={solutions}
+                isDarkMode={isDarkMode}
+                isMobile={isMobile}
+              />
+            ) : (
+              <AISolutionCard 
+                solutions={solutions}
+                isDarkMode={isDarkMode}
+                isMobile={isMobile}
+              />
+            )
           )}
           
           {/* Message Action Buttons - User messages */}
