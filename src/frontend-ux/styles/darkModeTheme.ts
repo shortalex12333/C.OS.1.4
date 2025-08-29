@@ -91,7 +91,7 @@ export const darkTheme = {
   // Modal specific - Premium elevation
   modal: {
     background: '#292929',         // Modal background
-    header: '#0f0b12',            // Header background
+    header: '#292929',            // Header background
     border: '#343434',            // Border/divider color
     shadow: '0 25px 50px rgba(0, 0, 0, 0.7)',  // Heavy shadow for elevation
     overlay: 'rgba(41, 41, 41, 0.95)',        // Modal overlay

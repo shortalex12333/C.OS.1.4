@@ -100,7 +100,7 @@ export function ModelSelector({ isMobile = false, isDarkMode = false, onModelCha
             className="absolute top-full left-0 mt-2 rounded-xl shadow-lg border backdrop-blur-lg z-50 model_selector_dropdown"
             style={{
               backgroundColor: isDarkMode 
-                ? 'rgba(15, 11, 18, 0.95)' 
+                ? 'rgba(60, 60, 60, 0.95)' 
                 : 'rgba(255, 255, 255, 0.95)',
               backdropFilter: 'blur(16px)',
               WebkitBackdropFilter: 'blur(16px)',

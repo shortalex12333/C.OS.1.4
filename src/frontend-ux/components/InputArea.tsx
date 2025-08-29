@@ -156,8 +156,8 @@ export function InputArea({
           style={{
             borderRadius: '4px',
             backgroundColor: isDarkMode 
-              ? 'rgba(15, 11, 18, 0.95)' 
-              : 'rgba(255, 255, 255, 0.95)',
+              ? 'rgba(60, 60, 60, 0.95)' 
+              : 'rgba(248, 248, 248, 0.95)',
             border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.1)'}`,
             boxShadow: isDarkMode 
               ? '0 4px 12px rgba(0, 0, 0, 0.25)' 
@@ -238,7 +238,7 @@ export function InputArea({
                     <div 
                       className="absolute bottom-full left-0 mb-2 rounded-xl shadow-lg border glass-medium z-50"
                       style={{
-                        backgroundColor: isDarkMode ? 'rgba(15, 11, 18, 1.0)' : 'rgba(255, 255, 255, 1.0)',
+                        backgroundColor: isDarkMode ? 'rgba(60, 60, 60, 1.0)' : 'rgba(248, 248, 248, 1.0)',
                         border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)'}`,
                         minWidth: '280px'
                       }}

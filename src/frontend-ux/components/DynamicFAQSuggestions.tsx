@@ -59,8 +59,8 @@ export function DynamicFAQSuggestions({
 
   const baseTextColor = isDarkMode ? '#ffffff' : '#1f2937';
   const secondaryTextColor = isDarkMode ? 'rgba(255, 255, 255, 0.7)' : '#6b7280';
-  const backgroundColor = isDarkMode ? '#181818' : 'rgba(255, 255, 255, 0.95)';
-  const borderColor = isDarkMode ? '#313235' : 'rgba(229, 231, 235, 0.95)';
+  const backgroundColor = isDarkMode ? 'rgba(60, 60, 60, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+  const borderColor = isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(229, 231, 235, 0.95)';
   const hoverBackgroundColor = isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(249, 250, 251, 0.95)';
 
   if (displayedSuggestions.length === 0) {
@@ -75,7 +75,7 @@ export function DynamicFAQSuggestions({
         margin: '0 auto',
         padding: isMobile ? '16px' : '24px',
         animation: 'fadeIn 0.4s ease-out',
-        backgroundColor: isDarkMode ? '#2e2e2e' : 'transparent'
+        backgroundColor: isDarkMode ? '#292929' : 'transparent'
       }}
     >
       {/* Header */}

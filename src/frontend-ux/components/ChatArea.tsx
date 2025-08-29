@@ -145,8 +145,8 @@ export function ChatArea({
           right: 0,
           backgroundColor: 'transparent',
           opacity: 1,
-          borderBottom: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'}`,
-          zIndex: 1000,
+          borderBottom: 'none',
+          zIndex: 10,
           backdropFilter: 'blur(10px)',
           WebkitBackdropFilter: 'blur(10px)'
         }}>
@@ -210,9 +210,9 @@ export function ChatArea({
         top: 0,
         left: 0,
         right: 0,
-        backgroundColor: isDarkMode ? '#2e2e2e' : '#ffffff',
-        borderBottom: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'}`,
-        zIndex: 1000,
+        backgroundColor: 'transparent',
+        borderBottom: 'none',
+        zIndex: 10,
         backdropFilter: 'blur(10px)',
         WebkitBackdropFilter: 'blur(10px)'
       }}>

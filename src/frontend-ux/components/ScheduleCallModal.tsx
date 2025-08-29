@@ -470,11 +470,9 @@ export function ScheduleCallModal({
               {/* Step 1: Date Selection */}
               <div>
                 
-                {/* Glassmorphism Calendar Container */}
+                {/* Calendar Container */}
                 <div 
                   style={{
-                    ...themeStyles.glassmorphism,
-                    backdropFilter: 'blur(24px) saturate(1.25)',
                     borderRadius: '12px',
                     padding: '16px',
                     display: 'flex',

@@ -122,7 +122,8 @@ export function Sidebar({
       WebkitBackdropFilter: blurEffect,
       boxShadow: isDarkMode 
         ? '0 25px 50px rgba(0, 0, 0, 0.25), inset -1px 0 0 rgba(255, 255, 255, 0.12)'
-        : '6px 0 24px rgba(0, 0, 0, 0.12), 2px 0 8px rgba(0, 0, 0, 0.06), inset -1px 0 0 rgba(255, 255, 255, 0.3)'
+        : '6px 0 24px rgba(0, 0, 0, 0.12), 2px 0 8px rgba(0, 0, 0, 0.06), inset -1px 0 0 rgba(255, 255, 255, 0.3)',
+      zIndex: 100
     };
   };
 

@@ -374,7 +374,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
           position: 'fixed',
           inset: 0,
           zIndex: 10005,
-          background: '#0f1117',
+          background: '#292929',
           overflowY: 'auto',
           fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
         }}
@@ -507,10 +507,10 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
               display: 'flex',
               gap: '12px',
               alignItems: 'center',
-              background: '#242424',
+              background: 'rgba(60, 60, 60, 0.95)',
               borderRadius: '12px',
               padding: '4px',
-              border: '1px solid #343434'
+              border: '1px solid rgba(255, 255, 255, 0.12)'
             }}>
               <textarea
                 ref={searchInputRef}
@@ -605,7 +605,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
               display: 'flex',
               flexDirection: 'column',
               gap: '1px',
-              background: '#242424',
+              background: 'rgba(60, 60, 60, 0.95)',
               borderRadius: '12px',
               overflow: 'hidden'
             }}>
@@ -613,8 +613,8 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
                 <div
                   key={item.id}
                   style={{
-                    background: '#181818',
-                    borderBottom: index < filteredItems.length - 1 ? '1px solid rgba(255, 255, 255, 0.08)' : 'none'
+                    background: 'rgba(60, 60, 60, 0.95)',
+                    borderBottom: index < filteredItems.length - 1 ? '1px solid rgba(255, 255, 255, 0.12)' : 'none'
                   }}
                 >
                   <button
@@ -808,13 +808,13 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
         flexDirection: 'column',
         height: '100vh',
         minWidth: 0,
-        borderRight: '1px solid #343434',
+        borderRight: '1px solid rgba(255, 255, 255, 0.12)',
         animation: 'slideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
       }}>
         {/* Fixed Header with Logo */}
         <div style={{
           padding: '60px 40px 30px',
-          borderBottom: '1px solid #343434',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
           background: '#292929'
         }}>
           <div style={{
@@ -923,7 +923,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
                       <div style={{
                         marginTop: '16px',
                         padding: '12px',
-                        background: '#242424',
+                        background: 'rgba(60, 60, 60, 0.95)',
                         borderRadius: '8px',
                         border: '1px solid rgba(255, 255, 255, 0.1)'
                       }}>
@@ -1051,7 +1051,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
         {/* Fixed Input Area */}
         <div style={{
           padding: '20px 40px 30px',
-          borderTop: '1px solid #343434',
+          borderTop: '1px solid rgba(255, 255, 255, 0.12)',
           background: '#292929'
         }}>
           <div style={{
@@ -1061,7 +1061,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
             background: '#242424',
             borderRadius: '12px',
             padding: '4px',
-            border: '1px solid #343434'
+            border: '1px solid rgba(255, 255, 255, 0.12)'
           }}>
             <input
               type="text"
@@ -1143,7 +1143,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
         {/* FAQ Header */}
         <div style={{
           padding: '30px 30px 20px',
-          borderBottom: '1px solid #343434'
+          borderBottom: '1px solid rgba(255, 255, 255, 0.12)'
         }}>
           <h2 style={{
             fontSize: isMobile ? '18px' : '20px',
@@ -1180,10 +1180,10 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
               key={item.id}
               style={{
                 marginBottom: '12px',
-                background: '#242424',
+                background: 'rgba(60, 60, 60, 0.95)',
                 borderRadius: '4px',
                 overflow: 'hidden',
-                border: '1px solid #343434',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
                 animation: `fadeInItem 0.4s cubic-bezier(0.4, 0, 0.2, 1) ${0.05 * index}s both`
               }}
             >

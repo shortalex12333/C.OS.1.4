@@ -705,14 +705,14 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
           }} onClick={handleSkip} />
         </>
       ) : (
-        /* Full dark overlay when no element is highlighted */
+        /* Full overlay when no element is highlighted */
         <div style={{
           position: 'fixed',
           top: 0,
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(0, 0, 0, 0.4)',
+          background: isDarkMode ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0.2)',
           pointerEvents: 'auto',
           zIndex: 9997
         }} onClick={handleSkip} />
@@ -806,13 +806,20 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
           position: 'fixed',
           ...getTooltipPosition(),
           width: '360px',
-          background: 'rgba(15, 11, 18, 0.95)',
+          // IF mode=dark, tutorial card = dark. IF mode=light, use light tutorial
+          background: isDarkMode 
+            ? 'rgba(60, 60, 60, 0.95)'      // Dark mode: matches #3c3c3c chat background
+            : 'rgba(252, 254, 255, 0.95)',  // Light mode: matches #fcfeff chat background
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          border: isDarkMode 
+            ? '1px solid rgba(255, 255, 255, 0.08)'  // Dark mode: white border
+            : '1px solid rgba(0, 0, 0, 0.08)',       // Light mode: black border
           borderRadius: '12px',
           padding: '24px',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+          boxShadow: isDarkMode
+            ? '0 8px 32px rgba(0, 0, 0, 0.4)'       // Dark mode: black shadow
+            : '0 8px 32px rgba(0, 0, 0, 0.15)',      // Light mode: lighter shadow
           pointerEvents: 'auto',
           opacity: isAnimating ? 0 : 1,
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -830,8 +837,8 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
             height: '24px',
             borderRadius: '50%',
             border: 'none',
-            background: 'rgba(255, 255, 255, 0.05)',
-            color: 'rgba(246, 247, 251, 0.4)',
+            background: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+            color: isDarkMode ? 'rgba(246, 247, 251, 0.4)' : 'rgba(26, 26, 26, 0.4)',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -840,12 +847,12 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
             padding: 0
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-            e.currentTarget.style.color = 'rgba(246, 247, 251, 0.6)';
+            e.currentTarget.style.background = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+            e.currentTarget.style.color = isDarkMode ? 'rgba(246, 247, 251, 0.6)' : 'rgba(26, 26, 26, 0.6)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-            e.currentTarget.style.color = 'rgba(246, 247, 251, 0.4)';
+            e.currentTarget.style.background = isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+            e.currentTarget.style.color = isDarkMode ? 'rgba(246, 247, 251, 0.4)' : 'rgba(26, 26, 26, 0.4)';
           }}
         >
           <X size={16} />
@@ -864,7 +871,11 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
                 flex: 1,
                 height: '2px',
                 borderRadius: '1px',
-                background: index <= currentStepIndex ? '#BADDE9' : 'rgba(255, 255, 255, 0.1)',
+                background: index <= currentStepIndex 
+                  ? '#BADDE9' 
+                  : isDarkMode 
+                    ? 'rgba(255, 255, 255, 0.1)' 
+                    : 'rgba(0, 0, 0, 0.1)',
                 transition: 'all 0.3s'
               }}
             />
@@ -888,7 +899,7 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
             fontSize: '18px',
             fontWeight: '600',
             fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-            color: 'var(--headline, #f6f7fb)',
+            color: isDarkMode ? 'var(--headline, #f6f7fb)' : '#1a1a1a',
             lineHeight: '24px',
             letterSpacing: '-0.32px',
             margin: 0
@@ -900,7 +911,7 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
         {/* Description */}
         <p style={{
           fontSize: '14px',
-          color: 'rgba(246, 247, 251, 0.7)',
+          color: isDarkMode ? 'rgba(246, 247, 251, 0.7)' : 'rgba(26, 26, 26, 0.7)',
           lineHeight: '20px',
           letterSpacing: '-0.32px',
           fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
@@ -943,9 +954,9 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
                 gap: '4px',
                 padding: '8px 16px',
                 background: 'transparent',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                border: isDarkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
                 borderRadius: '50px',
-                color: 'rgba(246, 247, 251, 0.6)',
+                color: isDarkMode ? 'rgba(246, 247, 251, 0.6)' : 'rgba(26, 26, 26, 0.6)',
                 fontSize: '13px',
                 fontWeight: '500',
                 fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
@@ -953,12 +964,12 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
                 transition: 'all 0.2s'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-                e.currentTarget.style.color = 'rgba(246, 247, 251, 0.8)';
+                e.currentTarget.style.borderColor = isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)';
+                e.currentTarget.style.color = isDarkMode ? 'rgba(246, 247, 251, 0.8)' : 'rgba(26, 26, 26, 0.8)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                e.currentTarget.style.color = 'rgba(246, 247, 251, 0.6)';
+                e.currentTarget.style.borderColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+                e.currentTarget.style.color = isDarkMode ? 'rgba(246, 247, 251, 0.6)' : 'rgba(26, 26, 26, 0.6)';
               }}
             >
               <ChevronLeft size={14} />
@@ -1011,17 +1022,17 @@ export function TutorialOverlay({ isVisible, onComplete, isDarkMode = false, mes
                 padding: '8px 16px',
                 background: 'transparent',
                 border: 'none',
-                color: 'rgba(246, 247, 251, 0.4)',
+                color: isDarkMode ? 'rgba(246, 247, 251, 0.4)' : 'rgba(26, 26, 26, 0.4)',
                 fontSize: '13px',
                 fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
                 cursor: 'pointer',
                 transition: 'color 0.2s'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'rgba(246, 247, 251, 0.6)';
+                e.currentTarget.style.color = isDarkMode ? 'rgba(246, 247, 251, 0.6)' : 'rgba(26, 26, 26, 0.6)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'rgba(246, 247, 251, 0.4)';
+                e.currentTarget.style.color = isDarkMode ? 'rgba(246, 247, 251, 0.4)' : 'rgba(26, 26, 26, 0.4)';
               }}
             >
               {currentPhase === 'initial' ? 'Close' : 'Skip Tutorial'}

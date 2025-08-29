@@ -50,75 +50,45 @@ export function ThinkingIndicator({ isDarkMode = false, searchType = 'yacht' }: 
 
   return (
     <div 
-      className="thinking-indicator-container"
+      className="flex ai_response_container mr-8"
       style={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: '12px',
-        padding: '16px 0',
-        maxWidth: '800px',
-        margin: '0 auto',
-        width: '100%'
+        animation: 'messageFadeIn 0.5s cubic-bezier(0.22, 0.61, 0.36, 1)',
+        transformOrigin: 'bottom left'
       }}
     >
-      {/* Bot Avatar */}
-      <div 
-        className="bot-avatar"
-        style={{
-          width: '32px',
-          height: '32px',
-          borderRadius: '50%',
-          background: isDarkMode 
-            ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-            : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0
-        }}
-      >
-        <span style={{ color: 'white', fontSize: '16px', fontWeight: 'bold' }}>C</span>
-      </div>
-
-      {/* Clean Thinking Bubble - No border, no background */}
-      <div 
-        className="thinking-bubble"
-        style={{
-          padding: '12px 16px',
-          minWidth: '200px',
-          maxWidth: '400px'
-        }}
-      >
-        {/* Thinking with streaming dots */}
-        <div 
-          className="thinking-primary"
-          style={{
-            fontSize: '15px',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-            color: isDarkMode ? '#ffffff' : '#000000',
-            marginBottom: '6px',
-            display: 'flex',
-            alignItems: 'center'
-          }}
-        >
-          <span>Thinking</span>
-          <span className="streaming-dots"></span>
-        </div>
-
-        {/* Static placeholder text */}
-        <div 
-          className="thinking-secondary"
-          style={{
-            fontSize: '14px',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-            color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
-            opacity: isTransitioning ? 0.3 : 1,
-            transition: 'opacity 300ms ease-in-out'
-          }}
-        >
-          {hints[currentHintIndex]}
+      <div className="flex-1 min-w-0">
+        {/* Message content */}
+        <div style={{ textAlign: 'left' }}>
+          <div 
+            className="ai_response_message"
+            style={{
+              fontSize: '16px',
+              lineHeight: '24px',
+              letterSpacing: '-0.32px',
+              fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              color: isDarkMode ? 'var(--headline, #f6f7fb)' : '#1f2937',
+              textAlign: 'left'
+            }}
+          >
+            {/* Thinking with streaming dots */}
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+              <span>Thinking</span>
+              <span className="streaming-dots"></span>
+            </div>
+            
+            {/* Static placeholder text */}
+            <div style={{
+              fontSize: '14px',
+              color: isDarkMode ? 'rgba(246, 247, 251, 0.7)' : 'rgba(26, 26, 26, 0.6)',
+              opacity: isTransitioning ? 0.3 : 1,
+              transition: 'opacity 300ms ease-in-out'
+            }}>
+              {hints[currentHintIndex]}
+            </div>
+          </div>
         </div>
       </div>
+    </div>
 
       <style>{`
         @keyframes streamingDots {

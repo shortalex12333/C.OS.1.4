@@ -138,7 +138,7 @@ export function AskAlex({ isMobile = false, isDarkMode = false, onClose }: AskAl
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: isDarkMode ? '#0a0e1a' : '#ffffff',
+      backgroundColor: isDarkMode ? '#292929' : '#ffffff',
       display: 'flex',
       flexDirection: 'column',
       zIndex: 50,
@@ -147,7 +147,7 @@ export function AskAlex({ isMobile = false, isDarkMode = false, onClose }: AskAl
       <div style={{
         padding: '20px',
         borderBottom: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : '#e5e7eb'}`,
-        backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.95)',
+        backgroundColor: isDarkMode ? 'rgba(60, 60, 60, 0.95)' : 'rgba(255, 255, 255, 0.95)',
         backdropFilter: 'blur(20px)',
       }}>
         <div style={{
@@ -196,7 +196,7 @@ export function AskAlex({ isMobile = false, isDarkMode = false, onClose }: AskAl
                 padding: '8px 16px',
                 borderRadius: '8px',
                 border: 'none',
-                backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : '#f3f4f6',
+                backgroundColor: isDarkMode ? 'rgba(60, 60, 60, 0.95)' : '#f3f4f6',
                 color: isDarkMode ? '#ffffff' : '#1a1a1a',
                 fontSize: '14px',
                 cursor: 'pointer',
@@ -258,7 +258,7 @@ export function AskAlex({ isMobile = false, isDarkMode = false, onClose }: AskAl
                   borderRadius: '12px',
                   backgroundColor: message.isUser
                     ? '#3b82f6'
-                    : isDarkMode ? 'rgba(255, 255, 255, 0.1)' : '#f3f4f6',
+                    : isDarkMode ? 'rgba(60, 60, 60, 0.95)' : '#f3f4f6',
                   color: message.isUser
                     ? '#ffffff'
                     : isDarkMode ? '#ffffff' : '#1a1a1a',
@@ -302,7 +302,7 @@ export function AskAlex({ isMobile = false, isDarkMode = false, onClose }: AskAl
               <div style={{
                 padding: '12px 16px',
                 borderRadius: '12px',
-                backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : '#f3f4f6',
+                backgroundColor: isDarkMode ? 'rgba(60, 60, 60, 0.95)' : '#f3f4f6',
               }}>
                 <div style={{ display: 'flex', gap: '4px' }}>
                   <span style={{ animation: 'bounce 1.4s infinite', animationDelay: '0s' }}>•</span>
@@ -377,7 +377,7 @@ export function AskAlex({ isMobile = false, isDarkMode = false, onClose }: AskAl
       <div style={{
         padding: '20px',
         borderTop: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : '#e5e7eb'}`,
-        backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.95)',
+        backgroundColor: isDarkMode ? 'rgba(60, 60, 60, 0.95)' : 'rgba(255, 255, 255, 0.95)',
         backdropFilter: 'blur(20px)',
       }}>
         <div style={{
@@ -397,8 +397,8 @@ export function AskAlex({ isMobile = false, isDarkMode = false, onClose }: AskAl
               flex: 1,
               padding: '12px 16px',
               borderRadius: '8px',
-              border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.2)' : '#e5e7eb'}`,
-              backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : '#ffffff',
+              border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.12)' : '#e5e7eb'}`,
+              backgroundColor: isDarkMode ? 'rgba(60, 60, 60, 0.95)' : '#ffffff',
               color: isDarkMode ? '#ffffff' : '#1a1a1a',
               fontSize: '15px',
               outline: 'none',

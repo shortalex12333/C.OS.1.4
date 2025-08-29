@@ -10,118 +10,86 @@ interface ScreenContent {
   lines: string[];
 }
 
-const screens: ScreenContent[] = [
-  {
-    lines: [
-      '40,000+ emails. Buried attachments. Misspelt file names.'
-    ]
-  },
-  {
-    lines: [
-      'The notes you need? Hidden on the NAS, no one remembers.'
-    ]
-  },
-  {
-    lines: [
-      'CelesteOS brings it back in seconds'
-    ]
-  }
+const segments = [
+  '40,000+ emails.',
+  'Buried attachments.',
+  'Misspelt file names.',
+  'The notes you need?',
+  'Hidden on the NAS,',
+  'no one remembers.',
+  'CelesteOS brings it back',
+  'in seconds.'
 ];
 
 export function AnimatedIntro({ isVisible = true, onComplete }: AnimatedIntroProps) {
-  const [currentScreen, setCurrentScreen] = useState(0);
-  const [activeTokens, setActiveTokens] = useState<number>(-1);
+  const [currentSegment, setCurrentSegment] = useState(0);
+  const [displayedText, setDisplayedText] = useState('');
   const [isTransitioning, setIsTransitioning] = useState(false);
   const timers = React.useRef<number[]>([]);
 
-  // Convert screens to token-based format with timing
-  const screenTokens = React.useMemo(() => {
-    return screens.map(screen => {
-      const allText = screen.lines.join(' ');
-      const words = allText.split(' ');
-      return words.map((word, index) => {
-        // Special handling for CelesteOS wordmark
-        if (word === 'CelesteOS') {
-          return {
-            text: word,
-            delay: index === 0 ? 0 : 120,
-            cls: 'celesteos_wordmark',
-            isWordmark: true
-          };
-        }
-        return {
-          text: word,
-          delay: index === 0 ? 0 : (/^\d+/.test(word) || ['40,000+', 'seconds', 'Buried', 'Misspelt', 'Hidden', 'NAS'].includes(word)) ? 300 : 120,
-          cls: (/^\d+/.test(word) || ['40,000+', 'seconds', 'Buried', 'Misspelt', 'Hidden', 'NAS'].includes(word)) ? 'stream__num' : ''
-        };
-      });
-    });
-  }, []);
+  // Segment timing configuration
+  const segmentDelays = [
+    800,  // 40,000+ emails.
+    700,  // Buried attachments.
+    1200, // Misspelt file names. [longer pause before break]
+    900,  // The notes you need?
+    700,  // Hidden on the NAS,
+    1200, // no one remembers. [longer pause before break]
+    800,  // CelesteOS brings it back
+    1000  // in seconds. [final pause]
+  ];
 
   useEffect(() => {
-    if (!isVisible || currentScreen >= screens.length) return;
+    if (!isVisible) return;
 
-    setActiveTokens(-1);
+    setDisplayedText('');
+    setCurrentSegment(0);
     
     // Check for reduced motion preference
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     
     if (prefersReducedMotion) {
-      setActiveTokens(screenTokens[currentScreen].length - 1);
-      // Still handle screen transitions
+      setDisplayedText(segments.join(' '));
       setTimeout(() => {
-        if (currentScreen < screens.length - 1) {
-          setCurrentScreen(prev => prev + 1);
-        } else {
-          setTimeout(() => {
-            setIsTransitioning(true);
-            if (onComplete) {
-              setTimeout(onComplete, 600);
-            }
-          }, 1000);
+        setIsTransitioning(true);
+        if (onComplete) {
+          setTimeout(onComplete, 600);
         }
       }, 2000);
       return;
     }
 
-    // Stream tokens with individual delays
-    let tokenIndex = 0;
-    const streamNextToken = () => {
-      setActiveTokens(tokenIndex);
-      tokenIndex++;
-      
-      if (tokenIndex < screenTokens[currentScreen].length) {
-        const delay = screenTokens[currentScreen][tokenIndex]?.delay ?? 120;
-        timers.current.push(window.setTimeout(streamNextToken, delay));
-      } else {
-        // Screen complete - transition to next
-        setTimeout(() => {
-          if (currentScreen < screens.length - 1) {
+    // Stream segments sequentially
+    let segmentIndex = 0;
+    const streamNextSegment = () => {
+      if (segmentIndex < segments.length) {
+        const currentText = segments.slice(0, segmentIndex + 1).join(' ');
+        setDisplayedText(currentText);
+        setCurrentSegment(segmentIndex);
+        segmentIndex++;
+        
+        if (segmentIndex < segments.length) {
+          const delay = segmentDelays[segmentIndex - 1] || 800;
+          timers.current.push(window.setTimeout(streamNextSegment, delay));
+        } else {
+          // All segments complete
+          setTimeout(() => {
             setIsTransitioning(true);
-            setTimeout(() => {
-              setCurrentScreen(prev => prev + 1);
-              setIsTransitioning(false);
-            }, 600);
-          } else {
-            // Final screen complete
-            setTimeout(() => {
-              setIsTransitioning(true);
-              if (onComplete) {
-                setTimeout(onComplete, 600);
-              }
-            }, 2000);
-          }
-        }, 1500);
+            if (onComplete) {
+              setTimeout(onComplete, 600);
+            }
+          }, 2000);
+        }
       }
     };
 
-    streamNextToken();
+    streamNextSegment();
 
     return () => { 
       timers.current.forEach(t => window.clearTimeout(t)); 
       timers.current = []; 
     };
-  }, [currentScreen, isVisible, onComplete, screenTokens]);
+  }, [isVisible, onComplete]);
 
   if (!isVisible) return null;
 
@@ -234,24 +202,19 @@ export function AnimatedIntro({ isVisible = true, onComplete }: AnimatedIntroPro
             color: '#ffffff',
             margin: 0,
           }}>
-            {screenTokens[currentScreen].map((token, index) => {
-              const isVisible = activeTokens >= index;
-              const isHighlighted = token.cls === 'stream__num';
-              const isWordmark = token.isWordmark;
+            {segments.map((segment, index) => {
+              const isVisible = currentSegment >= index;
+              const containsCelesteOS = segment.includes('CelesteOS');
               
-              if (isWordmark && token.text === 'CelesteOS') {
+              if (containsCelesteOS) {
                 return (
-                  <span
-                    key={index}
-                    style={{
-                      opacity: isVisible ? 1 : 0,
-                      transform: isVisible ? 'translateY(0)' : 'translateY(6px)',
-                      transition: 'opacity 260ms cubic-bezier(0.22, 0.61, 0.36, 1), transform 260ms cubic-bezier(0.22, 0.61, 0.36, 1)',
-                      display: 'inline-block',
-                      marginRight: index === screenTokens[currentScreen].length - 1 ? 0 : '6px',
-                      fontWeight: 500
-                    }}
-                  >
+                  <span key={index} style={{
+                    opacity: isVisible ? 1 : 0,
+                    transform: isVisible ? 'translateY(0)' : 'translateY(6px)',
+                    transition: 'opacity 400ms cubic-bezier(0.22, 0.61, 0.36, 1), transform 400ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+                    display: 'inline-block',
+                    marginRight: index === segments.length - 1 ? 0 : '8px'
+                  }}>
                     <span style={{ color: '#ffffff' }}>Celeste</span>
                     <span 
                       style={{
@@ -263,6 +226,7 @@ export function AnimatedIntro({ isVisible = true, onComplete }: AnimatedIntroPro
                     >
                       OS
                     </span>
+                    <span style={{ color: '#ffffff' }}> brings it back</span>
                   </span>
                 );
               }
@@ -273,14 +237,14 @@ export function AnimatedIntro({ isVisible = true, onComplete }: AnimatedIntroPro
                   style={{
                     opacity: isVisible ? 1 : 0,
                     transform: isVisible ? 'translateY(0)' : 'translateY(6px)',
-                    transition: 'opacity 260ms cubic-bezier(0.22, 0.61, 0.36, 1), transform 260ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+                    transition: 'opacity 400ms cubic-bezier(0.22, 0.61, 0.36, 1), transform 400ms cubic-bezier(0.22, 0.61, 0.36, 1)',
                     display: 'inline-block',
-                    marginRight: index === screenTokens[currentScreen].length - 1 ? 0 : '6px',
+                    marginRight: index === segments.length - 1 ? 0 : '8px',
                     color: '#ffffff',
-                    fontWeight: isHighlighted ? 600 : 500
+                    fontWeight: 500
                   }}
                 >
-                  {token.text}
+                  {segment}
                 </span>
               );
             })}
@@ -294,18 +258,26 @@ export function AnimatedIntro({ isVisible = true, onComplete }: AnimatedIntroPro
           left: '50%',
           transform: 'translateX(-50%)',
           display: 'flex',
-          gap: '12px',
+          gap: '8px',
         }}>
-          {screens.map((_, index) => (
+          {[0, 1, 2].map((groupIndex) => (
             <div
-              key={index}
+              key={groupIndex}
               style={{
                 width: '8px',
                 height: '8px',
                 borderRadius: '50%',
-                backgroundColor: index === currentScreen ? '#004aff' : '#ffffff',
+                backgroundColor: (
+                  (groupIndex === 0 && currentSegment >= 2) ||
+                  (groupIndex === 1 && currentSegment >= 5) ||
+                  (groupIndex === 2 && currentSegment >= 7)
+                ) ? '#004aff' : '#ffffff',
                 transition: 'all 0.4s cubic-bezier(0.22, 0.61, 0.36, 1)',
-                transform: index === currentScreen ? 'scale(1.3)' : 'scale(1)',
+                transform: (
+                  (groupIndex === 0 && currentSegment >= 2) ||
+                  (groupIndex === 1 && currentSegment >= 5) ||
+                  (groupIndex === 2 && currentSegment >= 7)
+                ) ? 'scale(1.3)' : 'scale(1)',
               }}
             />
           ))}
