@@ -27,16 +27,16 @@ export function AnimatedIntro({ isVisible = true, onComplete }: AnimatedIntroPro
   const [isTransitioning, setIsTransitioning] = useState(false);
   const timers = React.useRef<number[]>([]);
 
-  // Segment timing configuration
+  // Premium timing configuration - optimized for 15 second total
   const segmentDelays = [
-    800,  // 40,000+ emails.
-    700,  // Buried attachments.
-    1200, // Misspelt file names. [longer pause before break]
-    900,  // The notes you need?
-    700,  // Hidden on the NAS,
-    1200, // no one remembers. [longer pause before break]
-    800,  // CelesteOS brings it back
-    1000  // in seconds. [final pause]
+    1400,  // 40,000+ emails. - give time to absorb the scale
+    1400,  // Buried attachments. - maintain rhythm
+    1750,  // Misspelt file names. - slight pause for problem buildup
+    1400,  // The notes you need? - questioning pause
+    1400,  // Hidden on the NAS, - maintain steady pace
+    1750,  // no one remembers. - dramatic pause before solution
+    1400,  // CelesteOS brings it back - relief moment
+    1600   // in seconds. - final emphasis
   ];
 
   useEffect(() => {
@@ -69,16 +69,16 @@ export function AnimatedIntro({ isVisible = true, onComplete }: AnimatedIntroPro
         segmentIndex++;
         
         if (segmentIndex < segments.length) {
-          const delay = segmentDelays[segmentIndex - 1] || 800;
+          const delay = segmentDelays[segmentIndex - 1] || 1400;
           timers.current.push(window.setTimeout(streamNextSegment, delay));
         } else {
-          // All segments complete
+          // All segments complete - balanced pause before transition
           setTimeout(() => {
             setIsTransitioning(true);
             if (onComplete) {
               setTimeout(onComplete, 600);
             }
-          }, 2000);
+          }, 2400);
         }
       }
     };
@@ -210,8 +210,9 @@ export function AnimatedIntro({ isVisible = true, onComplete }: AnimatedIntroPro
                 return (
                   <span key={index} style={{
                     opacity: isVisible ? 1 : 0,
-                    transform: isVisible ? 'translateY(0)' : 'translateY(6px)',
-                    transition: 'opacity 400ms cubic-bezier(0.22, 0.61, 0.36, 1), transform 400ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+                    transform: isVisible ? 'translateY(0)' : 'translateY(8px)',
+                    transition: 'opacity 650ms cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 650ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                    transitionDelay: '80ms',
                     display: 'inline-block',
                     marginRight: index === segments.length - 1 ? 0 : '8px'
                   }}>
@@ -236,8 +237,9 @@ export function AnimatedIntro({ isVisible = true, onComplete }: AnimatedIntroPro
                   key={index}
                   style={{
                     opacity: isVisible ? 1 : 0,
-                    transform: isVisible ? 'translateY(0)' : 'translateY(6px)',
-                    transition: 'opacity 400ms cubic-bezier(0.22, 0.61, 0.36, 1), transform 400ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+                    transform: isVisible ? 'translateY(0)' : 'translateY(8px)',
+                    transition: 'opacity 650ms cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 650ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                    transitionDelay: '80ms',
                     display: 'inline-block',
                     marginRight: index === segments.length - 1 ? 0 : '8px',
                     color: '#ffffff',
