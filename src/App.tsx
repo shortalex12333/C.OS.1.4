@@ -361,6 +361,12 @@ export default function App() {
     }
   }, [hasReceivedJSON]);
 
+  // Handle search type change from InputArea icons
+  const handleSearchTypeChange = (searchType: SearchType) => {
+    setCurrentSearchType(searchType);
+    console.log('Search type changed to:', searchType);
+  };
+
   const handleStartChat = async (message: string, searchType?: SearchType) => {
     if (searchType) {
       setCurrentSearchType(searchType);
@@ -872,7 +878,8 @@ export default function App() {
                       )}
                       <div className="flex-shrink-0">
                         <InputArea 
-                          onStartChat={handleStartChat} 
+                          onStartChat={handleStartChat}
+                          onSearchTypeChange={handleSearchTypeChange}
                           isMobile={isMobile}
                           isDarkMode={isDarkMode}
                           currentSearchType={currentSearchType}

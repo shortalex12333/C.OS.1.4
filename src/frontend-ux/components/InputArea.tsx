@@ -3,6 +3,7 @@ import { Send, Ship, Mail, Settings, Layers } from 'lucide-react';
 
 interface InputAreaProps {
   onStartChat: (message: string, searchType?: SearchType) => void;
+  onSearchTypeChange?: (searchType: SearchType) => void;
   isMobile?: boolean;
   isDarkMode?: boolean;
   currentSearchType?: SearchType;
@@ -11,7 +12,8 @@ interface InputAreaProps {
 type SearchType = 'yacht' | 'email' | 'email-yacht';
 
 export function InputArea({ 
-  onStartChat, 
+  onStartChat,
+  onSearchTypeChange,
   isMobile = false, 
   isDarkMode = false, 
   currentSearchType = 'yacht'
@@ -72,6 +74,10 @@ export function InputArea({
 
   const handleSearchTypeSelect = (type: SearchType) => {
     setSelectedSearchType(type);
+    // Notify parent component immediately when search type changes
+    if (onSearchTypeChange) {
+      onSearchTypeChange(type);
+    }
     if (isMobile) {
       setIsMobileControlsOpen(false);
     }
