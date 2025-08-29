@@ -393,7 +393,7 @@ export default function App() {
     // Send message to backend via webhook
     try {
       const webhookSearchType = searchType === 'email-yacht' ? 'email' : (searchType || 'local');
-      const response = await completeWebhookService.sendTextChat(message, webhookSearchType as 'local' | 'yacht' | 'email');
+      const response = await completeWebhookService.sendTextChat(message, webhookSearchType as 'local' | 'yacht' | 'email', currentConversationId);
       
       console.log('📤 Chat message sent:', message);
       console.log('📥 Backend response:', response);
@@ -566,7 +566,7 @@ export default function App() {
       
       // Use the same method as handleStartChat for consistency
       const webhookSearchType = currentSearchType === 'email-yacht' ? 'email' : (currentSearchType || 'local');
-      const response = await completeWebhookService.sendTextChat(newContent, webhookSearchType as 'local' | 'yacht' | 'email');
+      const response = await completeWebhookService.sendTextChat(newContent, webhookSearchType as 'local' | 'yacht' | 'email', currentConversationId);
 
       if (response.success && response.data) {
         // Check if response contains JSON with solution cards
@@ -632,7 +632,7 @@ export default function App() {
       // Use the same method as handleStartChat for consistency
       const messageContent = typeof userMessage.content === 'string' ? userMessage.content : String(userMessage.content);
       const webhookSearchType = currentSearchType === 'email-yacht' ? 'email' : (currentSearchType || 'local');
-      const response = await completeWebhookService.sendTextChat(messageContent, webhookSearchType as 'local' | 'yacht' | 'email');
+      const response = await completeWebhookService.sendTextChat(messageContent, webhookSearchType as 'local' | 'yacht' | 'email', currentConversationId);
 
       if (response.success && response.data) {
         // Check if response contains JSON with solution cards

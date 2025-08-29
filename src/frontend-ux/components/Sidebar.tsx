@@ -109,10 +109,10 @@ export function Sidebar({
     // Using CSS string to apply !important for forcing glassmorphism
     const blurEffect = 'blur(24px) saturate(1.5) !important';
     
-    // Use different colors when chat has messages (isChatMode)
+    // Use glassmorphism-friendly transparent colors
     const backgroundColor = isChatMode 
-      ? (isDarkMode ? '#3C3C3C !important' : '#F5F5F5 !important')
-      : (isDarkMode ? '#292929 !important' : '#ffffff !important');
+      ? (isDarkMode ? 'rgba(41, 41, 41, 0.85)' : 'rgba(245, 245, 245, 0.85)')
+      : (isDarkMode ? 'rgba(41, 41, 41, 0.85)' : 'rgba(255, 255, 255, 0.85)');
     
     return {
       backgroundColor,

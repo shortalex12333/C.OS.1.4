@@ -490,7 +490,7 @@ export function ScheduleCallModal({
                       mode="single"
                       selected={selectedDate}
                       onSelect={setSelectedDate}
-                      disabled={(date) => date < new Date() || date.getDay() === 0 || date.getDay() === 6}
+                      disabled={(date) => date < new Date()}
                       className="p-3"
                       classNames={{
                         months: "flex flex-col gap-2",
@@ -695,7 +695,10 @@ export function ScheduleCallModal({
                               type="tel"
                               required
                               value={formData.phone}
-                              onChange={(e) => handleInputChange('phone', e.target.value)}
+                              onChange={(e) => {
+                                const numericValue = e.target.value.replace(/[^0-9+\-\(\)\s]/g, '');
+                                handleInputChange('phone', numericValue);
+                              }}
                               placeholder="+1 (555) 123-4567"
                               style={{
                                 width: '100%',

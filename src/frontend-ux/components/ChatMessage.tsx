@@ -3,7 +3,6 @@ import { AISolutionCard } from './AISolutionCard';
 import { EmailSolutionCard } from './EmailSolutionCard';
 import ReactMarkdown from 'react-markdown';
 import { StreamingText } from './StreamingText';
-import { BrainLogo } from './BrainLogo';
 import { Copy, RotateCw, ThumbsUp, ThumbsDown, Edit2, X, Check } from 'lucide-react';
 import type { ChatMessage as ChatMessageType, ParsedContent, WebhookArrayResponse } from '../../types/webhook';
 
@@ -139,7 +138,7 @@ export function ChatMessage({ message, displayName, isDarkMode = false, isMobile
 
   return (
     <div 
-      className={`flex gap-3 ${message.isUser ? 'user_message_container flex-row-reverse ml-8' : 'ai_response_container mr-8'}`}
+      className={`flex ${message.isUser ? 'user_message_container justify-end ml-8' : 'ai_response_container mr-8'}`}
       style={{
         animation: isInitialRender && message.isUser 
           ? 'messageSlideUp 0.5s cubic-bezier(0.22, 0.61, 0.36, 1)' 
@@ -149,51 +148,7 @@ export function ChatMessage({ message, displayName, isDarkMode = false, isMobile
         transformOrigin: message.isUser ? 'bottom right' : 'bottom left'
       }}
     >
-      {/* Avatar */}
-      <div className={`flex items-center justify-center flex-shrink-0 ${
-        message.isUser 
-          ? 'w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm user_avatar_display' 
-          : 'w-8 h-8 ai_avatar_display'
-      }`}>
-        {message.isUser ? (
-          <span 
-            className="text-white font-medium"
-            style={{
-              fontSize: '10px',
-              lineHeight: '10px',
-              fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-            }}
-          >
-            {(displayName || 'User')
-              .split(' ')
-              .map(name => name[0])
-              .join('')
-              .slice(0, 2)
-              .toUpperCase()}
-          </span>
-        ) : (
-          <BrainLogo 
-            size={32}
-            isDarkMode={isDarkMode}
-            className="transition-all duration-300"
-          />
-        )}
-      </div>
-      
       <div className="flex-1 min-w-0">
-        {/* Name label */}
-        <div 
-          className={`mb-1 ${message.isUser ? 'user_label_display' : 'assistant_label_display'}`}
-          style={{
-            fontSize: '14px',
-            lineHeight: '20px',
-            fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-            color: isDarkMode ? 'rgba(246, 247, 251, 0.7)' : '#6b7280',
-            textAlign: message.isUser ? 'right' : 'left'
-          }}
-        >
-          {message.isUser ? 'You' : 'CelesteOS'}
-        </div>
         
         {/* Message content */}
         <div style={{ textAlign: message.isUser ? 'right' : 'left' }}>

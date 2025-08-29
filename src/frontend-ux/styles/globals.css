@@ -100,11 +100,11 @@ html, body, #root {
 }
 
 .sidebar-glassmorphism-dark {
-  background-color: rgba(60, 60, 60, 1.0) !important;
+  background-color: rgba(41, 41, 41, 0.85) !important;
 }
 
 .sidebar-glassmorphism-light {
-  background-color: rgba(245, 245, 245, 1.0) !important;
+  background-color: rgba(245, 245, 245, 0.85) !important;
 }
 
 .glass-input {

@@ -733,7 +733,8 @@ class CompleteWebhookService {
    */
   async sendTextChat(
     message: string,
-    searchStrategy: 'local' | 'yacht' | 'email' = 'local'
+    searchStrategy: 'local' | 'yacht' | 'email' = 'local',
+    conversationId?: string
   ): Promise<WebhookResponse<any>> {
     if (!this.currentUser) {
       return {
@@ -755,7 +756,7 @@ class CompleteWebhookService {
       return nameParts.slice(1).join(' ') || '';
     })();
     
-    const conversationId = `conversation_${Date.now()}`;
+    const finalConversationId = conversationId || `conversation_${Date.now()}`;
     const sessionId = this.currentUser.sessionId || `session_${Date.now()}`;
     
     const payload = {
@@ -768,7 +769,7 @@ class CompleteWebhookService {
       email: this.currentUser.email,
       message,
       search_strategy: searchStrategy,
-      conversation_id: conversationId,
+      conversation_id: finalConversationId,
       session_id: sessionId, // Duplicate for compatibility
       sessionId: sessionId,
       timestamp: new Date().toISOString(),

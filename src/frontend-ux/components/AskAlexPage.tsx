@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, ChevronRight, ArrowLeft, Send, Bot, User } from 'lucide-react';
 import { StreamingText } from './StreamingText';
-import { BrainLogo } from './BrainLogo';
 import { ScheduleCallModal } from './ScheduleCallModal';
 
 interface FAQItem {
@@ -887,56 +886,12 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
               {chatMessages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex gap-3 ${message.isUser ? 'user_message_container flex-row-reverse ml-8' : 'ai_response_container mr-8'}`}
+                  className={`flex ${message.isUser ? 'user_message_container justify-end ml-8' : 'ai_response_container mr-8'}`}
                   style={{
                     marginBottom: '20px'
                   }}
                 >
-                  {/* Avatar */}
-                  <div className={`flex items-center justify-center flex-shrink-0 ${
-                    message.isUser 
-                      ? 'w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm user_avatar_display' 
-                      : 'w-8 h-8 ai_avatar_display'
-                  }`}>
-                    {message.isUser ? (
-                      <span 
-                        className="text-white font-medium"
-                        style={{
-                          fontSize: '10px',
-                          lineHeight: '10px',
-                          fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-                        }}
-                      >
-                        {(displayName || 'User')
-                          .split(' ')
-                          .map(name => name[0])
-                          .join('')
-                          .slice(0, 2)
-                          .toUpperCase()}
-                      </span>
-                    ) : (
-                      <BrainLogo 
-                        size={32}
-                        isDarkMode={true}
-                        className="transition-all duration-300"
-                      />
-                    )}
-                  </div>
-                  
                   <div className="flex-1 min-w-0">
-                    {/* Name label */}
-                    <div 
-                      className={`mb-1 ${message.isUser ? 'user_label_display' : 'assistant_label_display'}`}
-                      style={{
-                        fontSize: '14px',
-                        lineHeight: '20px',
-                        fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                        color: '#939293',
-                        textAlign: message.isUser ? 'right' : 'left'
-                      }}
-                    >
-                      {message.isUser ? 'You' : 'CelesteOS'}
-                    </div>
                     
                     {/* Message content */}
                     <div style={{ textAlign: message.isUser ? 'right' : 'left' }}>
