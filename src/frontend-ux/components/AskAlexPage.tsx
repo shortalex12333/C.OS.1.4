@@ -182,7 +182,11 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
         body: JSON.stringify({
           question: searchQuery,
           timestamp: new Date().toISOString(),
-          source: 'faq-page'
+          source: 'faq-page',
+          user_id: localStorage.getItem('ms_user_id') || `faq_user_${Date.now()}`,
+          id: `faq_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          session_id: sessionStorage.getItem('session_id') || `faq_session_${Date.now()}`,
+          email: localStorage.getItem('ms_user_email') || 'faq@celeste7.ai'
         })
       });
       
@@ -459,7 +463,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
               marginBottom: '32px'
             }}>
               <img 
-                src="/faq-image.png"
+                src="/dark-faq-logo.png"
                 alt="FAQ Logo" 
                 style={{
                   width: '256px',
@@ -481,7 +485,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
             </h1>
             <p style={{
               fontSize: isMobile ? '15px' : '16px',
-              color: 'rgba(246, 247, 251, 0.7)',
+              color: '#939293',
               textAlign: 'center',
               maxWidth: '400px',
               lineHeight: isMobile ? '22px' : '24px',
@@ -503,10 +507,10 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
               display: 'flex',
               gap: '12px',
               alignItems: 'center',
-              background: 'rgba(255, 255, 255, 0.08)',
+              background: '#242424',
               borderRadius: '12px',
               padding: '4px',
-              border: '1px solid rgba(255, 255, 255, 0.12)'
+              border: '1px solid #343434'
             }}>
               <textarea
                 ref={searchInputRef}
@@ -555,14 +559,14 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
                 }}
                 onMouseEnter={(e) => {
                   if (searchQuery.trim() && !isLoading) {
-                    e.currentTarget.style.backgroundColor = '#0070ff';
+                    e.currentTarget.style.backgroundColor = '#0078fa';
                     e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 112, 255, 0.4)';
                     e.currentTarget.style.transform = 'translateY(-1px)';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (searchQuery.trim() && !isLoading) {
-                    e.currentTarget.style.backgroundColor = '#0070ff';
+                    e.currentTarget.style.backgroundColor = '#0078fa';
                     e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 112, 255, 0.3)';
                     e.currentTarget.style.transform = 'translateY(0)';
                   }
@@ -601,7 +605,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
               display: 'flex',
               flexDirection: 'column',
               gap: '1px',
-              background: 'rgba(255, 255, 255, 0.08)',
+              background: '#242424',
               borderRadius: '12px',
               overflow: 'hidden'
             }}>
@@ -627,7 +631,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
                       transition: 'background 0.2s',
                       textAlign: 'left'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#242424'}
                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                   >
                     <span style={{
@@ -642,7 +646,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
                     </span>
                     <ChevronRight 
                       size={20} 
-                      color="#0070ff"
+                      color="#0078fa"
                       style={{
                         transform: expandedItems.has(item.id) ? 'rotate(90deg)' : 'rotate(0)',
                         transition: 'transform 0.2s'
@@ -657,7 +661,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
                     }}>
                       <p style={{
                         fontSize: isMobile ? '14px' : '15px',
-                        color: 'rgba(246, 247, 251, 0.7)',
+                        color: '#939293',
                         lineHeight: isMobile ? '20px' : '22px',
                         letterSpacing: '-0.32px',
                         fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
@@ -730,7 +734,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
         position: 'fixed',
         inset: 0,
         zIndex: 10005,
-        background: '#0f1117', // Solid dark background
+        background: '#292929', // Modal background
         overflow: 'hidden',
         fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         display: 'flex',
@@ -804,14 +808,14 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
         flexDirection: 'column',
         height: '100vh',
         minWidth: 0,
-        borderRight: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRight: '1px solid #343434',
         animation: 'slideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
       }}>
         {/* Fixed Header with Logo */}
         <div style={{
           padding: '60px 40px 30px',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-          background: '#2e2e2e'
+          borderBottom: '1px solid #343434',
+          background: '#292929'
         }}>
           <div style={{
             display: 'flex',
@@ -822,11 +826,11 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
               marginBottom: '20px'
             }}>
               <img 
-                src="/light-faq-circle.png"
-                alt="CelesteOS Logo" 
+                src="/dark-faq-logo.png"
+                alt="FAQ Logo" 
                 style={{
-                  width: '128px',
-                  height: '128px',
+                  width: '256px',
+                  height: '256px',
                   objectFit: 'contain'
                 }}
               />
@@ -844,7 +848,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
             </h1>
             <p style={{
               fontSize: '14px',
-              color: 'rgba(246, 247, 251, 0.7)',
+              color: '#939293',
               textAlign: 'center',
               lineHeight: '20px',
               letterSpacing: '-0.32px',
@@ -868,7 +872,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: 'rgba(246, 247, 251, 0.7)',
+              color: '#939293',
               fontSize: isMobile ? '15px' : '16px',
               lineHeight: isMobile ? '22px' : '24px',
               letterSpacing: '-0.32px',
@@ -926,7 +930,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
                         fontSize: '14px',
                         lineHeight: '20px',
                         fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                        color: 'rgba(246, 247, 251, 0.7)',
+                        color: '#939293',
                         textAlign: message.isUser ? 'right' : 'left'
                       }}
                     >
@@ -963,7 +967,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
                       <div style={{
                         marginTop: '16px',
                         padding: '12px',
-                        background: 'rgba(255, 255, 255, 0.05)',
+                        background: '#242424',
                         borderRadius: '8px',
                         border: '1px solid rgba(255, 255, 255, 0.1)'
                       }}>
@@ -1091,17 +1095,17 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
         {/* Fixed Input Area */}
         <div style={{
           padding: '20px 40px 30px',
-          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-          background: '#2e2e2e'
+          borderTop: '1px solid #343434',
+          background: '#292929'
         }}>
           <div style={{
             display: 'flex',
             gap: '12px',
             alignItems: 'center',
-            background: 'rgba(255, 255, 255, 0.08)',
+            background: '#242424',
             borderRadius: '12px',
             padding: '4px',
-            border: '1px solid rgba(255, 255, 255, 0.12)'
+            border: '1px solid #343434'
           }}>
             <input
               type="text"
@@ -1129,8 +1133,8 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
                 width: '44px',
                 height: '44px',
                 background: searchQuery.trim() && !isLoading 
-                  ? '#0070ff'
-                  : 'rgba(156, 163, 175, 0.3)',
+                  ? '#0078fa'
+                  : '#727272',
                 border: 'none',
                 borderRadius: '6px',
                 color: '#ffffff',
@@ -1146,14 +1150,14 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
               }}
               onMouseEnter={(e) => {
                 if (searchQuery.trim() && !isLoading) {
-                  e.currentTarget.style.backgroundColor = '#0070ff';
+                  e.currentTarget.style.backgroundColor = '#0078fa';
                   e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 112, 255, 0.4)';
                   e.currentTarget.style.transform = 'translateY(-1px)';
                 }
               }}
               onMouseLeave={(e) => {
                 if (searchQuery.trim() && !isLoading) {
-                  e.currentTarget.style.backgroundColor = '#0070ff';
+                  e.currentTarget.style.backgroundColor = '#0078fa';
                   e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 112, 255, 0.3)';
                   e.currentTarget.style.transform = 'translateY(0)';
                 }
@@ -1177,13 +1181,13 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
         flexDirection: 'column',
         height: '100vh',
         minWidth: 0,
-        background: 'rgba(0, 0, 0, 0.5)',
+        background: '#292929',
         animation: 'slideInRight 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both'
       }}>
         {/* FAQ Header */}
         <div style={{
           padding: '30px 30px 20px',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
+          borderBottom: '1px solid #343434'
         }}>
           <h2 style={{
             fontSize: isMobile ? '18px' : '20px',
@@ -1198,7 +1202,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
           {searchQuery && (
             <p style={{
               fontSize: '13px',
-              color: 'rgba(246, 247, 251, 0.7)',
+              color: '#939293',
               marginTop: '8px',
               lineHeight: '18px',
               letterSpacing: '-0.32px',
@@ -1220,10 +1224,10 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
               key={item.id}
               style={{
                 marginBottom: '12px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                borderRadius: '12px',
+                background: '#242424',
+                borderRadius: '4px',
                 overflow: 'hidden',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                border: '1px solid #343434',
                 animation: `fadeInItem 0.4s cubic-bezier(0.4, 0, 0.2, 1) ${0.05 * index}s both`
               }}
             >
@@ -1241,7 +1245,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
                   transition: 'background 0.2s',
                   textAlign: 'left'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'}
+                onMouseEnter={(e) => e.currentTarget.style.background = '#242424'}
                 onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
                 <span style={{
@@ -1257,7 +1261,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
                 </span>
                 <ChevronRight 
                   size={18} 
-                  color="#0070ff"
+                  color="#0078fa"
                   style={{
                     transform: expandedItems.has(item.id) ? 'rotate(90deg)' : 'rotate(0)',
                     transition: 'transform 0.2s',
@@ -1273,7 +1277,7 @@ export function AskAlexPage({ onBack, isDarkMode = false, isMobile = false, onFa
                 }}>
                   <p style={{
                     fontSize: isMobile ? '13px' : '14px',
-                    color: 'rgba(246, 247, 251, 0.7)',
+                    color: '#939293',
                     lineHeight: isMobile ? '18px' : '20px',
                     letterSpacing: '-0.32px',
                     fontFamily: 'Eloquia Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'

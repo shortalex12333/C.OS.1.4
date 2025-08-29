@@ -174,9 +174,9 @@ export function Sidebar({
             onClick={handleNewChat}
             className={`flex items-center gap-3 w-full transition-all duration-300 ease-out new_chat_button ${isMobile ? 'p-2.5' : 'p-3'}`}
             style={{
-              fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
               fontSize: isMobile ? '15px' : '14px',
-              fontWeight: '500',
+              fontWeight: '400',
               background: 'transparent',
               border: 'none',
               borderRadius: '8px',
@@ -203,9 +203,9 @@ export function Sidebar({
                 onClick={() => handleSearchTypeSelect('yacht')}
                 className={`flex items-center gap-3 w-full p-3 transition-all duration-200 yacht_search_button`}
                 style={{
-                  fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                  fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                   fontSize: '14px',
-                  fontWeight: '500',
+                  fontWeight: '400',
                   background: 'transparent',
                   border: 'none',
                   borderRadius: '8px',
@@ -240,9 +240,9 @@ export function Sidebar({
                 onClick={() => handleSearchTypeSelect('email-yacht')}
                 className={`flex items-center gap-3 w-full p-3 transition-all duration-200 email_search_button`}
                 style={{
-                  fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                  fontFamily: 'Eloquia Display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                   fontSize: '14px',
-                  fontWeight: '500',
+                  fontWeight: '400',
                   background: 'transparent',
                   border: 'none',
                   borderRadius: '8px',
